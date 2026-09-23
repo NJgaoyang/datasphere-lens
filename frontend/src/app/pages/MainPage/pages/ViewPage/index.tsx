@@ -17,10 +17,13 @@
  */
 
 import { useEffect } from 'react';
+import { useMatch } from 'react-router-dom';
 import { cancelQuery } from 'utils/queryCancellation';
 import { useSourceSlice } from '../SourcePage/slice';
 import { Container } from './Container';
 import { EditorContext, useEditorContext } from './EditorContext';
+import { LensViewListPage } from './LensViewListPage';
+import { SaveForm } from './SaveForm';
 import { SaveFormContext, useSaveFormContext } from './SaveFormContext';
 import { useViewSlice } from './slice';
 
@@ -29,13 +32,28 @@ export function ViewPage() {
   useSourceSlice();
   const saveFormContextValue = useSaveFormContext();
   const editorContextValue = useEditorContext();
+  const rootMatch = useMatch('/organizations/:orgId/views');
 
   useEffect(() => () => cancelQuery('view-preview'), []);
 
   return (
     <EditorContext.Provider value={editorContextValue}>
       <SaveFormContext.Provider value={saveFormContextValue}>
-        <Container />
+        {rootMatch ? (
+          <>
+            <LensViewListPage />
+            <SaveForm
+              formProps={{
+                labelAlign: 'left',
+                labelCol: { offset: 1, span: 8 },
+                wrapperCol: { span: 13 },
+              }}
+              okText="保存"
+            />
+          </>
+        ) : (
+          <Container />
+        )}
       </SaveFormContext.Provider>
     </EditorContext.Provider>
   );
