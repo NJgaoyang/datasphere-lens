@@ -110,7 +110,6 @@ export function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const useLensShell = !shouldUseMobileViz &&
-    !location.pathname.includes('/chartEditor') &&
     !location.pathname.includes('/storyEditor/') &&
     !location.pathname.includes('/storyPlayer/');
   // loaded first time

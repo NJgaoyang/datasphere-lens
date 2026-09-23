@@ -6,7 +6,9 @@ import { useEditBoardSlice } from 'app/pages/DashBoardPage/pages/BoardEditor/sli
 import { useStoryBoardSlice } from 'app/pages/StoryBoardPage/slice';
 import { dispatchResize } from 'app/utils/dispatchResize';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useMatch } from 'react-router-dom';
 import styled from 'styled-components';
+import { LensVizHub } from './LensVizHub';
 import { Main } from './Main';
 import { SaveForm } from './SaveForm';
 import { SaveFormContext, useSaveFormContext } from './SaveFormContext';
@@ -22,6 +24,7 @@ export function VizPage() {
   useEditBoardSlice();
   useStoryBoardSlice();
   const saveFormContextValue = useSaveFormContext();
+  const isHub = !!useMatch('/organizations/:orgId/vizs');
   const [sliderVisible, setSliderVisible] = useState<boolean>(false);
 
   const { sizes, setSizes } = useSplitSizes({
@@ -66,6 +69,19 @@ export function VizPage() {
     },
     [setSliderVisible],
   );
+
+  if (isHub) {
+    return (
+      <SaveFormContext.Provider value={saveFormContextValue}>
+        <LensVizHub />
+        <SaveForm
+          width={400}
+          formProps={{ labelAlign: 'left', labelCol: { span: 7 }, wrapperCol: { span: 15 } }}
+          okText={tg('button.save')}
+        />
+      </SaveFormContext.Provider>
+    );
+  }
 
   return (
     <SaveFormContext.Provider value={saveFormContextValue}>

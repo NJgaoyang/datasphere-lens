@@ -20,7 +20,7 @@ import { useEffect } from 'react';
 import { useMatch } from 'react-router-dom';
 import { cancelQuery } from 'utils/queryCancellation';
 import { useSourceSlice } from '../SourcePage/slice';
-import { Container } from './Container';
+import { LensDatasetStudio } from './LensDatasetStudio';
 import { EditorContext, useEditorContext } from './EditorContext';
 import { LensViewListPage } from './LensViewListPage';
 import { SaveForm } from './SaveForm';
@@ -52,7 +52,7 @@ export function ViewPage() {
             />
           </>
         ) : (
-          <Container />
+          <LensDatasetStudio />
         )}
       </SaveFormContext.Provider>
     </EditorContext.Provider>

@@ -637,7 +637,7 @@ export const ChartEditor: FC<ChartEditorProps> = ({
   };
 
   return (
-    <StyledChartWorkbenchPage>
+    <StyledChartWorkbenchPage $standalone={container === 'dataChart'}>
       <SaveFormContext.Provider value={saveFormContextValue}>
         <ChartWorkbench
           header={{
@@ -686,14 +686,16 @@ export const ChartEditor: FC<ChartEditorProps> = ({
 
 export default ChartEditor;
 
-const StyledChartWorkbenchPage = styled.div`
-  position: absolute;
+const StyledChartWorkbenchPage = styled.div<{ $standalone: boolean }>`
+  position: ${p => (p.$standalone ? 'relative' : 'absolute')};
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: ${LEVEL_100};
+  z-index: ${p => (p.$standalone ? '1' : LEVEL_100)};
   display: flex;
+  width: 100%;
   min-width: 0;
+  height: 100%;
   min-height: 0;
 `;
