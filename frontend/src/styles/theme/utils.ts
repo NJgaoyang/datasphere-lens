@@ -39,6 +39,15 @@ export function getAntdThemeConfig(themeKey: string): ThemeConfig {
       colorError: currentTheme.error,
       colorWarning: currentTheme.warning,
       colorLink: currentTheme.primary,
+      borderRadius: 8,
+      fontSize: 14,
+      colorBgLayout: isDark ? '#101216' : '#f5f7fa',
+    },
+    components: {
+      Button: { borderRadius: 6, controlHeight: 32 },
+      Card: { borderRadiusLG: 10 },
+      Table: { headerBg: isDark ? '#1f2329' : '#fafafa', headerColor: currentTheme.textColor },
+      Menu: { itemBorderRadius: 6, itemHeight: 40 },
     },
   };
 }

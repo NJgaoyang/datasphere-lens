@@ -1,8 +1,8 @@
 {
-  "name": "datart",
-  "version": "1.0.0",
+  "name": "datasphere-lens",
+  "version": "0.1.0",
   "private": true,
-  "description": "",
+  "description": "DataSphere Lens enterprise business intelligence platform",
   "repository": {
     "type": "git",
     "url": ""

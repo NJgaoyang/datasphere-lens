@@ -1,3 +1,11 @@
+# DataSphere Lens
+
+DataSphere Lens 是面向公司内部的数据分析与 BI 平台。项目以 Datart Core 作为技术底座，产品与交互参考 DataEase，前端统一采用 Ant Design / Ant Design Pro 体系。
+
+> 当前主线：数据源 → 数据集 → 图表 → 仪表板 → 企业权限。
+
+## Upstream foundation
+
 ![](https://running-elephant.github.io/datart-docs/images/about/logo_with_text.jpg)
 
 > **新一代数据可视化开放平台，支持报表、仪表板、大屏、分析和可视化数据应用的敏捷构建。**

@@ -71,11 +71,11 @@ export function AppRouter() {
     <ConfigProvider locale={antdLocales[i18n.language]}>
       <BrowserRouter basename={PUBLIC_URL}>
         <Helmet
-          titleTemplate="%s - 宜租乐BI"
-          defaultTitle="宜租乐BI"
+          titleTemplate="%s - DataSphere Lens"
+          defaultTitle="DataSphere Lens"
           htmlAttributes={{ lang: i18n.language }}
         >
-          <meta name="description" content="Data Art" />
+          <meta name="description" content="DataSphere Lens 企业数据分析平台" />
         </Helmet>
         <Routes>
           <Route path="/setup" element={<LazySetupPage />} />

@@ -37,9 +37,8 @@ import { NotFoundPage } from '../NotFoundPage';
 import { StoryEditor } from '../StoryBoardPage/Editor';
 import { StoryPlayer } from '../StoryBoardPage/Player';
 import { AccessRoute } from './AccessRoute';
-import { Background } from './Background';
-import { Navbar } from './Navbar';
 import { AuditLogPage } from './pages/AuditLogPage';
+import { LensHomePage } from './pages/LensHomePage';
 import { ConfirmInvitePage } from './pages/ConfirmInvitePage';
 import { MemberPage } from './pages/MemberPage';
 import { MonitorPage } from './pages/MonitorPage';
@@ -57,6 +56,7 @@ import { MobileVizPage } from './MobileVizPage';
 import { VizPage } from './pages/VizPage';
 import { useVizSlice } from './pages/VizPage/slice';
 import { initChartPreviewData } from './pages/VizPage/slice/thunks';
+import { LensLayout } from './LensLayout';
 import { useMainSlice } from './slice';
 import { selectOrgId } from './slice/selectors';
 import {
@@ -108,6 +108,11 @@ export function MainPage() {
   const organizationMatch = useMatch('/organizations/:orgId/*');
   const orgId = useSelector(selectOrgId);
   const navigate = useNavigate();
+  const location = useLocation();
+  const useLensShell = !shouldUseMobileViz &&
+    !location.pathname.includes('/chartEditor') &&
+    !location.pathname.includes('/storyEditor/') &&
+    !location.pathname.includes('/storyPlayer/');
   // loaded first time
 
   useMount(
@@ -146,22 +151,21 @@ export function MainPage() {
     [dispatch, navigate],
   );
 
-  return (
-    <AppContainer>
-      <Background />
-      {!shouldUseMobileViz && <Navbar />}
-      {orgId && (
-        <Routes>
+  if (!orgId) return null;
+
+  const routeContent = (
+    <Routes>
           <Route
             path="/"
             element={<Navigate to={`/organizations/${orgId}`} replace />}
           />
           <Route path="/confirminvite" element={<ConfirmInvitePage />} />
+          <Route path="/organizations/:orgId/home" element={<LensHomePage orgId={orgId} />} />
           <Route
             path="/organizations/:orgId"
             element={
               <Navigate
-                to={`/organizations/${organizationMatch?.params.orgId}/vizs`}
+                to={`/organizations/${organizationMatch?.params.orgId}/home`}
                 replace
               />
             }
@@ -303,8 +307,12 @@ export function MainPage() {
           />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      )}
-    </AppContainer>
+  );
+
+  return useLensShell ? (
+    <LensLayout orgId={orgId}>{routeContent}</LensLayout>
+  ) : (
+    <AppContainer>{routeContent}</AppContainer>
   );
 }
 
