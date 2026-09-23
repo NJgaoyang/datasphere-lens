@@ -131,6 +131,10 @@ const ChartConfigPanel: FC<{
       <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
         <ChartPaletteContext.Provider value={{ datas: editorDataConfigs }}>
           <StyledChartDataViewPanel>
+            <PanelIntro>
+              <strong>图表配置</strong>
+              <span>配置字段、样式、交互和高级选项</span>
+            </PanelIntro>
             <ChartToolbar />
             <ConfigBlock>
               <Tabs
@@ -239,8 +243,29 @@ const StyledChartDataViewPanel = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: ${SPACE_MD};
-  background-color: ${p => p.theme.bodyBackground};
+  padding: 0 ${SPACE_MD} ${SPACE_MD};
+  background: #f8fafc;
+  border-left: 1px solid #eaecf0;
+`;
+
+const PanelIntro = styled.div`
+  flex-shrink: 0;
+  padding: 14px 0 10px;
+
+  strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 650;
+    color: #1d2939;
+  }
+
+  span {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #98a2b3;
+  }
 `;
 
 const ConfigBlock = styled.div`
@@ -248,7 +273,8 @@ const ConfigBlock = styled.div`
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  background-color: ${p => p.theme.componentBackground};
+  background: #fff;
+  border: 1px solid #eaecf0;
   border-radius: ${BORDER_RADIUS};
 
   .tabs {

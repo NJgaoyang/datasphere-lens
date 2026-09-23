@@ -67,6 +67,12 @@ const ChartPresentWrapper: FC<{
 
     return (
       <StyledChartPresentWrapper borderWidth={borderWidth}>
+        <CanvasHeader>
+          <div>
+            <strong>可视化画布</strong>
+            <span>选择图表类型并实时预览分析结果</span>
+          </div>
+        </CanvasHeader>
         <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
           <div ref={ChartGraphPanelRef}>
             <ChartGraphPanel
@@ -104,7 +110,28 @@ const StyledChartPresentWrapper = styled.div<{ borderWidth }>`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: ${p => p.borderWidth}px ${p => p.borderWidth}px
-    ${p => p.borderWidth}px 0;
-  background-color: ${p => p.theme.bodyBackground};
+  padding: 0 ${p => p.borderWidth}px ${p => p.borderWidth}px;
+  background: #f4f6f9;
+`;
+
+const CanvasHeader = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 58px;
+  padding: 0 4px;
+
+  strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 650;
+    color: #1d2939;
+  }
+
+  span {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: #98a2b3;
+  }
 `;

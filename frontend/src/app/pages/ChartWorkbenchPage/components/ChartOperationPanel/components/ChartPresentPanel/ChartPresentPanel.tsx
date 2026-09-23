@@ -204,8 +204,11 @@ const StyledChartPresentPanel = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
-  background-color: ${p => p.theme.componentBackground};
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #eaecf0;
   border-radius: ${BORDER_RADIUS};
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
 `;
 
 const StyledReusableChartContainer = styled.div`

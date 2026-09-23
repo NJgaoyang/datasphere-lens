@@ -79,6 +79,8 @@ const StyledChartGraphPanel = styled.div`
   padding: ${SPACE_XS};
   margin-bottom: ${SPACE_MD};
   color: ${p => p.theme.textColorLight};
-  background-color: ${p => p.theme.componentBackground};
+  background: #fff;
+  border: 1px solid #eaecf0;
   border-radius: ${BORDER_RADIUS};
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.03);
 `;

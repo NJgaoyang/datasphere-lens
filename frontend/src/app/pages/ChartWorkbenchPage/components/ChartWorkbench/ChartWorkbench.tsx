@@ -172,18 +172,18 @@ const StyledChartWorkbench = styled.div`
   flex: 1;
   flex-flow: column;
   overflow: hidden;
-  background-color: ${p => p.theme.bodyBackground};
+  background: #f4f6f9;
 
   .flexlayout__tab {
     overflow: hidden;
-    background-color: ${p => p.theme.bodyBackground};
+    background: transparent;
   }
 
   .flexlayout__splitter {
-    background: ${p => p.theme.bodyBackground};
+    background: #e4e7ec;
 
     &:hover {
-      background-color: ${p => p.theme.primary};
+      background: #98a2b3;
     }
   }
 

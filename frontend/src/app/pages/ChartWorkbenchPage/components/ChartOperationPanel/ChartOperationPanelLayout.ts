@@ -27,10 +27,10 @@ export enum LayoutComponentType {
 
 const layoutConfig: IJsonModel = {
   global: {
-    tabEnableFloat: true,
+    tabEnableFloat: false,
     tabEnableClose: false,
     tabSetEnableTabStrip: false,
-    splitterSize: 2,
+    splitterSize: 1,
   },
   layout: {
     type: 'row',
@@ -39,12 +39,23 @@ const layoutConfig: IJsonModel = {
       {
         type: 'tabset',
         id: 'model-dragbar',
-        width: 256,
+        width: 280,
         children: [
           {
             type: 'tab',
             id: 'model-dragbar-component',
             component: LayoutComponentType.VIEW,
+          },
+        ],
+      },
+      {
+        type: 'tabset',
+        id: 'present',
+        children: [
+          {
+            type: 'tab',
+            id: 'present-wrapper',
+            component: LayoutComponentType.PRESENT,
           },
         ],
       },
@@ -57,17 +68,6 @@ const layoutConfig: IJsonModel = {
             type: 'tab',
             id: 'config-component',
             component: LayoutComponentType.CONFIG,
-          },
-        ],
-      },
-      {
-        type: 'tabset',
-        id: 'present',
-        children: [
-          {
-            type: 'tab',
-            id: 'present-wrapper',
-            component: LayoutComponentType.PRESENT,
           },
         ],
       },

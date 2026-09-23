@@ -1,24 +1,11 @@
-/**
- * Datart
- *
- * Copyright 2021
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import { DownloadOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  DashboardOutlined,
+  DownloadOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
 import { Button, Space } from 'antd';
 import SaveToDashboard from 'app/components/SaveToDashboard';
-import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useMount from 'app/hooks/useMount';
 import { useWorkbenchSlice } from 'app/pages/ChartWorkbenchPage/slice';
 import { DownloadListPopup } from 'app/pages/MainPage/Navbar/DownloadListPopup';
@@ -29,14 +16,6 @@ import { downloadFile } from 'app/utils/fetch';
 import { FC, memo, useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import {
-  FONT_SIZE_ICON_SM,
-  FONT_WEIGHT_MEDIUM,
-  LINE_HEIGHT_ICON_SM,
-  SPACE_MD,
-  SPACE_SM,
-  SPACE_XS,
-} from 'styles/StyleConstants';
 import {
   backendChartSelector,
   selectChartEditorDownloadPolling,
@@ -58,9 +37,8 @@ const ChartHeaderPanel: FC<{
     onGoBack,
     onSaveChartToDashBoard,
   }) => {
-    const t = useI18NPrefix(`viz.workbench.header`);
     const hasVizFetched = useSelector(selectHasVizFetched);
-    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const backendChart = useSelector(backendChartSelector);
     const downloadPolling = useSelector(selectChartEditorDownloadPolling);
     const dispatch = useDispatch();
@@ -69,37 +47,40 @@ const ChartHeaderPanel: FC<{
     const handleModalOk = useCallback(
       (dashboardId: string, dashboardType: string) => {
         onSaveChartToDashBoard?.(dashboardId, dashboardType);
-        setIsModalVisible(true);
+        setIsModalVisible(false);
       },
       [onSaveChartToDashBoard],
     );
-
-    const handleModalCancel = useCallback(() => {
-      setIsModalVisible(false);
-    }, []);
-
-    const handleModalOpen = useCallback(() => {
-      setIsModalVisible(true);
-    }, []);
 
     const onSetPolling = useCallback(
       (polling: boolean) => {
         dispatch(actions.setChartEditorDownloadPolling(polling));
       },
-      [dispatch, actions],
+      [actions, dispatch],
     );
 
     useMount(() => {
-      if (!hasVizFetched) {
-        // Request data when there is no data
-        dispatch(getFolders(orgId as string));
+      if (!hasVizFetched && orgId) {
+        dispatch(getFolders(orgId));
       }
     });
 
     return (
       <Wrapper>
-        <h1>{chartName}</h1>
-        <Space>
+        <Context>
+          <BackButton
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={onGoBack}
+          />
+          <Divider />
+          <TitleBlock>
+            <Kicker>CHART WORKBENCH</Kicker>
+            <Title>{chartName || '未命名图表'}</Title>
+          </TitleBlock>
+        </Context>
+
+        <Actions>
           <DownloadListPopup
             polling={downloadPolling}
             setPolling={onSetPolling}
@@ -111,34 +92,30 @@ const ChartHeaderPanel: FC<{
                 });
               }
             }}
-            renderDom={
-              <Button icon={<DownloadOutlined />}>{t('downloadList')}</Button>
-            }
+            renderDom={<Button icon={<DownloadOutlined />}>下载</Button>}
           />
-          <Button onClick={onGoBack}>{t('cancel')}</Button>
-          <Button type="primary" onClick={onSaveChart}>
-            {t('save')}
+          <Button icon={<SaveOutlined />} type="primary" onClick={onSaveChart}>
+            保存
           </Button>
-          {!(container === 'widget') && (
+          {container !== 'widget' && (
             <Button
-              type="primary"
-              onClick={() => {
-                setIsModalVisible(true);
-              }}
+              icon={<DashboardOutlined />}
+              onClick={() => setIsModalVisible(true)}
             >
-              {t('saveToDashboard')}
+              添加到仪表板
             </Button>
           )}
-          <SaveToDashboard
-            orgId={orgId as string}
-            title={t('saveToDashboard')}
-            isModalVisible={isModalVisible}
-            backendChartId={backendChart?.id}
-            handleOk={handleModalOk}
-            handleCancel={handleModalCancel}
-            handleOpen={handleModalOpen}
-          ></SaveToDashboard>
-        </Space>
+        </Actions>
+
+        <SaveToDashboard
+          orgId={orgId as string}
+          title="添加到仪表板"
+          isModalVisible={isModalVisible}
+          backendChartId={backendChart?.id}
+          handleOk={handleModalOk}
+          handleCancel={() => setIsModalVisible(false)}
+          handleOpen={() => setIsModalVisible(true)}
+        />
       </Wrapper>
     );
   },
@@ -150,15 +127,52 @@ const Wrapper = styled.div`
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  padding: ${SPACE_SM} ${SPACE_MD} ${SPACE_SM} ${SPACE_SM};
-  background-color: ${p => p.theme.componentBackground};
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 0 18px;
+  background: #fff;
+  border-bottom: 1px solid #e7eaf0;
+`;
 
-  h1 {
-    flex: 1;
-    padding: 0 ${SPACE_XS};
-    font-size: ${FONT_SIZE_ICON_SM};
-    font-weight: ${FONT_WEIGHT_MEDIUM};
-    line-height: ${LINE_HEIGHT_ICON_SM};
-  }
+const Context = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+`;
+
+const BackButton = styled(Button)`
+  flex-shrink: 0;
+`;
+
+const Divider = styled.div`
+  width: 1px;
+  height: 28px;
+  background: #eaecf0;
+`;
+
+const TitleBlock = styled.div`
+  min-width: 0;
+`;
+
+const Kicker = styled.div`
+  margin-bottom: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #667085;
+  letter-spacing: 0.12em;
+`;
+
+const Title = styled.div`
+  max-width: 420px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 650;
+  color: #182230;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const Actions = styled(Space)`
+  flex-shrink: 0;
 `;
