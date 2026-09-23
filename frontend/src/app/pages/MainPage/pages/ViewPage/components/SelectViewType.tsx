@@ -1,70 +1,90 @@
-/**
- * Datart
- *
- * Copyright 2021
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {
   ApartmentOutlined,
   ConsoleSqlOutlined,
   PartitionOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
-import useI18NPrefix from 'app/hooks/useI18NPrefix';
+import { Card, Col, Row, Space, Tag, Typography } from 'antd';
 import { memo } from 'react';
 import styled from 'styled-components';
-import {
-  BORDER_RADIUS,
-  FONT_SIZE_HEADING,
-  FONT_SIZE_TITLE,
-  FONT_WEIGHT_MEDIUM,
-  LINE_HEIGHT_HEADING,
-  LINE_HEIGHT_LABEL,
-  SPACE_LG,
-  SPACE_MD,
-  SPACE_TIMES,
-  SPACE_XS,
-} from 'styles/StyleConstants';
 
-interface selectViewTypeProps {
+const { Paragraph, Text, Title } = Typography;
+
+interface SelectViewTypeProps {
   selectViewType: (viewType: string) => void;
 }
 
-const SelectViewType = memo(({ selectViewType }: selectViewTypeProps) => {
-  const viewTypeList = ['STRUCT', 'SQL', 'VIEW_JOIN'];
-  const t = useI18NPrefix('view.structView');
+const datasetTypes = [
+  {
+    key: 'STRUCT',
+    title: '表模型',
+    description: '从数据源选择表和字段，通过可视化方式快速构建数据集。',
+    icon: <PartitionOutlined />,
+    tag: '推荐',
+    features: ['可视化选表', '字段模型', '无需编写 SQL'],
+  },
+  {
+    key: 'SQL',
+    title: 'SQL 数据集',
+    description: '编写查询 SQL 构建数据集，适合复杂计算与专业分析场景。',
+    icon: <ConsoleSqlOutlined />,
+    tag: '专业',
+    features: ['SQL 编辑器', '变量参数', '结果预览'],
+  },
+  {
+    key: 'VIEW_JOIN',
+    title: '关联数据集',
+    description: '基于已有数据集建立关联模型，组合不同业务主题的数据。',
+    icon: <ApartmentOutlined />,
+    tag: '模型',
+    features: ['数据集关联', '多主题组合', '复用已有模型'],
+  },
+];
 
+const SelectViewType = memo(({ selectViewType }: SelectViewTypeProps) => {
   return (
     <Wrapper>
-      <Title>{t('title')}</Title>
-      <ViewTypeList>
-        {viewTypeList.map((v, i) => {
-          return (
-            <ViewTypeItem onClick={() => selectViewType(v)} key={i}>
-              {v === 'STRUCT' ? (
-                <PartitionOutlined className="icon" />
-              ) : v === 'VIEW_JOIN' ? (
-                <ApartmentOutlined className="icon" />
-              ) : (
-                <ConsoleSqlOutlined className="icon" />
-              )}
-              <h4>{t(v)}</h4>
-              <p>{t(`${v}_DESC`)}</p>
-            </ViewTypeItem>
-          );
-        })}
-      </ViewTypeList>
+      <Header>
+        <Text type="secondary">数据准备 / 新建数据集</Text>
+        <Title level={3}>选择数据集创建方式</Title>
+        <Paragraph type="secondary">
+          DataSphere Lens 将数据源统一封装为数据集。图表和仪表板只使用数据集，不直接依赖底层数据库表。
+        </Paragraph>
+      </Header>
+
+      <Row gutter={[20, 20]}>
+        {datasetTypes.map(item => (
+          <Col key={item.key} xs={24} lg={8}>
+            <DatasetCard hoverable onClick={() => selectViewType(item.key)}>
+              <CardHeader>
+                <IconWrap>{item.icon}</IconWrap>
+                <Tag bordered={false} color={item.key === 'STRUCT' ? 'blue' : undefined}>
+                  {item.tag}
+                </Tag>
+              </CardHeader>
+              <Title level={4}>{item.title}</Title>
+              <Description type="secondary">{item.description}</Description>
+              <Space size={[6, 8]} wrap>
+                {item.features.map(feature => (
+                  <Tag key={feature} bordered={false}>
+                    {feature}
+                  </Tag>
+                ))}
+              </Space>
+              <Action>
+                <span>开始创建</span>
+                <RightOutlined />
+              </Action>
+            </DatasetCard>
+          </Col>
+        ))}
+      </Row>
+
+      <Hint>
+        <Text type="secondary">
+          创建后可继续配置字段类型、字段显示名、变量、列权限、数据预览和分析入口。
+        </Text>
+      </Hint>
     </Wrapper>
   );
 });
@@ -73,49 +93,75 @@ export default SelectViewType;
 
 const Wrapper = styled.div`
   flex: 1;
-  padding: ${SPACE_XS} ${SPACE_LG};
-  background-color: ${p => p.theme.componentBackground};
+  padding: 32px;
+  overflow: auto;
+  background: #f5f7fa;
 `;
 
-const Title = styled.h2`
-  padding: ${SPACE_MD} 0;
-  font-size: ${FONT_SIZE_TITLE};
+const Header = styled.div`
+  max-width: 760px;
+  margin-bottom: 28px;
+
+  h3 {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
 `;
 
-const ViewTypeList = styled.div`
-  display: flex;
-`;
-
-const ViewTypeItem = styled.div`
-  position: relative;
-  width: ${SPACE_TIMES(64)};
-  padding: ${SPACE_MD} ${SPACE_MD} ${SPACE_LG} ${SPACE_TIMES(12)};
-  margin-right: ${SPACE_MD};
-  cursor: pointer;
+const DatasetCard = styled(Card)`
+  height: 100%;
   border: 1px solid ${p => p.theme.borderColorSplit};
-  border-radius: ${BORDER_RADIUS};
 
-  .icon {
-    position: absolute;
-    top: ${SPACE_LG};
-    left: ${SPACE_MD};
-    margin-right: ${SPACE_XS};
-    font-size: ${FONT_SIZE_HEADING};
-    color: ${p => p.theme.primary};
-  }
-
-  h4 {
-    font-weight: ${FONT_WEIGHT_MEDIUM};
-    line-height: ${LINE_HEIGHT_HEADING};
-    color: ${p => p.theme.textColorSnd};
-  }
-
-  p {
-    line-height: ${LINE_HEIGHT_LABEL};
-    color: ${p => p.theme.textColorLight};
+  .ant-card-body {
+    display: flex;
+    min-height: 280px;
+    flex-direction: column;
+    padding: 24px;
   }
 
   &:hover {
-    border: 1px solid ${p => p.theme.primary};
+    border-color: ${p => p.theme.primary};
   }
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+const IconWrap = styled.div`
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  font-size: 24px;
+  color: ${p => p.theme.primary};
+  background: #eaf3ff;
+  border-radius: 12px;
+`;
+
+const Description = styled(Paragraph)`
+  min-height: 52px;
+  margin-bottom: 18px !important;
+`;
+
+const Action = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 18px;
+  margin-top: auto;
+  font-weight: 500;
+  color: ${p => p.theme.primary};
+  border-top: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const Hint = styled.div`
+  padding: 16px 20px;
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid ${p => p.theme.borderColorSplit};
+  border-radius: 8px;
 `;

@@ -190,6 +190,16 @@ export const Toolbar = memo(
       }
     }, [histState?.sourcesId, sourceChange, sources]);
 
+    useEffect(() => {
+      if (isNewView(id) && histState?.parentId !== undefined) {
+        dispatch(
+          actions.changeCurrentEditingView({
+            parentId: histState.parentId || null,
+          }),
+        );
+      }
+    }, [actions, dispatch, histState?.parentId, id]);
+
     return (
       <Container>
         <Operates>
