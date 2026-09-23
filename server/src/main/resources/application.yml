@@ -1,6 +1,6 @@
 spring:
   application:
-    name: datart-server
+    name: datasphere-lens-server
 
   main:
     banner-mode: off

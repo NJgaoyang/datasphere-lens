@@ -12,7 +12,7 @@ export function Brand() {
   return (
     <Header>
       <img src={logo} alt="logo" />
-      <h1>宜租乐BI</h1>
+      <h1>DataSphere Lens</h1>
     </Header>
   );
 }

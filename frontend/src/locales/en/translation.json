@@ -76,8 +76,8 @@
     }
   },
   "setup": {
-    "welcome": "Welcome to 宜租乐BI",
-    "welcomeDesc": "Before using 宜租乐BI for the first time, set up an initial user",
+    "welcome": "Welcome to DataSphere Lens",
+    "welcomeDesc": "Before using DataSphere Lens for the first time, set up an initial user",
     "success": "Success",
     "successDesc": "Initial user set up successfully. Click here to",
     "goLogin": "Log In",

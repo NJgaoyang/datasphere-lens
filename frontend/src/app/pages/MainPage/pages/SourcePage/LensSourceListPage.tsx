@@ -323,10 +323,12 @@ export function LensSourceListPage() {
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4, borderTop: '1px solid #f2f3f5', marginTop: 12, paddingTop: 10 }} onClick={e => e.stopPropagation()}>
                     {!source.isFolder && <Button type="link" size="small" onClick={() => createDataset(source)}>创建数据集</Button>}
                     <CascadeAccess module={ResourceTypes.Source} path={managePath} level={PermissionLevels.Manage}>
-                      <Button type="link" size="small" icon={<EditOutlined />} onClick={() => source.isFolder ? editFolder(source) : navigate(`/organizations/${orgId}/sources/${source.id}`)}>编辑</Button>
-                      <Popconfirm title={source.isFolder ? '确认删除该文件夹？' : '确认将该数据源移入回收站？'} onConfirm={() => remove(source)}>
-                        <Button type="link" size="small" danger loading={deleteLoading} icon={<DeleteOutlined />}>{source.isFolder ? '删除' : '归档'}</Button>
-                      </Popconfirm>
+                      <>
+                        <Button type="link" size="small" icon={<EditOutlined />} onClick={() => source.isFolder ? editFolder(source) : navigate(`/organizations/${orgId}/sources/${source.id}`)}>编辑</Button>
+                        <Popconfirm title={source.isFolder ? '确认删除该文件夹？' : '确认将该数据源移入回收站？'} onConfirm={() => remove(source)}>
+                          <Button type="link" size="small" danger loading={deleteLoading} icon={<DeleteOutlined />}>{source.isFolder ? '删除' : '归档'}</Button>
+                        </Popconfirm>
+                      </>
                     </CascadeAccess>
                   </div>
                 </Card>

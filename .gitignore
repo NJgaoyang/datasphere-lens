@@ -20,3 +20,11 @@ jdk/
 
 # 临时测试目录
 __clean_test__/
+
+# DataSphere Lens local runtime / secrets
+.env
+.env.*
+!.env.example
+runtime/
+run/
+logs/

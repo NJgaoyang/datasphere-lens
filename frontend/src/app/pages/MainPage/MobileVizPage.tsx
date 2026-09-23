@@ -104,7 +104,7 @@ const MobileDashboardList: FC = () => {
   return (
     <ListWrapper>
       <ListHeader>
-        <LogoTitle>宜租乐BI</LogoTitle>
+        <LogoTitle>DataSphere Lens</LogoTitle>
         <SubTitle>数据分析平台</SubTitle>
       </ListHeader>
       <ListContainer>
