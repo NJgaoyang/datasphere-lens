@@ -1,0 +1,662 @@
+/**
+ * Datart
+ *
+ * Copyright 2021
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { DataViewFieldType } from 'app/constants';
+import { Column, ColumnRole } from '../slice/types';
+import {
+  addPathToHierarchyStructureAndChangeName,
+  dataModelColumnSorter,
+  diffMergeHierarchyModel,
+  findViewFieldMeta,
+  getPreviewFieldDisplayName,
+  normalizeModelDisplayNames,
+  resolveSchemaColumnComment,
+} from '../utils';
+import { getDatasetFieldDisplayName, getFieldDisplayName } from 'utils/utils';
+
+describe('field display metadata', () => {
+  test('shortens preview comments to their field label', () => {
+    expect(
+      getPreviewFieldDisplayName(
+        '分类标签：new_production=生产，purchase_order=采购',
+      ),
+    ).toBe('分类标签');
+    expect(getPreviewFieldDisplayName('月度数量，单位：件')).toBe('月度数量');
+    expect(
+      getPreviewFieldDisplayName('这是一个没有分隔符但很长的字段中文名称'),
+    ).toBe('这是一个没有分隔符但很长的字段中…');
+  });
+
+  test('uses custom name, then comment, then field name', () => {
+    expect(
+      getFieldDisplayName({
+        name: 'order_id',
+        displayName: '订单号',
+        comment: '订单编号',
+        isDisplayNameCustom: true,
+      }),
+    ).toBe('订单号');
+    expect(
+      getFieldDisplayName({
+        name: 'order_id',
+        displayName: undefined,
+        comment: '订单编号',
+        isDisplayNameCustom: false,
+      }),
+    ).toBe('订单编号');
+    expect(getFieldDisplayName({ name: 'order_id' })).toBe('order_id');
+    expect(
+      getFieldDisplayName({
+        name: 'order_id',
+        displayName: 'order_id',
+        comment: '订单编号',
+        isDisplayNameCustom: true,
+      }),
+    ).toBe('order_id');
+  });
+
+  test('uses the same canonical priority for real fields', () => {
+    expect(
+      getDatasetFieldDisplayName({
+        fieldId: 'field-1',
+        originName: 'metric_group',
+        customName: '业务分类',
+        sourceComment: '分类标签：new_production=生产',
+        displayName: 'stale value',
+      }),
+    ).toBe('业务分类');
+    expect(
+      getDatasetFieldDisplayName({
+        fieldId: 'field-1',
+        originName: 'metric_group',
+        sourceComment: '分类标签：new_production=生产',
+        displayName: 'stale value',
+      }),
+    ).toBe('分类标签');
+    expect(
+      getDatasetFieldDisplayName({
+        fieldId: 'field-1',
+        originName: 'metric_group',
+        displayName: 'metric_group',
+      }),
+    ).toBe('metric_group');
+    expect(
+      getDatasetFieldDisplayName({
+        fieldId: 'field-2',
+        originName: 'very_long_original_field_name',
+        displayName: 'very_long_original_field_name',
+      }),
+    ).toBe('very_long_original_field_name');
+    expect(
+      getDatasetFieldDisplayName({
+        fieldId: 'field-3',
+        originName: 'metric_value',
+        customName: '月度数量：业务口径',
+        sourceComment: '月度数量，单位：件',
+      }),
+    ).toBe('月度数量：业务口径');
+  });
+
+  test('does not treat an unmarked canonical display value as a custom name', () => {
+    expect(
+      getFieldDisplayName({
+        fieldId: 'field-1',
+        originName: 'metric_group',
+        displayName: 'new_production',
+        comment: '分类标签：new_production=生产',
+      }),
+    ).toBe('分类标签');
+  });
+
+  test('resolves same-name join fields only with an exact path', () => {
+    const schemas: any = [
+      {
+        dbName: 'analytics',
+        tables: [
+          {
+            tableName: 'users',
+            columns: [{ name: ['id'], comment: '用户ID' }],
+          },
+          {
+            tableName: 'orders',
+            columns: [{ name: ['id'], comment: '订单ID' }],
+          },
+        ],
+      },
+    ];
+    expect(
+      resolveSchemaColumnComment(schemas, {
+        name: 'id',
+        path: ['analytics', 'orders', 'id'],
+      }),
+    ).toBe('订单ID');
+    expect(resolveSchemaColumnComment(schemas, { name: 'id' })).toBeUndefined();
+    expect(
+      resolveSchemaColumnComment(schemas, { name: ['id'] }),
+    ).toBeUndefined();
+  });
+
+  test('matches ViewField by id, then path, then unique origin name', () => {
+    const fields = [
+      {
+        fieldId: 'field-1',
+        originName: 'city',
+        displayName: '城市',
+        sourcePath: ['db', 'users', 'city'],
+      },
+      {
+        fieldId: 'field-2',
+        originName: 'amount',
+        displayName: '金额',
+        sourcePath: ['db', 'orders', 'amount'],
+      },
+    ];
+    expect(
+      findViewFieldMeta({ fieldId: 'field-1', name: 'city' }, fields)
+        ?.displayName,
+    ).toBe('城市');
+    expect(
+      findViewFieldMeta(
+        { fieldId: 'stale', path: ['db', 'orders', 'amount'], name: 'amount' },
+        fields,
+      )?.displayName,
+    ).toBe('金额');
+    expect(findViewFieldMeta({ name: 'city' }, fields)?.displayName).toBe(
+      '城市',
+    );
+  });
+
+  test('matches read-only preview metadata without a field id', () => {
+    expect(
+      findViewFieldMeta({ name: 'city' }, [
+        {
+          originName: 'city',
+          displayName: '城市',
+          sourcePath: ['ads', 'users', 'city'],
+        },
+      ])?.displayName,
+    ).toBe('城市');
+  });
+});
+
+describe('normalizeModelDisplayNames test', () => {
+  test('should persist display names without changing field names', () => {
+    const model = {
+      columns: {
+        ratio: {
+          name: ['ratio'],
+          type: DataViewFieldType.NUMERIC,
+          comment: '资产配比',
+        },
+        custom: {
+          name: ['custom'],
+          type: DataViewFieldType.STRING,
+          displayName: '自定义名称',
+          comment: '字段注释',
+        },
+      },
+    };
+
+    const normalized = normalizeModelDisplayNames(model as any);
+
+    expect(normalized.columns?.ratio).toMatchObject({
+      name: ['ratio'],
+      comment: '资产配比',
+      isDisplayNameCustom: false,
+    });
+    expect(normalized.columns?.custom.displayName).toBe('自定义名称');
+    expect(normalized.columns?.custom.isDisplayNameCustom).toBe(true);
+  });
+});
+
+describe('dataModelColumnSorter test', () => {
+  test('should sort by alphabet with the STRING column type', () => {
+    const columns: Column[] = [
+      { name: 'c', type: DataViewFieldType.STRING },
+      { name: 'b', type: DataViewFieldType.STRING },
+      { name: 'a', type: DataViewFieldType.STRING },
+    ];
+    expect(columns.sort(dataModelColumnSorter)[0].name).toEqual('a');
+    expect(columns.sort(dataModelColumnSorter)[1].name).toEqual('b');
+    expect(columns.sort(dataModelColumnSorter)[2].name).toEqual('c');
+  });
+
+  test('should sort by alphabet with the Numeric column type', () => {
+    const columns: Column[] = [
+      { name: 'c', type: DataViewFieldType.NUMERIC },
+      { name: 'b', type: DataViewFieldType.NUMERIC },
+      { name: 'a', type: DataViewFieldType.NUMERIC },
+    ];
+    expect(columns.sort(dataModelColumnSorter)[0].name).toEqual('a');
+    expect(columns.sort(dataModelColumnSorter)[1].name).toEqual('b');
+    expect(columns.sort(dataModelColumnSorter)[2].name).toEqual('c');
+  });
+
+  test('should sort by alphabet with string and date column type', () => {
+    const columns: Column[] = [
+      { name: 'c', type: DataViewFieldType.STRING },
+      { name: 'b', type: DataViewFieldType.DATE },
+      { name: 'a', type: DataViewFieldType.DATE },
+    ];
+    expect(columns.sort(dataModelColumnSorter)[0].name).toEqual('a');
+    expect(columns.sort(dataModelColumnSorter)[1].name).toEqual('b');
+    expect(columns.sort(dataModelColumnSorter)[2].name).toEqual('c');
+  });
+
+  test('should sort by column type when column type with STRING, Numeric, DATE', () => {
+    const columns: Column[] = [
+      { name: 'c', type: DataViewFieldType.STRING },
+      { name: 'b', type: DataViewFieldType.NUMERIC },
+      { name: 'a', type: DataViewFieldType.DATE },
+      { name: 'd', type: DataViewFieldType.DATE },
+      { name: 'e', type: DataViewFieldType.NUMERIC },
+      { name: 'f', type: DataViewFieldType.STRING },
+    ];
+    expect(columns.sort(dataModelColumnSorter)[0].name).toEqual('a');
+    expect(columns.sort(dataModelColumnSorter)[1].name).toEqual('c');
+    expect(columns.sort(dataModelColumnSorter)[2].name).toEqual('d');
+    expect(columns.sort(dataModelColumnSorter)[3].name).toEqual('f');
+    expect(columns.sort(dataModelColumnSorter)[4].name).toEqual('b');
+    expect(columns.sort(dataModelColumnSorter)[5].name).toEqual('e');
+  });
+
+  test('should sort by column type with multiple column types and hierarchy columns', () => {
+    const columns: Column[] = [
+      {
+        name: 'e',
+        type: DataViewFieldType.STRING,
+        role: ColumnRole.Hierarchy,
+      },
+      { name: 'c', type: DataViewFieldType.STRING },
+      { name: 'b', type: DataViewFieldType.NUMERIC },
+      { name: 'a', type: DataViewFieldType.DATE },
+      {
+        name: 'f',
+        type: DataViewFieldType.DATE,
+        role: ColumnRole.Hierarchy,
+      },
+    ];
+    expect(columns.sort(dataModelColumnSorter)[0].name).toEqual('e');
+    expect(columns.sort(dataModelColumnSorter)[1].name).toEqual('f');
+    expect(columns.sort(dataModelColumnSorter)[2].name).toEqual('a');
+    expect(columns.sort(dataModelColumnSorter)[3].name).toEqual('c');
+    expect(columns.sort(dataModelColumnSorter)[4].name).toEqual('b');
+  });
+});
+
+describe('diffMergeHierarchyModel test', () => {
+  test('should append all new column to hierarchy without children', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+      },
+      hierarchy: {},
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+      },
+      hierarchy: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+      },
+    });
+  });
+
+  test('should append new column to hierarchy without children', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+        address: { name: 'address', type: 'STRING' },
+      },
+      hierarchy: {
+        age: { name: 'age', type: 'NUMBER' },
+      },
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: model.columns,
+      hierarchy: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+        address: { name: 'address', type: 'STRING' },
+      },
+    });
+  });
+
+  test('should remove column in hierarchy which not exist in columns', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+      },
+      hierarchy: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+        address: { name: 'address', type: 'STRING' },
+      },
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: model.columns,
+      hierarchy: {
+        id: { name: 'id', type: 'STRING' },
+      },
+    });
+  });
+
+  test('should remove child column in hierarchy', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+      },
+      hierarchy: {
+        dealers: {
+          name: 'dealers',
+          children: [
+            { name: 'id', type: 'STRING' },
+            { name: 'age', type: 'NUMBER' },
+            { name: 'address', type: 'STRING' },
+          ],
+        },
+      },
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: model.columns,
+      hierarchy: {
+        dealers: {
+          name: 'dealers',
+          children: [
+            { name: 'id', type: 'STRING' },
+            { name: 'age', type: 'NUMBER' },
+          ],
+        },
+      },
+    });
+  });
+
+  test('should delete branch node in hierarchy when child is not in columns', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+        address: { name: 'address', type: 'STRING' },
+      },
+      hierarchy: {
+        dealers: {
+          name: 'dealers',
+          children: [{ name: 'unkown', type: 'STRING' }],
+        },
+      },
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: model.columns,
+      hierarchy: {},
+    });
+  });
+
+  test('should delete and add new to hierarchy model', () => {
+    const model = {
+      columns: {
+        id: { name: 'id', type: 'STRING' },
+        age: { name: 'age', type: 'NUMBER' },
+        address: { name: 'address', type: 'STRING' },
+        newId: { name: 'newId', type: 'STRING' },
+      },
+      hierarchy: {
+        age: { name: 'age', type: 'NUMBER' },
+        dealers: {
+          name: 'dealers',
+          children: [
+            { name: 'address', type: 'STRING' },
+            { name: 'post', type: 'STRING' },
+          ],
+        },
+      },
+    };
+    expect(diffMergeHierarchyModel(model as any, 'SQL')).toMatchObject({
+      columns: model.columns,
+      hierarchy: {
+        age: { name: 'age', type: 'NUMBER' },
+        newId: { name: 'newId', type: 'STRING' },
+        dealers: {
+          name: 'dealers',
+          children: [{ name: 'address', type: 'STRING' }],
+        },
+      },
+    });
+  });
+});
+
+describe('addPathToHierarchyStructureAndChangeName test', () => {
+  test('test if hierarchy is empty', () => {
+    const hierarchy: any = null;
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual(null);
+  });
+
+  test('test view type is SQL and have name', () => {
+    const hierarchy: any = {
+      QD_id: {
+        name: 'QD_id',
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    });
+  });
+
+  test('test view type is SQL and dont name', () => {
+    const hierarchy: any = {
+      QD_id: {},
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    });
+  });
+
+  test('test view type is SQL and have path', () => {
+    const hierarchy: any = {
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    });
+  });
+
+  test('test view type is SQL and path in undefined', () => {
+    const hierarchy: any = {
+      QD_id: {
+        name: 'QD_id',
+        path: undefined,
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    });
+  });
+
+  test('test view type is SQL and name is array', () => {
+    const hierarchy: any = {
+      QD_id: {
+        name: ['QD_id'],
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      QD_id: {
+        name: 'QD_id',
+        path: ['QD_id'],
+      },
+    });
+  });
+
+  test('test view type is SQL have children', () => {
+    const hierarchy: any = {
+      文件夹1: {
+        name: '文件夹1',
+        children: [
+          {
+            name: 'QD_id',
+          },
+        ],
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      文件夹1: {
+        name: '文件夹1',
+        children: [
+          {
+            name: 'QD_id',
+            path: ['QD_id'],
+          },
+        ],
+      },
+    });
+  });
+
+  test('test view type is SQL have children name is Array', () => {
+    const hierarchy: any = {
+      文件夹1: {
+        name: '文件夹1',
+        children: [
+          {
+            name: ['QD_id'],
+          },
+        ],
+      },
+    };
+    const result = addPathToHierarchyStructureAndChangeName(hierarchy, 'SQL');
+    expect(result).toEqual({
+      文件夹1: {
+        name: '文件夹1',
+        children: [
+          {
+            name: ['QD_id'],
+            path: ['QD_id'],
+          },
+        ],
+      },
+    });
+  });
+
+  test('test view type is STRUCT view - name is string array', () => {
+    const hierarchy: any = {
+      'dad.num': {
+        name: '["dad","num"]',
+      },
+    };
+
+    const result = addPathToHierarchyStructureAndChangeName(
+      hierarchy,
+      'STRUCT',
+    );
+    expect(result).toEqual({
+      'dad.num': {
+        name: 'dad.num',
+        path: ['dad', 'num'],
+      },
+    });
+  });
+
+  test('test view type is STRUCT view - name is array', () => {
+    const hierarchy: any = {
+      'dad.num': {
+        name: ['dad', 'num'],
+      },
+    };
+
+    const result = addPathToHierarchyStructureAndChangeName(
+      hierarchy,
+      'STRUCT',
+    );
+    expect(result).toEqual({
+      'dad.num': {
+        name: 'dad.num',
+        path: ['dad', 'num'],
+      },
+    });
+  });
+
+  test('test view type is STRUCT view is not have name', () => {
+    const hierarchy: any = {
+      'dad.num': {},
+    };
+
+    const result = addPathToHierarchyStructureAndChangeName(
+      hierarchy,
+      'STRUCT',
+    );
+    expect(result).toEqual({
+      'dad.num': {
+        name: 'dad.num',
+        path: undefined,
+      },
+    });
+  });
+
+  test('test view type is STRUCT view - have children', () => {
+    const hierarchy: any = {
+      file: {
+        name: 'file1',
+        children: [
+          {
+            name: '["dad", "num"]',
+          },
+        ],
+      },
+    };
+
+    const result = addPathToHierarchyStructureAndChangeName(
+      hierarchy,
+      'STRUCT',
+    );
+    expect(result).toEqual({
+      file: {
+        name: 'file1',
+        children: [
+          {
+            name: 'dad.num',
+            path: ['dad', 'num'],
+          },
+        ],
+      },
+    });
+  });
+});

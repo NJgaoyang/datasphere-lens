@@ -1,0 +1,74 @@
+{
+  "type": "JDBC",
+  "name": "jdbc-data-provider",
+  "attributes": [
+    {
+      "code": "dbType",
+      "name": "dbType",
+      "type": "string",
+      "required": true,
+      "defaultValue": ""
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": true,
+      "defaultValue": ""
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "password",
+      "required": false,
+      "encrypt": true,
+      "defaultValue": "",
+      "type": "password"
+    },
+    {
+      "name": "driverClass",
+      "defaultValue": "",
+      "type": "string"
+    },
+    {
+      "name": "serverAggregate",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "name": "enableSpecialSQL",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "name": "enableSyncSchemas",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "name": "syncInterval",
+      "type": "string",
+      "required": false,
+      "defaultValue": "60"
+    },
+    {
+      "name": "queryTimeout",
+      "displayName": "查询超时时间（秒）",
+      "description": "单次 SQL 最长执行时间；填 0 表示不设置 JDBC 超时。默认 60 秒。",
+      "type": "string",
+      "required": false,
+      "defaultValue": "60"
+    },
+    {
+      "name": "properties",
+      "type": "object",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}
