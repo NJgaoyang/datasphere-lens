@@ -28,4 +28,24 @@ describe('ChartRegistry', () => {
     expect(plugin?.renderer).toBe('legacy');
     expect(plugin?.category).toBe('trend');
   });
+  test('queries plugins by category and capability', () => {
+    chartRegistry.register({
+      type: 'drill-bar',
+      name: 'Drill Bar',
+      category: 'comparison',
+      renderer: 'echarts',
+      capabilities: { drill: true },
+    });
+    chartRegistry.register({
+      type: 'plain-line',
+      name: 'Plain Line',
+      category: 'trend',
+      renderer: 'echarts',
+    });
+
+    expect(
+      chartRegistry.query({ category: 'comparison', capabilities: ['drill'] }),
+    ).toHaveLength(1);
+  });
+
 });

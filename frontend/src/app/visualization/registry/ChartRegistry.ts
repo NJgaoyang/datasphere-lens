@@ -64,6 +64,20 @@ class ChartRegistry {
     return this.getAll().filter(plugin => plugin.category === category);
   }
 
+  query(options: {
+    category?: VisualCategory;
+    capabilities?: Array<keyof VisualCapabilities>;
+    legacyCompatible?: boolean;
+  } = {}) {
+    return this.getAll().filter(plugin => {
+      if (options.category && plugin.category !== options.category) return false;
+      if (options.legacyCompatible && !plugin.legacyChart) return false;
+      return (options.capabilities || []).every(
+        capability => plugin.capabilities?.[capability] === true,
+      );
+    });
+  }
+
   has(type: string) {
     return this.plugins.has(type);
   }

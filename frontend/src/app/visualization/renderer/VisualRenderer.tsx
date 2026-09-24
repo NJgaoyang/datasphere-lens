@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import VisualErrorBoundary from './VisualErrorBoundary';
 import { chartRegistry } from '../registry/ChartRegistry';
 import {
   rendererRegistry,
@@ -18,7 +19,11 @@ const VisualRenderer: FC<VisualRendererInput> = props => {
     return null;
   }
 
-  return <Renderer {...props} plugin={plugin} />;
+  return (
+    <VisualErrorBoundary visualType={plugin.type}>
+      <Renderer {...props} plugin={plugin} />
+    </VisualErrorBoundary>
+  );
 };
 
 export default VisualRenderer;

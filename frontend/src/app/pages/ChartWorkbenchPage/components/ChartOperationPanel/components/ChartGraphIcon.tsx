@@ -20,10 +20,10 @@ import { Tooltip } from 'antd';
 import { IW } from 'app/components';
 import { ChartDataSectionType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
-import ChartManager from 'app/models/ChartManager';
 import { IChart } from 'app/types/Chart';
 import classnames from 'classnames';
 import { FC, memo, useCallback } from 'react';
+import { CloneValueDeep } from 'utils/object';
 import styled from 'styled-components';
 import {
   BORDER_RADIUS,
@@ -40,14 +40,12 @@ const ChartGraphIcon: FC<{
   const t = useI18NPrefix(`viz.palette.graph`);
 
   const handleChartChange = useCallback(
-    chartId => () => {
-      const chart = ChartManager.instance().getById(chartId);
-
-      if (!!chart) {
-        onChartChange(chart);
+    () => () => {
+      if (chart) {
+        onChartChange(CloneValueDeep(chart));
       }
     },
-    [onChartChange],
+    [chart, onChartChange],
   );
 
   const renderIcon = ({
@@ -112,7 +110,7 @@ const ChartGraphIcon: FC<{
         className={classnames({
           active: isActive,
         })}
-        onClick={handleChartChange(chart?.meta?.id)}
+        onClick={handleChartChange()}
       >
         {renderIcon({
           iconStr: chart?.meta?.icon,

@@ -1,72 +1,93 @@
 /**
  * Datart
- *
- * Copyright 2021
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed under the Apache License, Version 2.0.
  */
 
 import ChartManager from 'app/models/ChartManager';
 import ChartI18NContext from 'app/pages/ChartWorkbenchPage/contexts/Chart18NContext';
 import { IChart } from 'app/types/Chart';
+import { visualPluginToChart } from 'app/visualization/adapters/VisualPluginChartAdapter';
 import { ChartConfig } from 'app/types/ChartConfig';
+import {
+  chartRegistry,
+  VisualCategory,
+} from 'app/visualization/registry/ChartRegistry';
 import { transferChartDataConfig } from 'app/utils/internalChartHelper';
-import { FC, memo, useLayoutEffect, useState } from 'react';
+import { FC, memo, useLayoutEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { BORDER_RADIUS, SPACE_MD, SPACE_XS } from 'styles/StyleConstants';
 import { CloneValueDeep } from 'utils/object';
 import ChartGraphIcon from './ChartGraphIcon';
+
+const CATEGORY_ORDER: VisualCategory[] = [
+  'table',
+  'indicator',
+  'comparison',
+  'trend',
+  'distribution',
+  'relationship',
+  'map',
+  'custom',
+];
 
 const ChartGraphPanel: FC<{
   chart?: IChart;
   chartConfig?: ChartConfig;
   onChartChange: (chart: IChart) => void;
 }> = memo(({ chart, chartConfig, onChartChange }) => {
-  const chartManager = ChartManager.instance();
-  const [allCharts] = useState<IChart[]>(chartManager.getAllCharts());
+  ChartManager.instance();
+  const plugins = useMemo(
+    () => chartRegistry.query(),
+    [],
+  );
   const [requirementsStates, setRequirementStates] = useState<object>({});
+  const groupedPlugins = useMemo(
+    () =>
+      CATEGORY_ORDER.map(category => ({
+        category,
+        plugins: plugins.filter(plugin => plugin.category === category),
+      })).filter(group => group.plugins.length > 0),
+    [plugins],
+  );
 
   useLayoutEffect(() => {
-    if (allCharts) {
-      const dict = allCharts?.reduce((acc, cur) => {
-        const transferedChartConfig = transferChartDataConfig(
-          { datas: CloneValueDeep(cur?.config?.datas || []) },
-          { datas: chartConfig?.datas },
-        );
-        acc[cur.meta.id] = cur?.isMatchRequirement(transferedChartConfig);
-        return acc;
-      }, {});
-      setRequirementStates(dict);
-    }
-  }, [allCharts, chartConfig]);
+    const dict = plugins.reduce((acc, plugin) => {
+      const current = visualPluginToChart(plugin);
+      const transferred = transferChartDataConfig(
+        { datas: CloneValueDeep(current?.config?.datas || []) },
+        { datas: chartConfig?.datas },
+      );
+      acc[plugin.type] = current?.isMatchRequirement(transferred);
+      return acc;
+    }, {});
+    setRequirementStates(dict);
+  }, [chartConfig, plugins]);
 
   return (
     <StyledChartGraphPanel>
-      {allCharts?.map(c => {
-        return (
-          <ChartI18NContext.Provider
-            key={c?.meta?.id}
-            value={{ i18NConfigs: c?.config?.i18ns }}
-          >
-            <ChartGraphIcon
-              chart={c}
-              isActive={c?.meta?.id === chart?.meta?.id}
-              isMatchRequirement={!!requirementsStates?.[c?.meta?.id]}
-              onChartChange={onChartChange}
-            />
-          </ChartI18NContext.Provider>
-        );
-      })}
+      {groupedPlugins.map(group => (
+        <CategoryGroup key={group.category} data-category={group.category}>
+          <CategoryTitle>{group.category}</CategoryTitle>
+          <CategoryIcons>
+            {group.plugins.map(plugin => {
+              const current = visualPluginToChart(plugin);
+              return (
+                <ChartI18NContext.Provider
+                  key={plugin.type}
+                  value={{ i18NConfigs: current.config?.i18ns }}
+                >
+                  <ChartGraphIcon
+                    chart={current}
+                    isActive={plugin.type === chart?.meta?.id}
+                    isMatchRequirement={!!requirementsStates?.[plugin.type]}
+                    onChartChange={onChartChange}
+                  />
+                </ChartI18NContext.Provider>
+              );
+            })}
+          </CategoryIcons>
+        </CategoryGroup>
+      ))}
     </StyledChartGraphPanel>
   );
 });
@@ -74,8 +95,6 @@ const ChartGraphPanel: FC<{
 export default ChartGraphPanel;
 
 const StyledChartGraphPanel = styled.div`
-  display: flex;
-  flex-flow: row wrap;
   padding: ${SPACE_XS};
   margin-bottom: ${SPACE_MD};
   color: ${p => p.theme.textColorLight};
@@ -83,4 +102,22 @@ const StyledChartGraphPanel = styled.div`
   border: 1px solid #eaecf0;
   border-radius: ${BORDER_RADIUS};
   box-shadow: 0 4px 14px rgba(16, 24, 40, 0.03);
+`;
+
+const CategoryGroup = styled.div`
+  & + & {
+    margin-top: ${SPACE_XS};
+  }
+`;
+
+const CategoryTitle = styled.div`
+  padding: 4px 6px 2px;
+  font-size: 11px;
+  color: ${p => p.theme.textColorLight};
+  text-transform: capitalize;
+`;
+
+const CategoryIcons = styled.div`
+  display: flex;
+  flex-flow: row wrap;
 `;

@@ -16,34 +16,11 @@
  * limitations under the License.
  */
 
-import {
-  AreaChart,
-  BasicDoubleYChart,
-  BasicFunnelChart,
-  BasicGaugeChart,
-  BasicRichText,
-  BasicScatterChart,
-  ClusterBarChart,
-  ClusterColumnChart,
-  DoughnutChart,
-  LineChart,
-  MingXiTableChart,
-  NormalOutlineMapChart,
-  PercentageStackBarChart,
-  PercentageStackColumnChart,
-  PieChart,
-  PivotSheetChart,
-  RoseChart,
-  ScatterOutlineMapChart,
-  Scorecard,
-  StackAreaChart,
-  StackBarChart,
-  StackColumnChart,
-  WaterfallChart,
-  WordCloudChart,
-} from 'app/components/ChartGraph';
 import { IChart } from 'app/types/Chart';
+import { visualPluginToChart } from 'app/visualization/adapters/VisualPluginChartAdapter';
+import createBuiltinLegacyCharts from 'app/visualization/plugins/legacy/createBuiltinLegacyCharts';
 import { registerLegacyVisuals } from 'app/visualization/plugins/legacy/registerLegacyVisual';
+import { chartRegistry } from 'app/visualization/registry/ChartRegistry';
 import { registerNativeVisualPlugins } from 'app/visualization/plugins/registerNativeVisualPlugins';
 import { registerDefaultRenderers } from 'app/visualization/renderer/registerDefaultRenderers';
 import { getChartPluginPaths } from 'app/utils/fetch';
@@ -54,11 +31,12 @@ import PluginChartLoader from './PluginChartLoader';
 class ChartManager {
   private _loader = new PluginChartLoader();
   private _isLoaded = false;
-  private _charts: IChart[] = this._basicCharts();
+  private _charts: IChart[] = [];
   private static _manager: ChartManager | null = null;
 
   private constructor() {
     registerDefaultRenderers();
+    this._charts = createBuiltinLegacyCharts();
     registerLegacyVisuals(this._charts);
     registerNativeVisualPlugins();
   }
@@ -81,12 +59,12 @@ class ChartManager {
   }
 
   public getAllCharts(): IChart[] {
-    return this._charts || [];
+    return chartRegistry.getAll().map(visualPluginToChart);
   }
 
   public getAllChartIcons() {
-    return this._charts.reduce((acc, cur) => {
-      acc[cur.meta.id] = cur.meta.icon;
+    return chartRegistry.getAll().reduce((acc, plugin) => {
+      acc[plugin.type] = plugin.icon;
       return acc;
     }, {});
   }
@@ -95,11 +73,15 @@ class ChartManager {
     if (id === null || id === undefined) {
       return;
     }
-    return CloneValueDeep(this._charts.find(c => c.meta?.id === id));
+    const plugin = chartRegistry.get(id);
+    return plugin ? CloneValueDeep(visualPluginToChart(plugin)) : undefined;
   }
 
-  public getDefaultChart() {
-    return CloneValueDeep(this._charts[0]);
+  public getDefaultChart(): IChart {
+    const plugin = chartRegistry.getAll()[0];
+    return plugin
+      ? CloneValueDeep(visualPluginToChart(plugin))
+      : CloneValueDeep(this._charts[0]);
   }
 
   private async _loadCustomizeCharts(paths: string[]) {
@@ -107,42 +89,16 @@ class ChartManager {
       return this._charts;
     }
 
-    const customCharts = await this._loader.loadPlugins(paths);
-    const loadedCharts = customCharts?.filter(Boolean) as IChart[];
+    const loadedPlugins = await this._loader.loadVisualPlugins(paths);
+    const loadedCharts = loadedPlugins.map(plugin => plugin.chart) as IChart[];
     this._charts = this._charts.concat(loadedCharts);
-    registerLegacyVisuals(loadedCharts);
+    loadedPlugins.forEach(plugin =>
+      chartRegistry.register(plugin.definition, { replace: true }),
+    );
     this._isLoaded = true;
     return this._charts;
   }
 
-  private _basicCharts(): IChart[] {
-    return [
-      new MingXiTableChart(),
-      new PivotSheetChart(),
-      new Scorecard(),
-      new ClusterColumnChart(),
-      new ClusterBarChart(),
-      new StackColumnChart(),
-      new StackBarChart(),
-      new PercentageStackColumnChart(),
-      new PercentageStackBarChart(),
-      new WaterfallChart(),
-      new LineChart(),
-      new AreaChart(),
-      new StackAreaChart(),
-      new BasicScatterChart(),
-      new PieChart(),
-      new DoughnutChart(),
-      new RoseChart(),
-      new BasicFunnelChart(),
-      new BasicDoubleYChart(),
-      new WordCloudChart(),
-      new NormalOutlineMapChart(),
-      new ScatterOutlineMapChart(),
-      new BasicGaugeChart(),
-      new BasicRichText(),
-    ];
-  }
 }
 
 export default ChartManager;

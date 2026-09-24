@@ -109,6 +109,18 @@ describe('PluginChartLoader Tests', () => {
     );
   });
 
+
+  test('should adapt legacy plugin to visual manifest', async () => {
+    const loader = new PluginChartLoader();
+    const plugins = await loader.loadVisualPlugins(['b-chart.js']);
+    expect(plugins[0].manifest).toMatchObject({
+      manifestVersion: 1,
+      name: 'b-chart.js',
+      renderer: 'legacy',
+    });
+    expect(plugins[0].definition.legacyChart).toBe(plugins[0].chart);
+  });
+
   test('should get reject promise when did not get charts', async () => {
     const loader = new PluginChartLoader();
     const charts = await loader.loadPlugins(['not-exist-chart']);

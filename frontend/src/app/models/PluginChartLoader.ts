@@ -18,6 +18,8 @@
 
 import Chart from 'app/models/Chart';
 import * as datartChartHelper from 'app/utils/chartHelper';
+import { legacyChartToVisualPlugin } from 'app/visualization/plugins/legacy/registerLegacyVisual';
+import { toVisualPluginManifest } from 'app/visualization/plugins/VisualPluginManifest';
 import { fetchPluginChart } from 'app/utils/fetch';
 import { cond, Omit } from 'utils/object';
 
@@ -65,7 +67,23 @@ class PluginChartLoader {
     return Promise.all(loadPluginTasks);
   }
 
+
+  async loadVisualPlugins(paths: string[]) {
+    const charts = (await this.loadPlugins(paths)).filter(Boolean) as Chart[];
+    return charts.map(chart => {
+      const definition = legacyChartToVisualPlugin(chart);
+      return {
+        chart,
+        definition,
+        manifest: toVisualPluginManifest(definition),
+      };
+    });
+  }
+
   convertToDatartChartModel(customPlugin) {
+    if (!customPlugin?.meta?.id || !customPlugin?.meta?.name) {
+      throw new Error('Invalid visual plugin: meta.id and meta.name are required.');
+    }
     const chart = new Chart(
       customPlugin.meta.id,
       customPlugin.meta.name,

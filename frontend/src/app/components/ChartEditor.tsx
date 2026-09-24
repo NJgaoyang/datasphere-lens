@@ -164,7 +164,9 @@ export const ChartEditor: FC<ChartEditorProps> = ({
       ) {
         // Note: add default chart if new to editor
         const currentChart = ChartManager.instance().getDefaultChart();
-        handleChartChange(currentChart);
+        if (currentChart) {
+          handleChartChange(currentChart);
+        }
       }
 
       if (container === 'dataChart') {

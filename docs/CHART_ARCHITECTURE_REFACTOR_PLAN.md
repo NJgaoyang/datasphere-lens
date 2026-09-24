@@ -239,12 +239,12 @@ ChartSpec 必须从 v1 开始版本化。
 - [x] Dashboard 历史图表回归。
 ### P4：插件统一与扩展
 
-- [ ] 定义统一 Visual Plugin Manifest。
-- [ ] 改造 `PluginChartLoader` 为兼容适配器。
-- [ ] ChartManager 内置硬编码逐步移除。
-- [ ] 图表选择器改为 Registry 驱动。
-- [ ] 支持按 category/capability 动态展示。
-- [ ] 增加插件异常隔离和降级页。
+- [x] 定义统一 Visual Plugin Manifest。
+- [x] 改造 `PluginChartLoader` 为兼容适配器。
+- [x] ChartManager 内置硬编码逐步移除。
+- [x] 图表选择器改为 Registry 驱动。
+- [x] 支持按 category/capability 动态展示。
+- [x] 增加插件异常隔离和降级页。
 
 ## 12. 测试策略
 

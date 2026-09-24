@@ -1,6 +1,10 @@
 import { IChart } from 'app/types/Chart';
 import { fromLegacyChartConfig } from '../../config/ConfigSchema';
-import { chartRegistry, VisualCategory } from '../../registry/ChartRegistry';
+import {
+  chartRegistry,
+  VisualCategory,
+  VisualPluginDefinition,
+} from '../../registry/ChartRegistry';
 
 const resolveCategory = (chartId: string): VisualCategory => {
   if (/table|sheet/i.test(chartId)) return 'table';
@@ -15,25 +19,23 @@ const resolveCategory = (chartId: string): VisualCategory => {
   return 'custom';
 };
 
-export const registerLegacyVisual = (chart: IChart) => {
-  chartRegistry.register(
-    {
-      type: chart.meta.id,
-      name: chart.meta.name,
-      icon: chart.meta.icon,
-      category: resolveCategory(chart.meta.id),
-      renderer: 'legacy',
-      configSchema: fromLegacyChartConfig(chart.config),
-      capabilities: {
-        drill: Boolean(chart.config?.datas?.some(section => section.drillable)),
-        linkage: true,
-        export: true,
-      },
-      legacyChart: chart,
-    },
-    { replace: true },
-  );
-};
+export const legacyChartToVisualPlugin = (chart: IChart): VisualPluginDefinition => ({
+  type: chart.meta.id,
+  name: chart.meta.name,
+  icon: chart.meta.icon,
+  category: resolveCategory(chart.meta.id),
+  renderer: 'legacy',
+  configSchema: fromLegacyChartConfig(chart.config),
+  capabilities: {
+    drill: Boolean(chart.config?.datas?.some(section => section.drillable)),
+    linkage: true,
+    export: true,
+  },
+  legacyChart: chart,
+});
+
+export const registerLegacyVisual = (chart: IChart) =>
+  chartRegistry.register(legacyChartToVisualPlugin(chart), { replace: true });
 
 export const registerLegacyVisuals = (charts: IChart[]) =>
   charts.forEach(registerLegacyVisual);
