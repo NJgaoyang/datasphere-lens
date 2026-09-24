@@ -1,5 +1,7 @@
 import { IChart } from 'app/types/Chart';
+import ChartDataSetDTO from 'app/types/ChartDataSet';
 import { VisualConfigSchema } from '../config/ConfigSchema';
+import { ChartSpec } from '../core/ChartSpec';
 
 export type VisualCategory =
   | 'table'
@@ -19,6 +21,11 @@ export interface VisualCapabilities {
   export?: boolean;
 }
 
+export type VisualOptionBuilder = (
+  spec: ChartSpec,
+  dataset?: ChartDataSetDTO,
+) => unknown;
+
 export interface VisualPluginDefinition {
   type: string;
   name: string;
@@ -27,6 +34,7 @@ export interface VisualPluginDefinition {
   renderer: string;
   configSchema?: VisualConfigSchema;
   capabilities?: VisualCapabilities;
+  buildOption?: VisualOptionBuilder;
   legacyChart?: IChart;
 }
 class ChartRegistry {

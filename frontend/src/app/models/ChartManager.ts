@@ -44,6 +44,7 @@ import {
 } from 'app/components/ChartGraph';
 import { IChart } from 'app/types/Chart';
 import { registerLegacyVisuals } from 'app/visualization/plugins/legacy/registerLegacyVisual';
+import { registerNativeVisualPlugins } from 'app/visualization/plugins/registerNativeVisualPlugins';
 import { registerDefaultRenderers } from 'app/visualization/renderer/registerDefaultRenderers';
 import { getChartPluginPaths } from 'app/utils/fetch';
 import { Debugger } from 'utils/debugger';
@@ -59,6 +60,7 @@ class ChartManager {
   private constructor() {
     registerDefaultRenderers();
     registerLegacyVisuals(this._charts);
+    registerNativeVisualPlugins();
   }
 
   public static instance() {

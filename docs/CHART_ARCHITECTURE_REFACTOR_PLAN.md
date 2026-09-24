@@ -224,12 +224,12 @@ ChartSpec 必须从 v1 开始版本化。
 
 ### P2：第一批图表
 
-- [ ] Bar Visual Plugin。
-- [ ] Line Visual Plugin。
-- [ ] Pie Visual Plugin。
-- [ ] Table Visual Plugin。
-- [ ] ECharts Builder 公共 axis/legend/tooltip/label/theme。
-- [ ] S2/Table Renderer 适配。
+- [x] Bar Visual Plugin。
+- [x] Line Visual Plugin。
+- [x] Pie Visual Plugin。
+- [x] Table Visual Plugin。
+- [x] ECharts Builder 公共 axis/legend/tooltip/label/theme。
+- [x] S2/Table Renderer 适配。
 
 ### P3：持久化兼容
 
