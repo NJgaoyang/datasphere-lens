@@ -43,6 +43,8 @@ import {
   WordCloudChart,
 } from 'app/components/ChartGraph';
 import { IChart } from 'app/types/Chart';
+import { registerLegacyVisuals } from 'app/visualization/plugins/legacy/registerLegacyVisual';
+import { registerDefaultRenderers } from 'app/visualization/renderer/registerDefaultRenderers';
 import { getChartPluginPaths } from 'app/utils/fetch';
 import { Debugger } from 'utils/debugger';
 import { CloneValueDeep } from 'utils/object';
@@ -53,6 +55,11 @@ class ChartManager {
   private _isLoaded = false;
   private _charts: IChart[] = this._basicCharts();
   private static _manager: ChartManager | null = null;
+
+  private constructor() {
+    registerDefaultRenderers();
+    registerLegacyVisuals(this._charts);
+  }
 
   public static instance() {
     if (!this._manager) {
@@ -99,9 +106,9 @@ class ChartManager {
     }
 
     const customCharts = await this._loader.loadPlugins(paths);
-    this._charts = this._charts.concat(
-      customCharts?.filter(Boolean) as IChart[],
-    );
+    const loadedCharts = customCharts?.filter(Boolean) as IChart[];
+    this._charts = this._charts.concat(loadedCharts);
+    registerLegacyVisuals(loadedCharts);
     this._isLoaded = true;
     return this._charts;
   }
