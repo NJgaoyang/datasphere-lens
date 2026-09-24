@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Form, Input, message, Select } from 'antd';
+import { Form, Input, message, Select, theme } from 'antd';
 import { DataViewFieldType, DateFormat } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useStateModal, { StateModalSize } from 'app/hooks/useStateModal';
@@ -28,8 +28,6 @@ import { updateBy, updateByKey } from 'app/utils/mutation';
 import { FC, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { SPACE_LG } from 'styles/StyleConstants';
 import { Nullable } from 'types';
 import { CloneValueDeep, isEmpty, isEmptyArray } from 'utils/object';
 import { request2 } from 'utils/request';
@@ -74,6 +72,7 @@ const DataModelTree: FC = memo(() => {
   const dispatch = useDispatch();
   const [openStateModal, contextHolder] = useStateModal({});
   const [showModal, modalContextHolder] = useStateModal({});
+  const { token } = theme.useToken();
 
   const currentEditingView = useSelector(selectCurrentEditingView);
   const stage = useSelector(state =>
@@ -378,7 +377,7 @@ const DataModelTree: FC = memo(() => {
           return c.name;
         });
         return (
-          <StyledFormItem
+          <Form.Item style={{ marginTop: token.marginLG }}
             label={t('model.hierarchyName')}
             name="hierarchyName"
             rules={[
@@ -394,7 +393,7 @@ const DataModelTree: FC = memo(() => {
             ]}
           >
             <Input onChange={e => onChangeEvent(e.target?.value)} />
-          </StyledFormItem>
+          </Form.Item>
         );
       },
     });
@@ -423,7 +422,7 @@ const DataModelTree: FC = memo(() => {
       },
       content: onChangeEvent => {
         return (
-          <StyledFormItem
+          <Form.Item style={{ marginTop: token.marginLG }}
             label={t('model.hierarchyName')}
             name="hierarchyName"
             rules={[{ required: true }]}
@@ -433,7 +432,7 @@ const DataModelTree: FC = memo(() => {
                 <Select.Option value={n.name}>{n.name}</Select.Option>
               ))}
             </Select>
-          </StyledFormItem>
+          </Form.Item>
         );
       },
     });
@@ -465,7 +464,7 @@ const DataModelTree: FC = memo(() => {
       },
       content: onChangeEvent => {
         return (
-          <StyledFormItem
+          <Form.Item style={{ marginTop: token.marginLG }}
             label={t('model.rename')}
             initialValue={node?.name}
             name="rename"
@@ -486,7 +485,7 @@ const DataModelTree: FC = memo(() => {
                 onChangeEvent(e.target?.value);
               }}
             />
-          </StyledFormItem>
+          </Form.Item>
         );
       },
     });
@@ -615,7 +614,7 @@ const DataModelTree: FC = memo(() => {
       },
       content: onChangeEvent => {
         return (
-          <StyledFormItem
+          <Form.Item style={{ marginTop: token.marginLG }}
             label={t('model.displayName')}
             initialValue={currentDisplayName}
             name="displayName"
@@ -626,7 +625,7 @@ const DataModelTree: FC = memo(() => {
                 onChangeEvent(e.target?.value);
               }}
             />
-          </StyledFormItem>
+          </Form.Item>
         );
       },
     });
@@ -884,9 +883,9 @@ const DataModelTree: FC = memo(() => {
           isCombineEnabled={true}
         >
           {(droppableProvided, droppableSnapshot) => (
-            <StyledDroppableContainer
+            <div
               ref={droppableProvided.innerRef}
-              isDraggingOver={droppableSnapshot.isDraggingOver}
+              style={{ overflow: 'auto', userSelect: 'none', background: droppableSnapshot.isDraggingOver ? token.colorFillTertiary : undefined }}
             >
               {GroupTableColumn(tableColumns, viewType).map(col => {
                 return col.role === ColumnRole.Hierarchy ||
@@ -914,7 +913,7 @@ const DataModelTree: FC = memo(() => {
                 );
               })}
               {droppableProvided.placeholder}
-            </StyledDroppableContainer>
+            </div>
           )}
         </Droppable>
       </DragDropContext>
@@ -935,11 +934,3 @@ const DataModelTree: FC = memo(() => {
 
 export default DataModelTree;
 
-const StyledDroppableContainer = styled.div<{ isDraggingOver }>`
-  overflow: auto;
-  user-select: 'none';
-`;
-
-const StyledFormItem = styled(Form.Item)`
-  margin: ${SPACE_LG} 0 0 0;
-`;

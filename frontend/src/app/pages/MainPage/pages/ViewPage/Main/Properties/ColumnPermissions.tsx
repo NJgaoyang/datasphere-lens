@@ -17,16 +17,13 @@
  */
 
 import { LoadingOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Col, Input, List, Row } from 'antd';
+import { Button, Input, List, theme } from 'antd';
 import { ListItem, Popup, Tree } from 'app/components';
 import { ViewFieldMeta } from 'app/types/View';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
-import classnames from 'classnames';
 import { memo, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { SPACE_MD, SPACE_XS, WARNING } from 'styles/StyleConstants';
 import {
   getDatasetFieldDisplayName,
   getFieldDisplayName,
@@ -64,6 +61,7 @@ export const ColumnPermissions = memo(() => {
   ) as ColumnPermission[];
   const roles = useSelector(selectRoles);
   const t = useI18NPrefix('view.columnPermission');
+  const { token } = theme.useToken();
 
   const { filteredData, debouncedSearch } = useDebouncedSearch(
     roles,
@@ -171,7 +169,7 @@ export const ColumnPermissions = memo(() => {
               <Button
                 type="link"
                 size="small"
-                className={classnames({ partial: !!permission })}
+                danger={!!permission}
               >
                 {permission
                   ? (checkedKeys || []).length > 0
@@ -191,18 +189,15 @@ export const ColumnPermissions = memo(() => {
 
   return (
     <Container title="columnPermissions">
-      <SearchBar>
-        <Col span={24}>
-          <Input
-            prefix={<SearchOutlined className="icon" />}
-            placeholder={t('search')}
-            className="input"
-            bordered={false}
-            onChange={debouncedSearch}
-          />
-        </Col>
-      </SearchBar>
-      <ListWrapper>
+      <Input
+        allowClear
+        prefix={<SearchOutlined style={{ color: token.colorTextSecondary }} />}
+        placeholder={t('search')}
+        variant="borderless"
+        onChange={debouncedSearch}
+        style={{ marginBottom: token.marginXS }}
+      />
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: token.paddingSM }}>
         <List
           dataSource={filteredData}
           loading={
@@ -212,27 +207,8 @@ export const ColumnPermissions = memo(() => {
           }
           renderItem={renderItem}
         />
-      </ListWrapper>
+      </div>
     </Container>
   );
 });
 
-const SearchBar = styled(Row)`
-  .input {
-    padding-bottom: ${SPACE_XS};
-  }
-
-  .icon {
-    color: ${p => p.theme.textColorLight};
-  }
-`;
-
-const ListWrapper = styled.div`
-  flex: 1;
-  padding-bottom: ${SPACE_MD};
-  overflow-y: auto;
-
-  .partial {
-    color: ${WARNING};
-  }
-`;

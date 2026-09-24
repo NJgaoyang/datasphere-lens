@@ -24,7 +24,7 @@ import {
   SearchOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { Button, List, Popconfirm } from 'antd';
+import { Button, Flex, List, Popconfirm, theme, Typography } from 'antd';
 import { ListItem } from 'app/components';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -56,8 +56,6 @@ import {
 } from 'react';
 import { monaco } from 'react-monaco-editor';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { SPACE_MD, SPACE_XS } from 'styles/StyleConstants';
 import { errorHandle, uuidv4 } from 'utils/utils';
 import { selectVariables } from '../../../VariablePage/slice/selectors';
 import { getVariables } from '../../../VariablePage/slice/thunks';
@@ -93,6 +91,7 @@ export const Variables = memo(() => {
   const publicVariables = useSelector(selectVariables);
   const t = useI18NPrefix('view.variable');
   const tg = useI18NPrefix('global');
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (editorCompletionItemProviderRef) {
@@ -288,11 +287,11 @@ export const Variables = memo(() => {
         ? publicVariables.some(v => v.name === item.name)
         : variables.some(v => v.name === item.name);
       return (
-        <ListItemTitle className={classnames({ duplicate: isDuplicate })}>
-          {!isPrivate && <span className="prefix">{t('prefix')}</span>}
-          {item.name}
-          {isDuplicate && <span className="suffix">{t('suffix')}</span>}
-        </ListItemTitle>
+        <Flex gap={4} align="center">
+          {!isPrivate && <Typography.Text type="secondary">{t('prefix')}</Typography.Text>}
+          <Typography.Text type={isDuplicate ? 'warning' : undefined}>{item.name}</Typography.Text>
+          {isDuplicate && <Typography.Text type="warning">{t('suffix')}</Typography.Text>}
+        </Flex>
       );
     },
     [variables, publicVariables, t],
@@ -320,7 +319,7 @@ export const Variables = memo(() => {
 
   return (
     <Container {...titleProps}>
-      <ListWrapper>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: token.paddingSM }}>
         <List
           dataSource={filteredData}
           loading={
@@ -380,7 +379,7 @@ export const Variables = memo(() => {
             );
           }}
         />
-      </ListWrapper>
+      </div>
       <VariableForm
         scope={VariableScopes.Private}
         orgId={orgId}
@@ -410,32 +409,3 @@ export const Variables = memo(() => {
   );
 });
 
-const ListWrapper = styled.div`
-  flex: 1;
-  padding-bottom: ${SPACE_MD};
-  overflow-y: auto;
-
-  .query {
-    color: ${p => p.theme.info};
-  }
-
-  .permission {
-    color: ${p => p.theme.warning};
-  }
-`;
-
-const ListItemTitle = styled.div`
-  &.duplicate {
-    color: ${p => p.theme.highlight};
-  }
-
-  .prefix {
-    margin-right: ${SPACE_XS};
-    color: ${p => p.theme.textColorDisabled};
-  }
-
-  .suffix {
-    margin-left: ${SPACE_XS};
-    color: ${p => p.theme.highlight};
-  }
-`;
