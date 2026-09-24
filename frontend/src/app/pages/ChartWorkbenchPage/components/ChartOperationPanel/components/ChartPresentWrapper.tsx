@@ -22,8 +22,8 @@ import { IChart } from 'app/types/Chart';
 import { ChartConfig, SelectedItem } from 'app/types/ChartConfig';
 import ChartDataSetDTO from 'app/types/ChartDataSet';
 import ChartDataView from 'app/types/ChartDataView';
+import { Flex, Typography, theme } from 'antd';
 import { FC, memo, useMemo } from 'react';
-import styled from 'styled-components';
 import { SPACE_MD } from 'styles/StyleConstants';
 import ChartGraphPanel from './ChartGraphPanel';
 import ChartPresentPanel from './ChartPresentPanel';
@@ -56,6 +56,7 @@ const ChartPresentWrapper: FC<{
     onCreateDownloadDataTask,
     selectedItems,
   }) => {
+    const { token } = theme.useToken();
     const { ref: ChartGraphPanelRef } = useResizeObserver<any>({
       refreshMode: 'debounce',
       refreshRate: 500,
@@ -66,13 +67,25 @@ const ChartPresentWrapper: FC<{
     }, []);
 
     return (
-      <StyledChartPresentWrapper borderWidth={borderWidth}>
-        <CanvasHeader>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          padding: `0 ${borderWidth}px ${borderWidth}px`,
+          background: token.colorBgLayout,
+        }}
+      >
+        <Flex align="center" style={{ minHeight: 58, paddingInline: 4 }}>
           <div>
-            <strong>可视化画布</strong>
-            <span>选择图表类型并实时预览分析结果</span>
+            <Typography.Text strong style={{ display: 'block', fontSize: 12 }}>
+              可视化画布
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ display: 'block', marginTop: 3, fontSize: 10 }}>
+              选择图表类型并实时预览分析结果
+            </Typography.Text>
           </div>
-        </CanvasHeader>
+        </Flex>
         <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
           <div ref={ChartGraphPanelRef}>
             <ChartGraphPanel
@@ -99,39 +112,10 @@ const ChartPresentWrapper: FC<{
             dataView={dataView}
           />
         </ChartI18NContext.Provider>
-      </StyledChartPresentWrapper>
+      </div>
     );
   },
 );
 
 export default ChartPresentWrapper;
 
-const StyledChartPresentWrapper = styled.div<{ borderWidth }>`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 0 ${p => p.borderWidth}px ${p => p.borderWidth}px;
-  background: #f4f6f9;
-`;
-
-const CanvasHeader = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  min-height: 58px;
-  padding: 0 4px;
-
-  strong {
-    display: block;
-    font-size: 12px;
-    font-weight: 650;
-    color: #1d2939;
-  }
-
-  span {
-    display: block;
-    margin-top: 3px;
-    font-size: 10px;
-    color: #98a2b3;
-  }
-`;

@@ -4,7 +4,7 @@ import {
   DownloadOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
-import { Button, Space } from 'antd';
+import { Button, Divider, Flex, Space, Typography, theme } from 'antd';
 import SaveToDashboard from 'app/components/SaveToDashboard';
 import useMount from 'app/hooks/useMount';
 import { useWorkbenchSlice } from 'app/pages/ChartWorkbenchPage/slice';
@@ -15,7 +15,6 @@ import { getFolders } from 'app/pages/MainPage/pages/VizPage/slice/thunks';
 import { downloadFile } from 'app/utils/fetch';
 import { FC, memo, useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
 import {
   backendChartSelector,
   selectChartEditorDownloadPolling,
@@ -43,6 +42,7 @@ const ChartHeaderPanel: FC<{
     const downloadPolling = useSelector(selectChartEditorDownloadPolling);
     const dispatch = useDispatch();
     const { actions } = useWorkbenchSlice();
+    const { token } = theme.useToken();
 
     const handleModalOk = useCallback(
       (dashboardId: string, dashboardType: string) => {
@@ -66,21 +66,42 @@ const ChartHeaderPanel: FC<{
     });
 
     return (
-      <Wrapper>
-        <Context>
-          <BackButton
+      <Flex
+        align="center"
+        justify="space-between"
+        gap={16}
+        style={{
+          minHeight: 62,
+          padding: '0 18px',
+          background: token.colorBgContainer,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        <Flex align="center" gap={10} style={{ minWidth: 0 }}>
+          <Button
             type="text"
             icon={<ArrowLeftOutlined />}
             onClick={onGoBack}
           />
-          <Divider />
-          <TitleBlock>
-            <Kicker>CHART WORKBENCH</Kicker>
-            <Title>{chartName || '未命名图表'}</Title>
-          </TitleBlock>
-        </Context>
+          <Divider type="vertical" style={{ height: 28, marginInline: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <Typography.Text
+              type="secondary"
+              style={{ display: 'block', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em' }}
+            >
+              CHART WORKBENCH
+            </Typography.Text>
+            <Typography.Text
+              ellipsis={{ tooltip: chartName || '未命名图表' }}
+              strong
+              style={{ display: 'block', maxWidth: 420, fontSize: 14 }}
+            >
+              {chartName || '未命名图表'}
+            </Typography.Text>
+          </div>
+        </Flex>
 
-        <Actions>
+        <Space wrap>
           <DownloadListPopup
             polling={downloadPolling}
             setPolling={onSetPolling}
@@ -105,7 +126,7 @@ const ChartHeaderPanel: FC<{
               添加到仪表板
             </Button>
           )}
-        </Actions>
+        </Space>
 
         <SaveToDashboard
           orgId={orgId as string}
@@ -116,63 +137,10 @@ const ChartHeaderPanel: FC<{
           handleCancel={() => setIsModalVisible(false)}
           handleOpen={() => setIsModalVisible(true)}
         />
-      </Wrapper>
+      </Flex>
     );
   },
 );
 
 export default ChartHeaderPanel;
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 62px;
-  padding: 0 18px;
-  background: #fff;
-  border-bottom: 1px solid #e7eaf0;
-`;
-
-const Context = styled.div`
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  min-width: 0;
-`;
-
-const BackButton = styled(Button)`
-  flex-shrink: 0;
-`;
-
-const Divider = styled.div`
-  width: 1px;
-  height: 28px;
-  background: #eaecf0;
-`;
-
-const TitleBlock = styled.div`
-  min-width: 0;
-`;
-
-const Kicker = styled.div`
-  margin-bottom: 2px;
-  font-size: 9px;
-  font-weight: 700;
-  color: #667085;
-  letter-spacing: 0.12em;
-`;
-
-const Title = styled.div`
-  max-width: 420px;
-  overflow: hidden;
-  font-size: 14px;
-  font-weight: 650;
-  color: #182230;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const Actions = styled(Space)`
-  flex-shrink: 0;
-`;

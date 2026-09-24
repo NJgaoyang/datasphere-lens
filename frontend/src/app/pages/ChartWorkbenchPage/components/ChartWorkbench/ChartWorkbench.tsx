@@ -25,9 +25,9 @@ import { ChartConfig, SelectedItem } from 'app/types/ChartConfig';
 import ChartDataSetDTO from 'app/types/ChartDataSet';
 import ChartDataView from 'app/types/ChartDataView';
 import { IChartDrillOption } from 'app/types/ChartDrillOption';
+import { theme } from 'antd';
 import { FC, memo, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import styled from 'styled-components';
 import { cancelQuery } from 'utils/queryCancellation';
 import ChartDrillContext from '../../../../contexts/ChartDrillContext';
 import { dateFormatSelector, languageSelector } from '../../slice/selectors';
@@ -86,6 +86,7 @@ const ChartWorkbench: FC<{
   }) => {
     const language = useSelector(languageSelector);
     const dateFormat = useSelector(dateFormatSelector);
+    const { token } = theme.useToken();
 
     useEffect(() => () => cancelQuery('chart-workbench'), []);
 
@@ -120,7 +121,15 @@ const ChartWorkbench: FC<{
               <TimeConfigContext.Provider
                 value={{ locale: language, format: dateFormat }}
               >
-                <StyledChartWorkbench>
+                <div
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    flexFlow: 'column',
+                    overflow: 'hidden',
+                    background: token.colorBgLayout,
+                  }}
+                >
                   {header && (
                     <ChartHeaderPanel
                       chartName={header?.name}
@@ -131,7 +140,7 @@ const ChartWorkbench: FC<{
                       onSaveChartToDashBoard={header?.onSaveChartToDashBoard}
                     />
                   )}
-                  <StyledChartOperationPanel>
+                  <div style={{ position: 'relative', flex: 1 }}>
                     <ChartOperationPanel
                       chart={chart}
                       defaultViewId={defaultViewId}
@@ -143,8 +152,8 @@ const ChartWorkbench: FC<{
                       onCreateDownloadDataTask={onCreateDownloadDataTask}
                       selectedItems={selectedItems}
                     />
-                  </StyledChartOperationPanel>
-                </StyledChartWorkbench>
+                  </div>
+                </div>
               </TimeConfigContext.Provider>
             </ChartDataViewContext.Provider>
           </ChartDatasetContext.Provider>
@@ -167,32 +176,3 @@ const ChartWorkbench: FC<{
 
 export default ChartWorkbench;
 
-const StyledChartWorkbench = styled.div`
-  display: flex;
-  flex: 1;
-  flex-flow: column;
-  overflow: hidden;
-  background: #f4f6f9;
-
-  .flexlayout__tab {
-    overflow: hidden;
-    background: transparent;
-  }
-
-  .flexlayout__splitter {
-    background: #e4e7ec;
-
-    &:hover {
-      background: #98a2b3;
-    }
-  }
-
-  .flexlayout__splitter_drag {
-    background: ${p => p.theme.primary};
-  }
-`;
-
-const StyledChartOperationPanel = styled.div`
-  position: relative;
-  flex: 1;
-`;
