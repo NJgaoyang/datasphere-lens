@@ -110,8 +110,8 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api/v1': { changeOrigin: true, target: 'http://localhost:8080/' },
-      '/resources': { changeOrigin: true, target: 'http://localhost:8080/' },
+      '/api/v1': { changeOrigin: true, target: 'http://localhost:8091/' },
+      '/resources': { changeOrigin: true, target: 'http://localhost:8091/' },
     },
   },
 });

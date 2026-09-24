@@ -1,5 +1,8 @@
 import { VisualConfigSchema } from '../../config/ConfigSchema';
-import { chartRegistry, VisualPluginDefinition } from '../../registry/ChartRegistry';
+import {
+  chartRegistry,
+  VisualPluginDefinition,
+} from '../../registry/ChartRegistry';
 import {
   buildBoxplotOption,
   buildGraphOption,
@@ -12,7 +15,13 @@ import {
 
 const schema = (
   dimensions: Array<{ key: string; label: string; min?: number; max?: number }>,
-  measures: Array<{ key: string; label: string; required?: boolean; min?: number; max?: number }>,
+  measures: Array<{
+    key: string;
+    label: string;
+    required?: boolean;
+    min?: number;
+    max?: number;
+  }>,
 ): VisualConfigSchema => ({
   fieldSlots: [
     ...dimensions.map(item => ({
@@ -31,7 +40,12 @@ const schema = (
       min: item.min ?? 1,
       max: item.max ?? 1,
     })),
-    { key: 'filter', label: 'filter', type: 'filter' as const, allowSameField: true },
+    {
+      key: 'filter',
+      label: 'filter',
+      type: 'filter' as const,
+      allowSameField: true,
+    },
   ],
   styles: [],
   settings: [],
@@ -41,7 +55,7 @@ const schema = (
 const plugins: VisualPluginDefinition[] = [
   {
     type: 'sankey-v2',
-    name: 'Sankey',
+    name: '桑基图',
     icon: 'chart',
     category: 'relationship',
     renderer: 'echarts',
@@ -57,7 +71,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'graph-v2',
-    name: 'Relationship Graph',
+    name: '关系图',
     icon: 'chart',
     category: 'relationship',
     renderer: 'echarts',
@@ -73,7 +87,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'tree-v2',
-    name: 'Tree',
+    name: '树图',
     icon: 'chart',
     category: 'relationship',
     renderer: 'echarts',
@@ -86,7 +100,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'treemap-v2',
-    name: 'Treemap',
+    name: '矩形树图',
     icon: 'chart',
     category: 'relationship',
     renderer: 'echarts',
@@ -99,7 +113,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'sunburst-v2',
-    name: 'Sunburst',
+    name: '旭日图',
     icon: 'chart',
     category: 'relationship',
     renderer: 'echarts',
@@ -112,7 +126,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'heatmap-v2',
-    name: 'Heatmap',
+    name: '热力图',
     icon: 'chart',
     category: 'distribution',
     renderer: 'echarts',
@@ -128,7 +142,7 @@ const plugins: VisualPluginDefinition[] = [
   },
   {
     type: 'boxplot-v2',
-    name: 'Boxplot',
+    name: '箱线图',
     icon: 'chart',
     category: 'distribution',
     renderer: 'echarts',
