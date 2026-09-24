@@ -1,36 +1,14 @@
-/**
- * Datart
- *
- * Copyright 2021
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import { CloseOutlined, LeftOutlined, SaveOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  DashboardOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
 import { Button, Space } from 'antd';
-import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import classnames from 'classnames';
 import { FC, memo, PropsWithChildren, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import {
-  FONT_SIZE_ICON_SM,
-  FONT_WEIGHT_MEDIUM,
-  LINE_HEIGHT_ICON_SM,
-  SPACE_LG,
-  SPACE_SM,
-} from 'styles/StyleConstants';
 import { useStatusTitle } from '../../hooks/useStatusTitle';
 import { clearEditBoardState } from '../../pages/BoardEditor/slice/actions/actions';
 import { BoardActionContext } from '../ActionProvider/BoardActionProvider';
@@ -42,74 +20,115 @@ const EditorHeader: FC<PropsWithChildren> = memo(({ children }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const t = useI18NPrefix(`viz.action`);
   const { updateBoard } = useContext(BoardActionContext);
   const { onEditClearActiveWidgets } = useContext(WidgetActionContext);
   const { name, status } = useContext(BoardContext);
   const { saving } = useContext(BoardInfoContext);
   const title = useStatusTitle(name, status);
+
   const onCloseBoardEditor = () => {
     const pathName = location.pathname;
     const prePath = pathName.split('/boardEditor')[0];
-    navigate(`${prePath}`);
+    navigate(prePath);
     dispatch(clearEditBoardState());
   };
+
   const onUpdateBoard = () => {
     onEditClearActiveWidgets();
-    setImmediate(() => {
-      updateBoard?.(onCloseBoardEditor);
-    });
+    setImmediate(() => updateBoard?.(onCloseBoardEditor));
   };
 
   return (
     <Wrapper onClick={onEditClearActiveWidgets}>
-      <h1 className={classnames({ disabled: status < 2 })}>
-        <LeftOutlined onClick={onCloseBoardEditor} />
-        {title}
-      </h1>
+      <Context>
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={onCloseBoardEditor}
+        />
+        <Divider />
+        <Mark><DashboardOutlined /></Mark>
+        <TitleBlock className={classnames({ disabled: status < 2 })}>
+          <Kicker>DASHBOARD WORKBENCH</Kicker>
+          <Title>{title || '未命名仪表板'}</Title>
+        </TitleBlock>
+      </Context>
       <Space>
         {children}
-        <>
-          <Button
-            key="cancel"
-            icon={<CloseOutlined />}
-            onClick={onCloseBoardEditor}
-          >
-            {t('common.cancel')}
-          </Button>
-
-          <Button
-            key="update"
-            type="primary"
-            loading={saving}
-            icon={<SaveOutlined />}
-            onClick={onUpdateBoard}
-          >
-            {t('common.save')}
-          </Button>
-        </>
+        <Button onClick={onCloseBoardEditor}>返回</Button>
+        <Button
+          type="primary"
+          loading={saving}
+          icon={<SaveOutlined />}
+          onClick={onUpdateBoard}
+        >
+          保存仪表板
+        </Button>
       </Space>
     </Wrapper>
   );
 });
 
 export default EditorHeader;
+
 const Wrapper = styled.div`
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  padding: ${SPACE_SM} ${SPACE_LG};
-  background-color: ${p => p.theme.componentBackground};
-  box-shadow: ${p => p.theme.shadowSider};
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 0 18px;
+  background: #fff;
+  border-bottom: 1px solid #e7eaf0;
+`;
 
-  h1 {
-    flex: 1;
-    font-size: ${FONT_SIZE_ICON_SM};
-    font-weight: ${FONT_WEIGHT_MEDIUM};
-    line-height: ${LINE_HEIGHT_ICON_SM};
+const Context = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+`;
 
-    &.disabled {
-      color: ${p => p.theme.textColorLight};
-    }
+const Divider = styled.div`
+  width: 1px;
+  height: 28px;
+  background: #eaecf0;
+`;
+
+const Mark = styled.div`
+  display: grid;
+  width: 34px;
+  flex-shrink: 0;
+  height: 34px;
+  place-items: center;
+  font-size: 16px;
+  color: #7c3aed;
+  background: #f5f3ff;
+  border-radius: 10px;
+`;
+
+const TitleBlock = styled.div`
+  min-width: 0;
+
+  &.disabled ${'' /* status hint is represented by muted title */} {
+    opacity: 0.7;
   }
+`;
+
+const Kicker = styled.div`
+  margin-bottom: 2px;
+  font-size: 9px;
+  color: #667085;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+`;
+
+const Title = styled.div`
+  max-width: 420px;
+  overflow: hidden;
+  font-size: 14px;
+  color: #182230;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
