@@ -211,7 +211,7 @@ ChartSpec 必须从 v1 开始版本化。
 - [x] PivotSheet 已建立独立 S2 Renderer 边界。
 - [x] Scorecard、RichText 已建立独立 React Renderer 边界。
 - [x] Outline Map、Scatter Outline Map 已建立独立 Map Renderer 边界并保留现有资源加载兼容。
-- [ ] 关系型新图表（Sankey/Graph/Tree 等）作为新增 Visual Plugin 在下一批扩展。
+- [x] 关系型/统计型新图表已新增纯 V2 Visual Plugin：Sankey、Graph、Tree、Treemap、Sunburst、Heatmap、Boxplot。
 - [ ] G2/G6/MapLibre/D3 Renderer 按实际新增图表需要再引入，避免提前增加依赖和复杂度。
 
 ## 11. 开发任务拆分
@@ -257,6 +257,14 @@ ChartSpec 必须从 v1 开始版本化。
 - [x] 图表选择器改为 Registry 驱动。
 - [x] 支持按 category/capability 动态展示。
 - [x] 增加插件异常隔离和降级页。
+
+
+### 架构验收补充
+
+- [x] 纯 V2 插件无需新增 `ChartGraph` 类即可进入 Chart Registry。
+- [x] 纯 V2 插件可通过 `VisualPluginChartAdapter` 自动兼容现有 ChartWorkbench。
+- [x] ChartManager 集成测试确认纯 V2 插件可被现有图表选择器发现。
+- [x] 新增关系/统计图表仅增加 Plugin + Schema + Builder，没有修改 ChartManager 图表硬编码清单。
 
 ## 12. 测试策略
 

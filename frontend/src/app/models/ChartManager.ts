@@ -20,6 +20,7 @@ import { IChart } from 'app/types/Chart';
 import { visualPluginToChart } from 'app/visualization/adapters/VisualPluginChartAdapter';
 import createBuiltinLegacyCharts from 'app/visualization/plugins/legacy/createBuiltinLegacyCharts';
 import { registerLegacyVisuals } from 'app/visualization/plugins/legacy/registerLegacyVisual';
+import { registerExtendedVisualPlugins } from 'app/visualization/plugins/extended/registerExtendedVisualPlugins';
 import { chartRegistry } from 'app/visualization/registry/ChartRegistry';
 import { registerNativeVisualPlugins } from 'app/visualization/plugins/registerNativeVisualPlugins';
 import { registerDefaultRenderers } from 'app/visualization/renderer/registerDefaultRenderers';
@@ -39,6 +40,7 @@ class ChartManager {
     this._charts = createBuiltinLegacyCharts();
     registerLegacyVisuals(this._charts);
     registerNativeVisualPlugins();
+    registerExtendedVisualPlugins();
   }
 
   public static instance() {
