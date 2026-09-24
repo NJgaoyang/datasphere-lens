@@ -17,15 +17,13 @@
  */
 
 import { GithubOutlined } from '@ant-design/icons';
-import { Alert, Button, Popover, Space, Spin } from 'antd';
+import { Alert, Button, Flex, Popover, Space, Spin, theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useResizeObserver from 'app/hooks/useResizeObserver';
 import { selectSystemInfo } from 'app/slice/selectors';
-import { transparentize } from 'polished';
 import React, { memo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { SPACE_MD, SPACE_TIMES, SPACE_XS } from 'styles/StyleConstants';
+import { SPACE_TIMES } from 'styles/StyleConstants';
 import { newIssueUrl } from 'utils/utils';
 import { ViewViewModelStages } from '../../constants';
 import { useViewSlice } from '../../slice';
@@ -34,6 +32,7 @@ import { Error } from './Error';
 import { Results } from './Results';
 
 export const Outputs = memo(({ hidden = false }: { hidden?: boolean }) => {
+  const { token } = theme.useToken();
   const { actions } = useViewSlice();
   const dispatch = useDispatch();
   const systemInfo = useSelector(selectSystemInfo);
@@ -81,80 +80,33 @@ export const Outputs = memo(({ hidden = false }: { hidden?: boolean }) => {
   );
 
   return (
-    <Wrapper ref={ref} hidden={hidden}>
+    <div ref={ref} hidden={hidden} style={{ position: 'relative', display: 'flex', flexDirection: 'column', borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgContainer }}>
       {warnings && (
         <Alert
-          className="warningBox"
-          message=""
+          message={t('sqlRunWraning')}
           description={
-            <p>
-              {t('sqlRunWraning')}
-              <Popover
-                trigger={['click']}
-                placement="top"
-                overlayStyle={{ width: SPACE_TIMES(96) }}
-                content={t('warningDescription')}
-              >
-                <Button className="detail" type="link" size="small">
-                  {t('detail')}
-                </Button>
-              </Popover>
-            </p>
+            <Popover trigger={['click']} placement="top" overlayStyle={{ width: SPACE_TIMES(96) }} content={t('warningDescription')}>
+              <Button type="link" size="small" style={{ padding: 0 }}>{t('detail')}</Button>
+            </Popover>
           }
           type="warning"
           closable={false}
           action={
             <Space>
-              <Button
-                type="primary"
-                icon={<GithubOutlined />}
-                onClick={() => submitIssue('github')}
-              >
-                Github
-              </Button>
-              <Button type="primary" onClick={() => submitIssue('gitee')}>
-                Gitee
-              </Button>
+              <Button type="primary" icon={<GithubOutlined />} onClick={() => submitIssue('github')}>Github</Button>
+              <Button type="primary" onClick={() => submitIssue('gitee')}>Gitee</Button>
               <Button onClick={removeViewWarnings}>{t('close')}</Button>
             </Space>
           }
         />
       )}
-
       <Results width={width} height={height} />
       {error && <Error />}
       {stage === ViewViewModelStages.Running && (
-        <LoadingMask>
+        <Flex align="center" justify="center" style={{ position: 'absolute', inset: 0, background: token.colorBgMask }}>
           <Spin />
-        </LoadingMask>
+        </Flex>
       )}
-    </Wrapper>
+    </div>
   );
 });
-
-const Wrapper = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid ${p => p.theme.borderColorSplit};
-
-  .warningBox {
-    padding: ${SPACE_XS} ${SPACE_MD};
-
-    .detail {
-      padding: 0;
-    }
-  }
-`;
-
-const LoadingMask = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${p => transparentize(0.5, p.theme.componentBackground)};
-`;

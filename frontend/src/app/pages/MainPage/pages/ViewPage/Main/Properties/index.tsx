@@ -23,6 +23,7 @@ import {
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import { PaneWrapper } from 'app/components';
+import { theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import {
   memo,
@@ -32,8 +33,6 @@ import {
   useMemo,
   useState,
 } from 'react';
-import styled from 'styled-components';
-import { LEVEL_1 } from 'styles/StyleConstants';
 import { EditorContext } from '../../EditorContext';
 import ViewErrorBoundary from '../../ErrorBoundary';
 import { ColumnPermissions } from './ColumnPermissions';
@@ -48,6 +47,7 @@ interface PropertiesProps {
 }
 
 export const Properties = memo(({ allowManage, viewType }: PropertiesProps) => {
+  const { token } = theme.useToken();
   const [selectedTab, setSelectedTab] = useState('');
   const { editorInstance } = useContext(EditorContext);
   const t = useI18NPrefix('view.properties');
@@ -77,7 +77,7 @@ export const Properties = memo(({ allowManage, viewType }: PropertiesProps) => {
   }, []);
 
   return allowManage ? (
-    <Container>
+    <div style={{ zIndex: 1, display: 'flex', flexShrink: 0, background: token.colorBgContainer, borderLeft: `1px solid ${token.colorBorderSecondary}` }}>
       <PaneWrapper selected={selectedTab === 'variable'}>
         <ViewErrorBoundary>
           <Variables />
@@ -99,13 +99,7 @@ export const Properties = memo(({ allowManage, viewType }: PropertiesProps) => {
         </ViewErrorBoundary>
       </PaneWrapper>
       <VerticalTabs tabs={tabTitle} onSelect={tabSelect} />
-    </Container>
+    </div>
   ) : null;
 });
 
-const Container = styled.div`
-  z-index: ${LEVEL_1};
-  display: flex;
-  flex-shrink: 0;
-  background-color: ${p => p.theme.componentBackground};
-`;

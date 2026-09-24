@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Spin } from 'antd';
+import { Flex, Spin, theme } from 'antd';
 import { Split } from 'app/components';
 import { useAccess, useCascadeAccess } from 'app/pages/MainPage/Access';
 import debounce from 'lodash/debounce';
@@ -28,7 +28,6 @@ import React, {
   useMemo,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
 import { getPath } from 'utils/utils';
 import {
   PermissionLevels,
@@ -48,6 +47,7 @@ import { StructView } from './StructView';
 import { ViewJoinBuilder } from './ViewJoinBuilder';
 
 export const Workbench = memo(() => {
+  const { token } = theme.useToken();
   const dispatch = useDispatch();
   const { editorInstance } = useContext(EditorContext);
   const { actions } = useViewSlice();
@@ -143,21 +143,16 @@ export const Workbench = memo(() => {
   }, [dispatch, sourceId]);
 
   return (
-    <Wrapper>
-      <Development
-        direction="vertical"
-        gutterSize={0}
-        className="datart-split"
-        onDrag={editorResize}
-      >
-        <EditorWrap>
+    <Flex style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
+      <Split direction="vertical" gutterSize={0} className="datart-split" onDrag={editorResize} style={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+        <Flex vertical style={{ flex: 1, minHeight: 0 }}>
           {!viewType ? (
             unpersistedNewView ? (
               <SelectView selectViewType={handleSelectViewType} />
             ) : (
-              <LoadingWrap>
+              <Flex align="center" justify="center" style={{ flex: 1, background: token.colorBgContainer }}>
                 <Spin />
-              </LoadingWrap>
+              </Flex>
             )
           ) : viewType === 'VIEW_JOIN' ? (
             <ViewJoinBuilder />
@@ -165,44 +160,15 @@ export const Workbench = memo(() => {
             <Editor allowManage={allowManage} allowEnableViz={allowEnableViz} />
           ) : (
             <ViewErrorBoundary>
-              <StructView
-                allowManage={allowManage}
-                allowEnableViz={allowEnableViz}
-              />
+              <StructView allowManage={allowManage} allowEnableViz={allowEnableViz} />
             </ViewErrorBoundary>
           )}
-        </EditorWrap>
+        </Flex>
         <Outputs hidden={viewType === 'VIEW_JOIN'} />
-      </Development>
+      </Split>
       <ViewErrorBoundary>
-        {viewType !== 'VIEW_JOIN' && (
-          <Properties viewType={viewType} allowManage={allowManage} />
-        )}
+        {viewType !== 'VIEW_JOIN' && <Properties viewType={viewType} allowManage={allowManage} />}
       </ViewErrorBoundary>
-    </Wrapper>
+    </Flex>
   );
 });
-
-const Wrapper = styled.div`
-  display: flex;
-  flex: 1;
-  min-height: 0;
-`;
-const EditorWrap = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-`;
-const Development = styled(Split)`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-`;
-
-const LoadingWrap = styled.div`
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  background-color: ${p => p.theme.componentBackground};
-`;
