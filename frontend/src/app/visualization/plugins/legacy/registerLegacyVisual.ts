@@ -1,4 +1,5 @@
 import { IChart } from 'app/types/Chart';
+import { fromLegacyChartConfig } from '../../config/ConfigSchema';
 import { chartRegistry, VisualCategory } from '../../registry/ChartRegistry';
 
 const resolveCategory = (chartId: string): VisualCategory => {
@@ -22,7 +23,7 @@ export const registerLegacyVisual = (chart: IChart) => {
       icon: chart.meta.icon,
       category: resolveCategory(chart.meta.id),
       renderer: 'legacy',
-      configSchema: chart.config,
+      configSchema: fromLegacyChartConfig(chart.config),
       capabilities: {
         drill: Boolean(chart.config?.datas?.some(section => section.drillable)),
         linkage: true,

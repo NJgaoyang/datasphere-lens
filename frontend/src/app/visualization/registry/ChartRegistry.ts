@@ -1,5 +1,5 @@
 import { IChart } from 'app/types/Chart';
-import { ChartConfig } from 'app/types/ChartConfig';
+import { VisualConfigSchema } from '../config/ConfigSchema';
 
 export type VisualCategory =
   | 'table'
@@ -25,7 +25,7 @@ export interface VisualPluginDefinition {
   icon?: string;
   category: VisualCategory;
   renderer: string;
-  configSchema?: ChartConfig;
+  configSchema?: VisualConfigSchema;
   capabilities?: VisualCapabilities;
   legacyChart?: IChart;
 }

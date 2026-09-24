@@ -216,11 +216,11 @@ ChartSpec 必须从 v1 开始版本化。
 
 ### P1：配置体系
 
-- [ ] 创建新版 `ConfigSchema`。
-- [ ] 创建统一 `ConfigPanel`。
-- [ ] 复用现有 FormGenerator 控件。
-- [ ] 创建统一 FieldSlot/FieldBindingPanel。
-- [ ] 加入 Schema 校验和默认值合并。
+- [x] 创建新版 `ConfigSchema`。
+- [x] 创建统一 `ConfigPanel`。
+- [x] 复用现有 FormGenerator 控件。
+- [x] 创建统一 FieldSlot/FieldBindingPanel。
+- [x] 加入 Schema 校验和默认值合并。
 
 ### P2：第一批图表
 
