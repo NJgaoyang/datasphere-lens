@@ -97,10 +97,10 @@ const Divider = styled.div`
 
 const Mark = styled.div`
   display: grid;
-  width: 34px;
   flex-shrink: 0;
-  height: 34px;
   place-items: center;
+  width: 34px;
+  height: 34px;
   font-size: 16px;
   color: #7c3aed;
   background: #f5f3ff;
@@ -118,8 +118,8 @@ const TitleBlock = styled.div`
 const Kicker = styled.div`
   margin-bottom: 2px;
   font-size: 9px;
-  color: #667085;
   font-weight: 700;
+  color: #667085;
   letter-spacing: 0.12em;
 `;
 
@@ -127,8 +127,8 @@ const Title = styled.div`
   max-width: 420px;
   overflow: hidden;
   font-size: 14px;
-  color: #182230;
   font-weight: 650;
+  color: #182230;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;

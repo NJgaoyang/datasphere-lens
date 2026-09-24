@@ -17,14 +17,23 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Button, Dropdown, Tooltip } from 'antd';
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  Layout,
+  Menu,
+  MenuProps,
+  Space,
+  Typography,
+  theme,
+} from 'antd';
 import { selectLoggedInUser } from 'app/slice/selectors';
 import { logout } from 'app/slice/thunks';
 import { BASE_RESOURCE_URL } from 'globalConstants';
 import React, { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { ModifyPassword } from './Navbar/ModifyPassword';
 import { Profile } from './Navbar/Profile';
 import { ResourceTypes } from './pages/PermissionPage/constants';
@@ -32,6 +41,9 @@ import {
   selectCurrentOrganization,
   selectHideInNav,
 } from './slice/selectors';
+
+const { Sider, Header, Content } = Layout;
+const { Text, Title } = Typography;
 
 type NavItem = {
   path: string;
@@ -51,6 +63,7 @@ export function LensLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { token } = theme.useToken();
   const user = useSelector(selectLoggedInUser);
   const organization = useSelector(selectCurrentOrganization);
   const hideInNav = useSelector(selectHideInNav);
@@ -75,33 +88,71 @@ export function LensLayout({
         title: '数据',
         items: [
           ...(visible(ResourceTypes.Source)
-            ? [{ path: `/organizations/${orgId}/sources`, name: '数据源', icon: <DatabaseOutlined /> }]
+            ? [
+                {
+                  path: `/organizations/${orgId}/sources`,
+                  name: '数据源',
+                  icon: <DatabaseOutlined />,
+                },
+              ]
             : []),
           ...(visible(ResourceTypes.View)
-            ? [{ path: `/organizations/${orgId}/views`, name: '数据集', icon: <TableOutlined /> }]
+            ? [
+                {
+                  path: `/organizations/${orgId}/views`,
+                  name: '数据集',
+                  icon: <TableOutlined />,
+                },
+              ]
             : []),
         ],
       },
       {
         title: '分析',
         items: visible(ResourceTypes.Viz)
-          ? [{ path: `/organizations/${orgId}/vizs`, name: '分析资产', icon: <BarChartOutlined /> }]
+          ? [
+              {
+                path: `/organizations/${orgId}/vizs`,
+                name: '分析资产',
+                icon: <BarChartOutlined />,
+              },
+            ]
           : [],
       },
       {
         title: '协作',
         items: [
           ...(visible(ResourceTypes.Schedule)
-            ? [{ path: `/organizations/${orgId}/schedules`, name: '定时任务', icon: <CalendarOutlined /> }]
+            ? [
+                {
+                  path: `/organizations/${orgId}/schedules`,
+                  name: '定时任务',
+                  icon: <CalendarOutlined />,
+                },
+              ]
             : []),
           ...(visible(ResourceTypes.User)
             ? [
-                { path: `/organizations/${orgId}/members`, name: '用户', icon: <UserOutlined /> },
-                { path: `/organizations/${orgId}/roles`, name: '角色', icon: <TeamOutlined /> },
+                {
+                  path: `/organizations/${orgId}/members`,
+                  name: '用户',
+                  icon: <UserOutlined />,
+                },
+                {
+                  path: `/organizations/${orgId}/roles`,
+                  name: '角色',
+                  icon: <TeamOutlined />,
+                },
               ]
             : []),
           ...(visible(ResourceTypes.Manager)
-            ? [{ path: `/organizations/${orgId}/permissions/subject`, name: '权限', icon: <SafetyCertificateOutlined /> }]
+            ? [
+                {
+                  path: `/organizations/${orgId}/permissions/subject`,
+                  name: '权限',
+                  icon: <SafetyCertificateOutlined />,
+                },
+              ]
             : []),
         ],
       },
@@ -109,46 +160,88 @@ export function LensLayout({
         title: '系统',
         items: visible(ResourceTypes.Manager)
           ? [
-              { path: `/organizations/${orgId}/variables`, name: '变量', icon: <LockOutlined /> },
-              { path: `/organizations/${orgId}/monitor`, name: '监控', icon: <MonitorOutlined /> },
-              { path: `/organizations/${orgId}/auditLog`, name: '审计', icon: <AuditOutlined /> },
-              { path: `/organizations/${orgId}/orgSettings`, name: '设置', icon: <SettingOutlined /> },
+              {
+                path: `/organizations/${orgId}/variables`,
+                name: '变量',
+                icon: <LockOutlined />,
+              },
+              {
+                path: `/organizations/${orgId}/monitor`,
+                name: '监控',
+                icon: <MonitorOutlined />,
+              },
+              {
+                path: `/organizations/${orgId}/auditLog`,
+                name: '审计',
+                icon: <AuditOutlined />,
+              },
+              {
+                path: `/organizations/${orgId}/orgSettings`,
+                name: '设置',
+                icon: <SettingOutlined />,
+              },
             ]
           : [],
       },
     ],
     [hideInNav, orgId],
   );
+
   const activeItem = navGroups
     .flatMap(group => group.items)
     .filter(item => location.pathname.startsWith(item.path))
     .sort((a, b) => b.path.length - a.path.length)[0];
 
-  const quickCreate = {
+  const menuItems: MenuProps['items'] = navGroups.flatMap((group, groupIndex) => {
+    const items: MenuProps['items'] = group.items.map(item => ({
+      key: item.path,
+      icon: item.icon,
+      label: item.name,
+      onClick: () => navigate(item.path),
+    }));
+    if (!items.length) return [];
+    return [
+      {
+        type: 'group' as const,
+        key: `group-${groupIndex}`,
+        label: collapsed ? undefined : group.title,
+        children: items,
+      },
+    ];
+  });
+
+  const quickCreate: MenuProps = {
     items: [
       { key: 'source', label: '新建数据源', icon: <DatabaseOutlined /> },
       { key: 'dataset', label: '新建数据集', icon: <TableOutlined /> },
       { key: 'chart', label: '新建图表', icon: <BarChartOutlined /> },
       { key: 'dashboard', label: '新建仪表板', icon: <AreaChartOutlined /> },
     ],
-    onClick: ({ key }: { key: string }) => {
+    onClick: ({ key }) => {
       if (key === 'source') navigate(`/organizations/${orgId}/sources/add`);
       if (key === 'dataset') navigate(`/organizations/${orgId}/views`);
       if (key === 'chart') {
-        navigate(`/organizations/${orgId}/vizs/chartEditor?dataChartId=&chartType=dataChart&container=dataChart`);
+        navigate(
+          `/organizations/${orgId}/vizs/chartEditor?dataChartId=&chartType=dataChart&container=dataChart`,
+        );
       }
       if (key === 'dashboard') navigate(`/organizations/${orgId}/vizs`);
     },
   };
 
-  const accountMenu = {
+  const accountMenu: MenuProps = {
     items: [
       { key: 'profile', label: '个人资料', icon: <UserOutlined /> },
       { key: 'password', label: '修改密码', icon: <LockOutlined /> },
       { type: 'divider' as const },
-      { key: 'logout', label: '退出登录', icon: <LogoutOutlined />, danger: true },
+      {
+        key: 'logout',
+        label: '退出登录',
+        icon: <LogoutOutlined />,
+        danger: true,
+      },
     ],
-    onClick: ({ key }: { key: string }) => {
+    onClick: ({ key }) => {
       if (key === 'profile') setProfileVisible(true);
       if (key === 'password') setPasswordVisible(true);
       if (key === 'logout') {
@@ -158,333 +251,147 @@ export function LensLayout({
   };
 
   return (
-    <Shell>
-      <Sider className={collapsed ? 'collapsed' : ''}>
-        <BrandRow>
-          <BrandMark>DS</BrandMark>
+    <Layout style={{ width: '100vw', minHeight: '100vh' }}>
+      <Sider
+        width={232}
+        collapsedWidth={72}
+        collapsed={collapsed}
+        theme="dark"
+        style={{
+          position: 'relative',
+          zIndex: 20,
+          height: '100vh',
+          overflow: 'hidden',
+          background: '#001529',
+        }}
+      >
+        <Space
+          size={12}
+          align="center"
+          style={{ height: 64, padding: collapsed ? '0 19px' : '0 20px' }}
+        >
+          <Avatar
+            shape="square"
+            size={34}
+            style={{ background: token.colorPrimary, fontWeight: 700 }}
+          >
+            DS
+          </Avatar>
           {!collapsed && (
-            <BrandText>
-              <strong>DataSphere</strong>
-              <span>Lens</span>
-            </BrandText>
+            <div style={{ lineHeight: 1.2 }}>
+              <Text strong style={{ display: 'block', color: '#fff' }}>
+                DataSphere
+              </Text>
+              <Text style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>
+                Lens
+              </Text>
+            </div>
           )}
-        </BrandRow>
+        </Space>
 
         {!collapsed && (
-          <WorkspaceCard>
-            <span>当前空间</span>
-            <strong>{organization?.name || '默认组织'}</strong>
-          </WorkspaceCard>
+          <div
+            style={{
+              margin: '0 12px 12px',
+              padding: '10px 12px',
+              borderRadius: token.borderRadiusLG,
+              background: 'rgba(255,255,255,.06)',
+            }}
+          >
+            <Text style={{ display: 'block', color: 'rgba(255,255,255,.45)', fontSize: 11 }}>
+              当前空间
+            </Text>
+            <Text strong ellipsis style={{ display: 'block', marginTop: 2, color: '#fff' }}>
+              {organization?.name || '默认组织'}
+            </Text>
+          </div>
         )}
 
-        <NavScroll>
-          {navGroups.map(group =>
-            group.items.length ? (
-              <NavGroupBlock key={group.title}>
-                {!collapsed && <NavGroupTitle>{group.title}</NavGroupTitle>}
-                {group.items.map(item => {
-                  const active = activeItem?.path === item.path;
-                  const button = (
-                    <NavButton
-                      key={item.path}
-                      className={active ? 'active' : ''}
-                      onClick={() => navigate(item.path)}
-                    >
-                      <NavIcon>{item.icon}</NavIcon>
-                      {!collapsed && <span>{item.name}</span>}
-                    </NavButton>
-                  );
-                  return collapsed ? (
-                    <Tooltip key={item.path} title={item.name} placement="right">
-                      {button}
-                    </Tooltip>
-                  ) : (
-                    button
-                  );
-                })}
-              </NavGroupBlock>
-            ) : null,
-          )}
-        </NavScroll>
+        <Menu
+          mode="inline"
+          theme="dark"
+          selectedKeys={activeItem ? [activeItem.path] : []}
+          items={menuItems}
+          inlineCollapsed={collapsed}
+          style={{
+            height: 'calc(100vh - 126px)',
+            overflowY: 'auto',
+            borderInlineEnd: 0,
+            background: 'transparent',
+          }}
+        />
 
-        <CollapseButton onClick={() => setCollapsed(value => !value)}>
-          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          {!collapsed && <span>收起导航</span>}
-        </CollapseButton>
+        <Button
+          type="text"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => setCollapsed(value => !value)}
+          style={{
+            position: 'absolute',
+            right: collapsed ? 16 : 12,
+            bottom: 12,
+            left: collapsed ? 16 : 12,
+            color: 'rgba(255,255,255,.72)',
+          }}
+        >
+          {!collapsed && '收起导航'}
+        </Button>
       </Sider>
-      <WorkArea>
-        <Topbar>
-          <PageContext>
-            <PageKicker>{organization?.name || '默认组织'}</PageKicker>
-            <PageTitle>{activeItem?.name || 'DataSphere Lens'}</PageTitle>
-          </PageContext>
-          <TopActions>
+
+      <Layout style={{ minWidth: 0 }}>
+        <Header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 64,
+            padding: '0 24px',
+            background: token.colorBgContainer,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          }}
+        >
+          <div>
+            <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>
+              {organization?.name || '默认组织'}
+            </Text>
+            <Title level={5} style={{ margin: 0 }}>
+              {activeItem?.name || 'DataSphere Lens'}
+            </Title>
+          </div>
+          <Space size={12}>
             <Dropdown menu={quickCreate} trigger={['click']}>
               <Button type="primary" icon={<PlusOutlined />}>
                 新建
               </Button>
             </Dropdown>
             <Dropdown menu={accountMenu} trigger={['click']}>
-              <AccountButton>
-                <Avatar
-                  size={30}
-                  src={user?.avatar ? `${BASE_RESOURCE_URL}${user.avatar}` : undefined}
-                  icon={<UserOutlined />}
-                />
-                <span>{user?.name || user?.username || '用户'}</span>
-              </AccountButton>
+              <Button type="text" style={{ height: 40, paddingInline: 8 }}>
+                <Space size={8}>
+                  <Avatar
+                    size={30}
+                    src={
+                      user?.avatar
+                        ? `${BASE_RESOURCE_URL}${user.avatar}`
+                        : undefined
+                    }
+                    icon={<UserOutlined />}
+                  />
+                  <Text>{user?.name || user?.username || '用户'}</Text>
+                </Space>
+              </Button>
             </Dropdown>
-          </TopActions>
-        </Topbar>
-        <Content>{children}</Content>
-      </WorkArea>
+          </Space>
+        </Header>
+        <Content style={{ minHeight: 0, overflow: 'auto' }}>{children}</Content>
+      </Layout>
 
-      <Profile visible={profileVisible} onCancel={() => setProfileVisible(false)} />
+      <Profile
+        visible={profileVisible}
+        onCancel={() => setProfileVisible(false)}
+      />
       <ModifyPassword
         visible={passwordVisible}
         onCancel={() => setPasswordVisible(false)}
       />
-    </Shell>
+    </Layout>
   );
 }
-const Shell = styled.div`
-  display: flex;
-  width: 100vw;
-  min-width: 0;
-  height: 100vh;
-  overflow: hidden;
-  background: #f4f6f9;
-`;
-
-const Sider = styled.aside`
-  position: relative;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  width: 224px;
-  min-width: 224px;
-  height: 100%;
-  color: #dbe5f3;
-  background: #0b1220;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  transition: width 0.2s ease, min-width 0.2s ease;
-
-  &.collapsed {
-    width: 72px;
-    min-width: 72px;
-  }
-`;
-
-const BrandRow = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  gap: 11px;
-  align-items: center;
-  height: 68px;
-  padding: 0 20px;
-`;
-const BrandMark = styled.div`
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.4px;
-  background: linear-gradient(135deg, #3b82f6 0%, #6d5dfc 100%);
-  border-radius: 11px;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.28);
-`;
-
-const BrandText = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-
-  strong {
-    font-size: 14px;
-    line-height: 17px;
-    color: #fff;
-  }
-
-  span {
-    font-size: 11px;
-    line-height: 15px;
-    color: #7f8da3;
-  }
-`;
-
-const WorkspaceCard = styled.div`
-  padding: 11px 12px;
-  margin: 0 14px 12px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  span {
-    display: block;
-    margin-bottom: 3px;
-    font-size: 10px;
-    color: #66758b;
-  }
-
-  strong {
-    display: block;
-    overflow: hidden;
-    font-size: 12px;
-    font-weight: 600;
-    color: #dce6f4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-`;
-
-const NavScroll = styled.div`
-  flex: 1;
-  min-height: 0;
-  padding: 2px 10px 14px;
-  overflow: auto;
-`;
-
-const NavGroupBlock = styled.div`
-  margin-bottom: 14px;
-`;
-
-const NavGroupTitle = styled.div`
-  padding: 0 10px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #536177;
-  letter-spacing: 0.08em;
-`;
-
-const NavButton = styled.button`
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  width: 100%;
-  height: 38px;
-  padding: 0 10px;
-  margin: 2px 0;
-  font: inherit;
-  font-size: 13px;
-  color: #8f9db1;
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: 9px;
-
-  &:hover {
-    color: #ecf4ff;
-    background: rgba(255, 255, 255, 0.055);
-  }
-
-  &.active {
-    color: #fff;
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.24), rgba(109, 93, 252, 0.12));
-    box-shadow: inset 2px 0 #5b8cff;
-  }
-
-  .collapsed & {
-    justify-content: center;
-    padding: 0;
-  }
-`;
-
-const NavIcon = styled.span`
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 20px;
-  font-size: 16px;
-`;
-const CollapseButton = styled.button`
-  display: flex;
-  flex-shrink: 0;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  height: 46px;
-  font: inherit;
-  font-size: 12px;
-  color: #69788d;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-
-  &:hover {
-    color: #cbd7e8;
-  }
-`;
-
-const WorkArea = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-`;
-
-const Topbar = styled.header`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid #e8ebf0;
-`;
-
-const PageContext = styled.div`
-  min-width: 0;
-`;
-const PageKicker = styled.div`
-  margin-bottom: 2px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #98a2b3;
-  letter-spacing: 0.04em;
-`;
-
-const PageTitle = styled.div`
-  overflow: hidden;
-  font-size: 16px;
-  font-weight: 650;
-  color: #182230;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const TopActions = styled.div`
-  display: flex;
-  gap: 10px;
-  align-items: center;
-`;
-
-const AccountButton = styled.div`
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  height: 38px;
-  padding: 0 9px;
-  font-size: 12px;
-  color: #344054;
-  cursor: pointer;
-  border-radius: 10px;
-
-  &:hover {
-    background: #f4f6f9;
-  }
-`;
-
-const Content = styled.main`
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: #f4f6f9;
-`;
