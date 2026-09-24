@@ -21,15 +21,14 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { Tooltip } from 'antd';
+import { Empty, Flex, Tooltip, Typography, theme } from 'antd';
 import { Popup, ToolbarButton, Tree } from 'app/components';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { APP_CURRENT_VERSION } from 'app/migration/constants';
 import classnames from 'classnames';
 import { memo, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { FONT_FAMILY, FONT_SIZE_BASE } from 'styles/StyleConstants';
+import { FONT_SIZE_BASE } from 'styles/StyleConstants';
 import { CloneValueDeep, isEmptyArray } from 'utils/object';
 import { uuidv4 } from 'utils/utils';
 import { selectRoles } from '../../../MemberPage/slice/selectors';
@@ -56,6 +55,7 @@ interface ResultsProps {
 }
 
 export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
+  const { token } = theme.useToken();
   const { actions } = useViewSlice();
   const dispatch = useDispatch();
   const viewId = useSelector(state =>
@@ -266,7 +266,13 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
   );
 
   return stage > ViewViewModelStages.Fresh ? (
-    <TableWrapper>
+    <div
+      style={{
+        flex: 1,
+        overflow: 'hidden',
+        background: token.colorBgContainer,
+      }}
+    >
       {height > 96 && (
         <SchemaTable
           height={height - 96}
@@ -284,32 +290,17 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
           hasCategory
         />
       )}
-    </TableWrapper>
+    </div>
   ) : (
-    <InitialDesc>
-      <p>
-        {t('resultEmpty1')}
-        <CaretRightOutlined />
-        {t('resultEmpty2')}
-      </p>
-    </InitialDesc>
+    <Flex flex={1} align="center" justify="center">
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description={
+          <Typography.Text type="secondary">
+            {t('resultEmpty1')} <CaretRightOutlined /> {t('resultEmpty2')}
+          </Typography.Text>
+        }
+      />
+    </Flex>
   );
 });
-
-const InitialDesc = styled.div`
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-
-  p {
-    color: ${p => p.theme.textColorLight};
-  }
-`;
-
-const TableWrapper = styled.div`
-  flex: 1;
-  overflow: hidden;
-  font-family: ${FONT_FAMILY};
-  background-color: ${p => p.theme.componentBackground};
-`;

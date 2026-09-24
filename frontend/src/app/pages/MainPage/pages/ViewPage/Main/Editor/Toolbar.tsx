@@ -25,7 +25,7 @@ import {
   SaveFilled,
   SettingFilled,
 } from '@ant-design/icons';
-import { Divider, Dropdown, Menu, Select, Space, Tooltip } from 'antd';
+import { Divider, Dropdown, Flex, Select, Space, Tooltip, theme } from 'antd';
 import { ToolbarButton } from 'app/components';
 import { Chronograph } from 'app/components/Chronograph';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -34,13 +34,8 @@ import React, { memo, useCallback, useContext, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format } from 'sql-formatter';
-import styled from 'styled-components';
 import {
   INFO,
-  LEVEL_1,
-  SPACE,
-  SPACE_TIMES,
-  SPACE_XS,
   WARNING,
 } from 'styles/StyleConstants';
 import { getInsertedNodeIndex } from 'utils/utils';
@@ -70,6 +65,7 @@ interface ToolbarProps {
 
 export const Toolbar = memo(
   ({ allowManage, allowEnableViz, type }: ToolbarProps) => {
+    const { token } = theme.useToken();
     const { actions } = useViewSlice();
     const dispatch = useDispatch();
     const { onRun, onSave } = useContext(EditorContext);
@@ -201,8 +197,18 @@ export const Toolbar = memo(
     }, [actions, dispatch, histState?.parentId, id]);
 
     return (
-      <Container>
-        <Operates>
+      <Flex
+        align="center"
+        justify="space-between"
+        style={{
+          zIndex: 1,
+          flexShrink: 0,
+          padding: `${token.paddingXXS}px ${token.paddingXS}px`,
+          background: token.colorBgContainer,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        <div style={{ display: 'flex', flex: 1 }}>
           <Space split={<Divider type="vertical" className="divider" />}>
             {type === 'SQL' && (
               <>
@@ -213,7 +219,7 @@ export const Toolbar = memo(
                     bordered={false}
                     disabled={isArchived}
                     onChange={sourceChange}
-                    className="source"
+                    style={{ width: 200 }}
                   >
                     {sources.map(({ id, name }) => (
                       <Select.Option key={id} value={id}>
@@ -259,13 +265,10 @@ export const Toolbar = memo(
             )}
             <Dropdown
               trigger={['click']}
-              overlay={
-                <Menu onClick={sizeMenuClick}>
-                  {PREVIEW_SIZE_LIST.map(s => (
-                    <Menu.Item key={s}>{s}</Menu.Item>
-                  ))}
-                </Menu>
-              }
+              menu={{
+                items: PREVIEW_SIZE_LIST.map(s => ({ key: s, label: s })),
+                onClick: sizeMenuClick,
+              }}
             >
               <ToolbarButton size="small">{`Limit: ${size}`}</ToolbarButton>
             </Dropdown>
@@ -282,9 +285,9 @@ export const Toolbar = memo(
               }
             />
           </Space>
-        </Operates>
+        </div>
 
-        <Actions>
+        <div style={{ display: 'flex', flexShrink: 0 }}>
           <Space>
             {allowManage && (
               <Tooltip
@@ -341,55 +344,19 @@ export const Toolbar = memo(
               </Tooltip>
             )}
           </Space>
-        </Actions>
-      </Container>
+        </div>
+      </Flex>
     );
   },
 );
 
-const Container = styled.div`
-  z-index: ${LEVEL_1};
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  padding: ${SPACE} ${SPACE_XS};
-  background-color: ${p => p.theme.componentBackground};
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
-
-  .source {
-    width: ${SPACE_TIMES(40)};
-  }
-
-  .size {
-    width: ${SPACE_TIMES(40)};
-  }
-
-  .divider {
-    border-color: ${p => p.theme.borderColorBase};
-  }
-`;
-
-const Operates = styled.div`
-  display: flex;
-  flex: 1;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  flex-shrink: 0;
-`;
-
 const TipTitle = ({ title }: { title: string[] }) => {
   return (
-    <TipTitleWrapper>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       {title.map((s, index) => (
         <p key={index}>{s}</p>
       ))}
-    </TipTitleWrapper>
+    </div>
   );
 };
 
-const TipTitleWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-`;

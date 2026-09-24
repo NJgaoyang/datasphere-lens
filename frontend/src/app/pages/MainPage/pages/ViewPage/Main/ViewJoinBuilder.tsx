@@ -1,12 +1,10 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Form, Input, Modal, Select, Space } from 'antd';
+import { Alert, Button, Card, Flex, Form, Input, Modal, Select, Space, Typography, theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { ViewFieldMeta } from 'app/types/View';
 import { CommonFormTypes } from 'globalConstants';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import { SPACE_LG, SPACE_MD, SPACE_XS } from 'styles/StyleConstants';
 import { request2 } from 'utils/request';
 import {
   getDatasetFieldDisplayName,
@@ -64,6 +62,7 @@ const parseColumns = (view?: ViewDetail) => {
 };
 
 export const ViewJoinBuilder = memo(() => {
+  const { token } = theme.useToken();
   const dispatch = useDispatch();
   const views = useSelector(selectViews);
   const currentViewId = useSelector(state =>
@@ -182,15 +181,15 @@ export const ViewJoinBuilder = memo(() => {
   const rightColumns = parseColumns(rightId ? details[rightId] : undefined);
 
   return (
-    <Wrapper>
-      <h2>{t('title')}</h2>
-      <Alert message={t('description')} type="info" showIcon />
+    <div style={{ flex: 1, padding: token.paddingLG, overflow: 'auto' }}>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>{t('title')}</Typography.Title>
+      <Alert message={t('description')} type="info" showIcon style={{ marginBottom: token.marginMD }} />
       <Form
         form={form}
         layout="vertical"
         initialValues={{ joinType: 'INNER', conditions: [{}] }}
       >
-        <ViewRow>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 140px minmax(200px, 1fr)', gap: token.marginMD }}>
           <Form.Item
             name="leftViewId"
             label={t('leftView')}
@@ -269,13 +268,13 @@ export const ViewJoinBuilder = memo(() => {
               optionFilterProp="label"
             />
           </Form.Item>
-        </ViewRow>
+        </div>
 
         <Form.List name="conditions">
           {(fields, { add, remove }) => (
             <>
               {fields.map((field, index) => (
-                <ConditionRow key={field.key}>
+                <div key={field.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) auto minmax(200px, 1fr) 40px', gap: token.marginXS, alignItems: 'center' }}>
                   <Form.Item
                     {...field}
                     name={[field.name, 'leftColumn']}
@@ -284,7 +283,7 @@ export const ViewJoinBuilder = memo(() => {
                   >
                     <Select options={leftColumns} />
                   </Form.Item>
-                  <span>=</span>
+                  <span style={{ paddingTop: token.paddingMD }}>=</span>
                   <Form.Item
                     {...field}
                     name={[field.name, 'rightColumn']}
@@ -300,7 +299,7 @@ export const ViewJoinBuilder = memo(() => {
                       onClick={() => remove(field.name)}
                     />
                   )}
-                </ConditionRow>
+                </div>
               ))}
               <Button icon={<PlusOutlined />} onClick={() => add()}>
                 {t('addCondition')}
@@ -319,7 +318,7 @@ export const ViewJoinBuilder = memo(() => {
       </Form>
       <Modal
         title={t('previewTitle')}
-        visible={previewVisible}
+        open={previewVisible}
         width="80%"
         onCancel={() => setPreviewVisible(false)}
         footer={[
@@ -337,46 +336,15 @@ export const ViewJoinBuilder = memo(() => {
           </Button>,
         ]}
       >
-        <PreviewHelp>{t('previewHelp')}</PreviewHelp>
+        <Typography.Paragraph type="secondary" style={{ marginBottom: token.marginXS }}>{t('previewHelp')}</Typography.Paragraph>
         <Input.TextArea
           value={generated?.script}
           readOnly
           autoSize={{ minRows: 14, maxRows: 26 }}
         />
       </Modal>
-    </Wrapper>
+    </div>
   );
 });
 
-const Wrapper = styled.div`
-  flex: 1;
-  padding: ${SPACE_LG};
-  overflow: auto;
-
-  h2,
-  .ant-alert,
-  .ant-form {
-    margin-bottom: ${SPACE_MD};
-  }
-`;
-
-const ViewRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(200px, 1fr) 140px minmax(200px, 1fr);
-  gap: ${SPACE_MD};
-`;
-
-const ConditionRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(200px, 1fr) auto minmax(200px, 1fr) 40px;
-  gap: ${SPACE_XS};
-  align-items: center;
-
-  > span {
-    padding-top: ${SPACE_MD};
-  }
-`;
-
-const PreviewHelp = styled.p`
-  margin-bottom: ${SPACE_XS};
-`;
+/* Layout is provided by Ant Design primitives and theme tokens. */

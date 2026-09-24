@@ -1,35 +1,14 @@
-/**
- * Datart
- *
- * Copyright 2021
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {
   CloseOutlined,
   InfoCircleOutlined,
   LoadingOutlined,
 } from '@ant-design/icons';
-import { Button, Dropdown, Menu, Space } from 'antd';
-import { Confirm, TabPane, Tabs as TabsComponent } from 'app/components';
+import { Button, Dropdown, Modal, Space, Tabs as AntTabs, theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { selectOrgId } from 'app/pages/MainPage/slice/selectors';
-import { memo, useCallback, useContext, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import styled, { css } from 'styled-components';
-import { LEVEL_1, ORANGE } from 'styles/StyleConstants';
 import { ViewViewModelStages } from '../constants';
 import { EditorContext } from '../EditorContext';
 import {
@@ -44,14 +23,9 @@ import {
 } from '../slice/thunks';
 import { ViewViewModel } from '../slice/types';
 
-const errorColor = css`
-  color: ${p => p.theme.error};
-`;
-
 export const Tabs = memo(() => {
-  const [operatingView, setOperatingView] = useState<null | ViewViewModel>(
-    null,
-  );
+  const { token } = theme.useToken();
+  const [operatingView, setOperatingView] = useState<null | ViewViewModel>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -61,22 +35,21 @@ export const Tabs = memo(() => {
   const id = useSelector(state =>
     selectCurrentEditingViewAttr(state, { name: 'id' }),
   ) as string;
-
   const t = useI18NPrefix('view.tabs');
 
   const redirect = useCallback(
     (currentEditingViewKey?: string) => {
-      if (currentEditingViewKey) {
-        navigate(`/organizations/${orgId}/views/${currentEditingViewKey}`);
-      } else {
-        navigate(`/organizations/${orgId}/views`);
-      }
+      navigate(
+        currentEditingViewKey
+          ? `/organizations/${orgId}/views/${currentEditingViewKey}`
+          : `/organizations/${orgId}/views`,
+      );
     },
     [navigate, orgId],
   );
 
   const tabChange = useCallback(
-    activeKey => {
+    (activeKey: string) => {
       if (id !== activeKey) {
         navigate(`/organizations/${orgId}/views/${activeKey}`);
       }
@@ -85,31 +58,23 @@ export const Tabs = memo(() => {
   );
 
   const tabEdit = useCallback(
-    (targetKey, action) => {
+    (targetKey: React.MouseEvent | React.KeyboardEvent | string, action: 'add' | 'remove') => {
+      if (action !== 'remove' || typeof targetKey !== 'string') return;
       const view = editingViews.find(v => v.id === targetKey);
-
-      switch (action) {
-        case 'remove':
-          if (view!.touched === false) {
-            dispatch(removeEditingView({ id: targetKey, resolve: redirect }));
-          } else {
-            setOperatingView(view!);
-            setConfirmVisible(true);
-          }
-          break;
-        default:
-          break;
+      if (!view) return;
+      if (!view.touched) {
+        dispatch(removeEditingView({ id: targetKey, resolve: redirect }));
+      } else {
+        setOperatingView(view);
+        setConfirmVisible(true);
       }
     },
     [dispatch, editingViews, redirect],
   );
 
-  const hideConfirm = useCallback(() => {
-    setConfirmVisible(false);
-  }, []);
-
   const removeTab = useCallback(() => {
-    dispatch(removeEditingView({ id: operatingView!.id, resolve: redirect }));
+    if (!operatingView) return;
+    dispatch(removeEditingView({ id: operatingView.id, resolve: redirect }));
     setConfirmVisible(false);
   }, [dispatch, operatingView, redirect]);
 
@@ -121,68 +86,84 @@ export const Tabs = memo(() => {
     dispatch(runSql({ id, isFragment: !!fragment }));
   }, [dispatch, id, editorInstance]);
 
-  const handleClickMenu = (e: any, id: string) => {
-    e.domEvent.stopPropagation();
-    if (e.key === 'CLOSE_OTHER') {
-      dispatch(closeOtherEditingViews({ id, resolve: redirect }));
-      return;
-    }
-    dispatch(closeAllEditingViews({ resolve: redirect }));
-  };
-
-  const menu = (id: string) => (
-    <Menu onClick={e => handleClickMenu(e, id)}>
-      <Menu.Item key="CLOSE_OTHER">
-        <span>{t('closeOther')}</span>
-      </Menu.Item>
-      <Menu.Item key="CLOSE_ALL">
-        <span>{t('closeAll')}</span>
-      </Menu.Item>
-    </Menu>
-  );
-
-  const Tab = (id: string, name: string) => (
-    <span>
-      <Dropdown overlay={menu(id)} trigger={['contextMenu']}>
-        <span className="ant-dropdown-link">{name}</span>
-      </Dropdown>
-    </span>
+  const items = useMemo(
+    () =>
+      editingViews.map(view => ({
+        key: view.id,
+        label: (
+          <Dropdown
+            trigger={['contextMenu']}
+            menu={{
+              items: [
+                { key: 'CLOSE_OTHER', label: t('closeOther') },
+                { key: 'CLOSE_ALL', label: t('closeAll') },
+              ],
+              onClick: e => {
+                e.domEvent.stopPropagation();
+                if (e.key === 'CLOSE_OTHER') {
+                  dispatch(closeOtherEditingViews({ id: view.id, resolve: redirect }));
+                } else {
+                  dispatch(closeAllEditingViews({ resolve: redirect }));
+                }
+              },
+            }}
+          >
+            <span style={{ color: view.error ? token.colorError : undefined }}>
+              {view.name}
+            </span>
+          </Dropdown>
+        ),
+        closeIcon: (
+          <CloseIcon
+            touched={view.touched}
+            stage={view.stage}
+            error={!!view.error}
+          />
+        ),
+      })),
+    [dispatch, editingViews, redirect, t, token.colorError],
   );
 
   return (
-    <Wrapper>
-      <TabsComponent
+    <div
+      style={{
+        zIndex: 1,
+        flexShrink: 0,
+        paddingInline: token.paddingSM,
+        background: token.colorBgContainer,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      }}
+    >
+      <AntTabs
         hideAdd
         type="editable-card"
+        size="small"
         activeKey={id}
+        items={items}
         onChange={tabChange}
         onEdit={tabEdit}
-      >
-        {editingViews.map(({ id, name, touched, stage, error }) => (
-          <TabPane
-            key={id}
-            tab={error ? <span css={errorColor}>{name}</span> : Tab(id, name)}
-            closeIcon={
-              <CloseIcon touched={touched} stage={stage} error={!!error} />
-            }
-          />
-        ))}
-      </TabsComponent>
-      <Confirm
-        visible={confirmVisible}
+        style={{ marginBottom: -1 }}
+      />
+      <Modal
+        open={confirmVisible}
         title={t('warning')}
-        icon={<InfoCircleOutlined style={{ color: ORANGE }} />}
+        onCancel={() => setConfirmVisible(false)}
         footer={
           <Space>
             <Button onClick={removeTab}>{t('discard')}</Button>
-            <Button onClick={hideConfirm}>{t('cancel')}</Button>
+            <Button onClick={() => setConfirmVisible(false)}>{t('cancel')}</Button>
             <Button onClick={runTab} type="primary">
               {t('execute')}
             </Button>
           </Space>
         }
-      />
-    </Wrapper>
+      >
+        <Space>
+          <InfoCircleOutlined style={{ color: token.colorWarning }} />
+          <span>{t('warning')}</span>
+        </Space>
+      </Modal>
+    </div>
   );
 });
 
@@ -193,64 +174,49 @@ interface CloseIconProps {
 }
 
 function CloseIcon({ touched, stage, error }: CloseIconProps) {
+  const { token } = theme.useToken();
   const [hovering, setHovering] = useState(false);
+  let icon: React.ReactNode;
 
-  const onEnter = useCallback(() => {
-    setHovering(true);
-  }, []);
-
-  const onLeave = useCallback(() => {
-    setHovering(false);
-  }, []);
-
-  let icon;
-
-  switch (stage) {
-    case ViewViewModelStages.Loading:
-    case ViewViewModelStages.Running:
-    case ViewViewModelStages.Saving:
-      icon = <LoadingOutlined />;
-      break;
-    default:
-      if (!hovering) {
-        if (error) {
-          icon = <InfoCircleOutlined css={errorColor} />;
-        } else if (touched) {
-          icon = <Editing />;
-        } else {
-          icon = <CloseOutlined />;
-        }
-      } else {
-        icon = <CloseOutlined />;
-      }
-
-      break;
+  if (
+    stage === ViewViewModelStages.Loading ||
+    stage === ViewViewModelStages.Running ||
+    stage === ViewViewModelStages.Saving
+  ) {
+    icon = <LoadingOutlined />;
+  } else if (hovering) {
+    icon = <CloseOutlined />;
+  } else if (error) {
+    icon = <InfoCircleOutlined style={{ color: token.colorError }} />;
+  } else if (touched) {
+    icon = (
+      <span
+        style={{
+          display: 'block',
+          width: 8,
+          height: 8,
+          background: token.colorTextTertiary,
+          borderRadius: '50%',
+        }}
+      />
+    );
+  } else {
+    icon = <CloseOutlined />;
   }
 
   return (
-    <CloseIconWrapper onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <span
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 14,
+        height: 14,
+      }}
+    >
       {icon}
-    </CloseIconWrapper>
+    </span>
   );
 }
-
-const Wrapper = styled.div`
-  z-index: ${LEVEL_1};
-  flex-shrink: 0;
-`;
-
-const CloseIconWrapper = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
-`;
-
-const Editing = styled.span`
-  display: block;
-  width: 10px;
-  height: 10px;
-  background-color: ${p => p.theme.textColorLight};
-  border-radius: 50%;
-`;
