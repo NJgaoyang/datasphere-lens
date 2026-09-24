@@ -19,6 +19,7 @@
 import { ChartDataConfig } from 'app/types/ChartConfig';
 import { ChartDataViewMeta } from 'app/types/ChartDataViewMeta';
 import { ECharts } from 'echarts';
+import { ChartSpec } from 'app/visualization/core/ChartSpec';
 
 export type ChartStyleConfigDTO = {
   key: string;
@@ -43,6 +44,7 @@ export type ChartDetailConfigDTO = {
   computedFields: ChartDataViewMeta[];
   aggregation: boolean;
   sampleData?: any;
+  chartSpec?: ChartSpec;
 };
 
 export interface ChartCommonConfig {

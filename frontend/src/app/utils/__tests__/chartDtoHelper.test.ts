@@ -139,16 +139,22 @@ describe('chartDtoHelper Test', () => {
       computedFields: [],
     };
     const result = buildUpdateChartRequest(inputParams);
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       id: 1,
       index: 0,
       parent: 0,
       name: 'a-chart',
       viewId: '1',
-      config:
-        '{"aggregation":"AVG","chartConfig":{"datas":[],"styles":[],"settings":[],"interactions":[]},"chartGraphId":2,"computedFields":[]}',
       permissions: [],
       avatar: 2,
+    });
+    const persistedConfig = JSON.parse(result.config);
+    expect(persistedConfig).toMatchObject({
+      aggregation: 'AVG',
+      chartGraphId: 2,
+      computedFields: [],
+      chartConfig: { datas: [], styles: [], settings: [], interactions: [] },
+      chartSpec: { version: 1, type: '2', datasetId: '1' },
     });
   });
 

@@ -233,10 +233,10 @@ ChartSpec 必须从 v1 开始版本化。
 
 ### P3：持久化兼容
 
-- [ ] ChartSpec v1 migration。
-- [ ] Legacy config -> ChartSpec adapter。
-- [ ] 保存/读取双协议兼容。
-- [ ] Dashboard 历史图表回归。
+- [x] ChartSpec v1 migration。
+- [x] Legacy config -> ChartSpec adapter。
+- [x] 保存/读取双协议兼容。
+- [x] Dashboard 历史图表回归。
 ### P4：插件统一与扩展
 
 - [ ] 定义统一 Visual Plugin Manifest。

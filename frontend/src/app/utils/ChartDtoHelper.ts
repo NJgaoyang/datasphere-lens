@@ -17,6 +17,8 @@
  */
 
 import migrateChartConfig from 'app/migration/ChartConfig/migrateChartConfig';
+import legacyConfigToChartSpec from 'app/visualization/adapters/legacyConfigToChartSpec';
+import migrateChartSpec from 'app/visualization/migration/migrateChartSpec';
 import migrationViewConfig from 'app/migration/ViewConfig/migrationViewConfig';
 import beginViewModelMigration from 'app/migration/ViewConfig/migrationViewModelConfig';
 import {
@@ -47,6 +49,11 @@ export function convertToChartDto(data): ChartDTO {
   data.config = migrateChartConfig(data?.config);
 
   const config = JSON.parse(data?.config || '{}');
+  if (config.chartGraphId) {
+    config.chartSpec =
+      migrateChartSpec(config.chartSpec) ||
+      legacyConfigToChartSpec(String(config.chartGraphId), config.chartConfig, data?.viewId);
+  }
   const meta = transformHierarchyMeta(
     data?.view?.model,
     data?.view?.fields,
@@ -80,13 +87,18 @@ export function buildUpdateChartRequest({
   name,
   viewId,
   computedFields,
+  chartSpec = undefined,
 }) {
   const chartConfigValueModel = extractChartConfigValueModel(chartConfig);
+  const nextChartSpec =
+    migrateChartSpec(chartSpec) ||
+    legacyConfigToChartSpec(String(graphId), chartConfigValueModel, viewId);
   const stringifyConfig = JSON.stringify({
     aggregation: aggregation,
     chartConfig: chartConfigValueModel,
     chartGraphId: graphId,
     computedFields: computedFields || [],
+    chartSpec: nextChartSpec,
   });
 
   return {
