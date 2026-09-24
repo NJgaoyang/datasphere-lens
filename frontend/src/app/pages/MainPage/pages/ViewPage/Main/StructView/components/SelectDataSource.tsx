@@ -21,22 +21,14 @@ import {
   DatabaseOutlined,
   TableOutlined,
 } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Empty, Input, Menu, Popover } from 'antd';
-import { MenuListItem, Tree } from 'app/components';
+import { Button, Checkbox, Divider, Empty, Flex, Input, List, Popover, Typography, theme } from 'antd';
+import { Tree } from 'app/components';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { useSearchAndExpand } from 'app/hooks/useSearchAndExpand';
 import classnames from 'classnames';
 import { DEFAULT_DEBOUNCE_WAIT } from 'globalConstants';
-import { darken, getLuminance, lighten } from 'polished';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import {
-  FONT_WEIGHT_MEDIUM,
-  SPACE_SM,
-  SPACE_TIMES,
-  SPACE_XS,
-} from 'styles/StyleConstants';
 import { selectSources } from '../../../../SourcePage/slice/selectors';
 import { Source } from '../../../../SourcePage/slice/types';
 import { selectAllSourceDatabaseSchemas } from '../../../slice/selectors';
@@ -74,6 +66,7 @@ const SelectDataSource = memo(
     const propsSources = useSelector(selectSources);
     const allDatabaseSchemas = useSelector(selectAllSourceDatabaseSchemas);
     const t = useI18NPrefix(`view.structView`);
+    const { token } = theme.useToken();
 
     const [currentSources, setCurrentSources] = useState<Source | null>(null);
     const [selectedTableSchema, setSelectedTableSchema] = useState<any>(
@@ -284,28 +277,28 @@ const SelectDataSource = memo(
           trigger={['click']}
           placement="bottomLeft"
           overlayClassName="datart-popup"
-          visible={allowManage && visible}
-          onVisibleChange={
+          open={allowManage && visible}
+          onOpenChange={
             renderType === 'MANAGE' ? handleVisibleChange : undefined
           }
           content={
             currentSources ? (
-              <PopoverBody>
-                <ListHeader>
+              <Flex vertical style={{ maxHeight: 400, minWidth: 300 }}>
+                <Flex align="center" gap={8} style={{ padding: 8, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
                   <ArrowLeftOutlined
                     onClick={() =>
                       type === 'JOINS' ? null : setCurrentSources(null)
                     }
                   />
-                  <h4>{currentSources.name}</h4>
-                </ListHeader>
-                <SearchBox>
+                  <Typography.Text strong>{currentSources.name}</Typography.Text>
+                </Flex>
+                <div style={{ padding: 8 }}>
                   <Input
                     placeholder={t('searchTable')}
                     onChange={tableSchemaSearch}
                   />
-                </SearchBox>
-                <DatabaseTableList>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 4 }}>
                   <Tree
                     autoExpandParent
                     defaultExpandParent
@@ -315,17 +308,17 @@ const SelectDataSource = memo(
                     treeData={tableSchema}
                     onSelect={handleTableSelect}
                   />
-                </DatabaseTableList>
-              </PopoverBody>
+                </div>
+              </Flex>
             ) : (
-              <PopoverBody>
-                <SearchBox>
+              <Flex vertical style={{ maxHeight: 400, minWidth: 300 }}>
+                <div style={{ padding: 8 }}>
                   <Input
                     placeholder={t('searchSource')}
                     onChange={filterSources}
                   />
-                </SearchBox>
-                <SourceList>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <Menu
                     prefixCls="ant-dropdown-menu"
                     onClick={handleCurrentSources}
@@ -345,12 +338,12 @@ const SelectDataSource = memo(
                       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                     )}
                   </Menu>
-                </SourceList>
-              </PopoverBody>
+                </div>
+              </Flex>
             )
           }
         >
-          <TableButton
+          <Button
             type="primary"
             className={classnames({
               'with-columns': selectedTableSchema && renderType === 'MANAGE',
@@ -361,7 +354,7 @@ const SelectDataSource = memo(
                   selectedTableSchema.table.length - 1
                 ]
               : t('selectTable')}
-          </TableButton>
+          </Button>
         </Popover>
 
         {selectedTableSchema && renderType === 'MANAGE' && (
@@ -369,7 +362,7 @@ const SelectDataSource = memo(
             trigger={['click']}
             placement="bottomLeft"
             content={
-              <PopoverBody>
+              <Flex vertical style={{ maxHeight: 400, minWidth: 300 }}>
                 <Checkbox
                   indeterminate={
                     !!(selectedTableSchema?.columns || []).length &&
@@ -390,16 +383,16 @@ const SelectDataSource = memo(
                 >
                   {t('all')}
                 </Checkbox>
-                <SmallDivider />
-                <ColumnList
+                <Divider style={{ margin: '4px 0' }} />
+                <CheckboxGroup style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
                   value={selectedTableSchema?.columns}
                   onChange={allowManage ? handleColumnCheck : undefined}
                   options={currentTableAllColumns}
                 />
-              </PopoverBody>
+              </Flex>
             }
           >
-            <ColumnButton type="primary" icon={<TableOutlined />} />
+            <Button type="primary" icon={<TableOutlined />} />
           </Popover>
         )}
       </>
@@ -409,71 +402,3 @@ const SelectDataSource = memo(
 
 export default SelectDataSource;
 
-const PopoverBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  max-height: 400px;
-
-  .list-icon {
-    color: ${p => p.theme.textColorDisabled};
-  }
-`;
-
-const ListHeader = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  padding: ${SPACE_XS} ${SPACE_SM};
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
-
-  h4 {
-    padding: 0 ${SPACE_SM};
-    font-weight: ${FONT_WEIGHT_MEDIUM};
-    color: ${p => p.theme.textColorSnd};
-  }
-`;
-
-const SearchBox = styled.div`
-  flex-shrink: 0;
-  padding: ${SPACE_XS} ${SPACE_SM};
-`;
-
-const SourceList = styled.div`
-  flex: 1;
-  overflow-y: auto;
-`;
-
-const DatabaseTableList = styled.div`
-  flex: 1;
-  padding: 0 0 ${SPACE_XS};
-  overflow-y: auto;
-`;
-
-const SmallDivider = styled(Divider)`
-  margin: ${SPACE_XS} 0;
-`;
-
-const ColumnList = styled(CheckboxGroup)`
-  display: flex;
-  flex-direction: column;
-
-  .ant-checkbox-group-item {
-    padding: ${SPACE_TIMES(0.5)} 0;
-  }
-`;
-
-const TableButton = styled(Button)`
-  &.with-columns {
-    border-right: 1px solid
-      ${p =>
-        getLuminance(p.theme.primary) > 0.5
-          ? darken(0.1, p.theme.primary)
-          : lighten(0.1, p.theme.primary)} !important;
-    border-radius: 2px 0 0 2px !important;
-  }
-`;
-
-const ColumnButton = styled(Button)`
-  border-left: 0 !important;
-  border-radius: 0 2px 2px 0 !important;
-`;

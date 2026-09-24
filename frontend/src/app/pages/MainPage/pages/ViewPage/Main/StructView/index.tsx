@@ -22,25 +22,12 @@ import {
   DeleteOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { Button, Form, message, Space, Spin, Tooltip } from 'antd';
+import { Button, Card, Flex, Form, message, Space, Spin, Steps, Tooltip, Typography, theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { CommonFormTypes } from 'globalConstants';
 import { produce } from 'immer';
 import { memo, useCallback, useContext, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
-import {
-  FONT_SIZE_ICON_MD,
-  FONT_WEIGHT_MEDIUM,
-  LEVEL_1,
-  LEVEL_5,
-  SPACE_MD,
-  SPACE_SM,
-  SPACE_TIMES,
-  SPACE_UNIT,
-  SPACE_XL,
-  SPACE_XS,
-} from 'styles/StyleConstants';
 import { isEqualObject } from 'utils/object';
 import { getInsertedNodeIndex } from 'utils/utils';
 import {
@@ -76,6 +63,7 @@ export const StructView = memo(
     const { initActions } = useContext(EditorContext);
     const { showSaveForm } = useContext(SaveFormContext);
     const t = useI18NPrefix(`view.structView`);
+    const { token } = theme.useToken();
 
     const structure = useSelector(state =>
       selectCurrentEditingViewAttr(state, { name: 'script' }),
@@ -374,371 +362,122 @@ export const StructView = memo(
       });
     }, [structure?.joins, form, encodeJoinConditionValue]);
 
+    const stepItems = [
+      { title: t('main') },
+      ...(structure?.joins || []).map((_, index) => ({ title: `${t('join')} ${index + 1}` })),
+    ];
+
     return (
-      <StructContainer>
+      <Flex vertical style={{ flex: 1, minHeight: 0, background: token.colorBgContainer }}>
         {!structure || typeof structure === 'string' ? (
-          <LoadingWrap>
+          <Flex align="center" justify="center" style={{ width: '100%', height: 120 }}>
             <Spin />
-          </LoadingWrap>
+          </Flex>
         ) : (
           <>
             <Toolbar
-              type={'STRUCT'}
+              type="STRUCT"
               allowManage={allowManage}
               allowEnableViz={allowEnableViz}
             />
-            <ConfigPanel>
-              <Form form={form} name="StructViewForm">
-                <ProcessLine>
-                  <ProcessItem>
-                    <ProcessItemLabel>
-                      <Tooltip title={t('runStep')} placement="left">
-                        <Button
-                          className="run-fragment"
-                          icon={<CaretRightOutlined />}
-                          onClick={() =>
-                            allowManage && handleInterimRunSql('MAIN')
-                          }
-                        />
-                      </Tooltip>
-                      {t('main')}
-                    </ProcessItemLabel>
-                    <ProcessItemContent>
+            <Flex vertical gap={16} style={{ flex: 1, minHeight: 0, padding: 16, overflow: 'auto' }}>
+              <Steps size="small" current={Math.max(stepItems.length - 1, 0)} items={stepItems} />
+              <Form form={form} name="StructViewForm" layout="vertical">
+                <Card size="small" title={t('main')} extra={
+                  <Tooltip title={t('runStep')}>
+                    <Button type="text" icon={<CaretRightOutlined />} onClick={() => allowManage && handleInterimRunSql('MAIN')} />
+                  </Tooltip>
+                }>
+                  <SelectDataSource
+                    type="MAIN"
+                    sourceId={sourceId}
+                    structure={structure}
+                    allowManage={allowManage}
+                    onChange={handleStructureChange}
+                  />
+                </Card>
+
+                {(structure?.joins || []).map((join, i) => (
+                  <Card
+                    key={`join-${i}`}
+                    size="small"
+                    title={`${t('join')} ${i + 1}`}
+                    style={{ marginTop: 12 }}
+                    extra={
                       <Space>
+                        <Tooltip title={t('runStep')}>
+                          <Button type="text" icon={<CaretRightOutlined />} onClick={() => allowManage && handleInterimRunSql('JOINS', i)} />
+                        </Tooltip>
+                        <Button danger type="text" icon={<DeleteOutlined />} onClick={() => allowManage && handleDeleteJoinsItem(i)} />
+                      </Space>
+                    }
+                  >
+                    <Flex vertical gap={12}>
+                      <Flex gap={8} align="center" wrap>
+                        <SelectDataSource joinTable={join} structure={structure} allowManage={allowManage} renderType="READONLY" />
+                        <SelectJoinType type={join.joinType!} onChange={type => allowManage && handleTableJoinType(type, i)} />
                         <SelectDataSource
-                          type="MAIN"
+                          type="JOINS"
+                          joinTable={join}
                           sourceId={sourceId}
                           structure={structure}
                           allowManage={allowManage}
-                          onChange={handleStructureChange}
+                          onChange={(table, type) => handleTableJoin(table, type, i)}
                         />
-                      </Space>
-                    </ProcessItemContent>
-                  </ProcessItem>
-
-                  {(structure?.joins || []).map((join, i) => {
-                    return (
-                      <ProcessItem>
-                        <ProcessItemLabel>
-                          <Tooltip title={t('runStep')} placement="left">
-                            <Button
-                              className="run-fragment"
-                              icon={<CaretRightOutlined />}
-                              onClick={() =>
-                                allowManage && handleInterimRunSql('JOINS', i)
-                              }
-                            />
-                          </Tooltip>
-                          {t('join')}
-                        </ProcessItemLabel>
-                        <ProcessItemContent>
-                          <TableRelation>
-                            <SelectDataSource
-                              joinTable={join}
-                              structure={structure}
-                              allowManage={allowManage}
-                              renderType="READONLY"
-                            />
-                            <SelectJoinType
-                              type={join.joinType!}
-                              onChange={type => {
-                                allowManage && handleTableJoinType(type, i);
-                              }}
-                            />
-                            <SelectDataSource
-                              type="JOINS"
-                              joinTable={join}
-                              sourceId={sourceId}
-                              structure={structure}
-                              allowManage={allowManage}
-                              onChange={(table, type) =>
-                                handleTableJoin(table, type, i)
-                              }
-                            />
-                          </TableRelation>
-                          {join.table && (
-                            <>
-                              <SelectJoinColumnLabel>
-                                {t('selectJoinColumn')}
-                              </SelectJoinColumnLabel>
-                              <JoinConditionWrapper>
-                                {join.conditions?.map(
-                                  ({ left, right }, ind) => {
-                                    return (
-                                      <JoinConditionLine>
-                                        <SelectJoinColumns
-                                          structure={structure}
-                                          onChange={(
-                                            columnName,
-                                            type,
-                                            joinConditionIndex,
-                                          ) =>
-                                            handleTableJoinColumns(
-                                              columnName,
-                                              type,
-                                              i,
-                                              joinConditionIndex,
-                                            )
-                                          }
-                                          conditionsIndex={ind}
-                                          joinIndex={i}
-                                          sourceId={sourceId}
-                                          allowManage={allowManage}
-                                        />
-                                        <Space className="action">
-                                          {!!left?.length &&
-                                            !!right?.length &&
-                                            ind ===
-                                              (join.conditions?.length || 0) -
-                                                1 && (
-                                              <Button
-                                                type="link"
-                                                size="small"
-                                                icon={<PlusOutlined />}
-                                                onClick={() =>
-                                                  allowManage &&
-                                                  handleTableJoinAddColumns(i)
-                                                }
-                                              />
-                                            )}
-                                          {ind ===
-                                            (join.conditions?.length || 0) -
-                                              1 &&
-                                            ind > 0 && (
-                                              <Button
-                                                danger
-                                                type="link"
-                                                size="small"
-                                                icon={<CloseOutlined />}
-                                                onClick={() =>
-                                                  allowManage &&
-                                                  handleDeleteConditions(i, ind)
-                                                }
-                                              />
-                                            )}
-                                        </Space>
-                                      </JoinConditionLine>
-                                    );
-                                  },
-                                )}
-                              </JoinConditionWrapper>
-                            </>
-                          )}
-                        </ProcessItemContent>
-                        <ProcessItemAction>
-                          <Button
-                            danger
-                            type="link"
-                            size="small"
-                            className="delete-item"
-                            icon={<DeleteOutlined />}
-                            onClick={() =>
-                              allowManage && handleDeleteJoinsItem(i)
-                            }
-                          />
-                        </ProcessItemAction>
-                      </ProcessItem>
-                    );
-                  })}
-                </ProcessLine>
+                      </Flex>
+                      {join.table && (
+                        <>
+                          <Typography.Text type="secondary">{t('selectJoinColumn')}</Typography.Text>
+                          <Flex vertical gap={8}>
+                            {join.conditions?.map(({ left, right }, ind) => (
+                              <Flex key={`condition-${i}-${ind}`} gap={8} align="center">
+                                <SelectJoinColumns
+                                  structure={structure}
+                                  onChange={(columnName, type, joinConditionIndex) =>
+                                    handleTableJoinColumns(columnName, type, i, joinConditionIndex)
+                                  }
+                                  conditionsIndex={ind}
+                                  joinIndex={i}
+                                  sourceId={sourceId}
+                                  allowManage={allowManage}
+                                />
+                                <Space>
+                                  {!!left?.length && !!right?.length && ind === (join.conditions?.length || 0) - 1 && (
+                                    <Button type="text" size="small" icon={<PlusOutlined />} onClick={() => allowManage && handleTableJoinAddColumns(i)} />
+                                  )}
+                                  {ind === (join.conditions?.length || 0) - 1 && ind > 0 && (
+                                    <Button danger type="text" size="small" icon={<CloseOutlined />} onClick={() => allowManage && handleDeleteConditions(i, ind)} />
+                                  )}
+                                </Space>
+                              </Flex>
+                            ))}
+                          </Flex>
+                        </>
+                      )}
+                    </Flex>
+                  </Card>
+                ))}
 
                 {!!structure?.table?.length && (
-                  <>
+                  <Space style={{ marginTop: 16 }}>
                     <Button
-                      disabled={
-                        !!structure?.joins?.length &&
-                        !structure.joins[structure.joins.length - 1]?.table
-                      }
-                      type="link"
-                      className="join"
+                      disabled={!!structure?.joins?.length && !structure.joins[structure.joins.length - 1]?.table}
                       icon={<PlusOutlined />}
                       onClick={allowManage ? handleAddTableJoin : undefined}
                     >
                       {t('addJoin')}
                     </Button>
-                    <Button
-                      type="primary"
-                      className="run"
-                      icon={<CaretRightOutlined />}
-                      onClick={() => handleInterimRunSql()}
-                    >
+                    <Button type="primary" icon={<CaretRightOutlined />} onClick={() => handleInterimRunSql()}>
                       {t('run')}
                     </Button>
-                  </>
+                  </Space>
                 )}
               </Form>
-            </ConfigPanel>
+            </Flex>
           </>
         )}
-      </StructContainer>
+      </Flex>
     );
   },
 );
 
-const StructContainer = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  background: ${p => p.theme.componentBackground};
-`;
-
-const ConfigPanel = styled.div`
-  flex: 1;
-  min-height: 0;
-  padding: ${SPACE_MD};
-  overflow: auto;
-
-  .join {
-    display: block;
-    margin: 0 0 ${SPACE_MD} 92px;
-  }
-
-  .run {
-    display: block;
-    margin: 0 0 ${SPACE_MD} 108px;
-  }
-`;
-
-const TableRelation = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  align-self: flex-start;
-  padding: ${SPACE_SM} 0;
-`;
-
-const JoinConditionWrapper = styled.div`
-  padding: ${SPACE_SM} 0;
-  margin-right: ${SPACE_XL};
-`;
-
-const JoinConditionLine = styled.div`
-  display: flex;
-  align-items: center;
-  margin-top: ${SPACE_XS};
-
-  &:first-of-type {
-    margin-top: 0;
-  }
-
-  .action {
-    margin-left: ${SPACE_XS};
-    visibility: hidden;
-  }
-
-  &:hover {
-    .action {
-      visibility: visible;
-    }
-  }
-`;
-
-const SelectJoinColumnLabel = styled.span`
-  display: flex;
-  align-self: flex-start;
-  justify-content: center;
-  width: ${SPACE_TIMES(30)};
-  padding: ${SPACE_SM} 0;
-  line-height: 32px;
-  color: ${p => p.theme.textColorLight};
-`;
-
-const LoadingWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100px;
-`;
-
-const ProcessLine = styled.div`
-  position: relative;
-
-  &:before {
-    position: absolute;
-    top: 28px;
-    left: ${SPACE_TIMES(18)};
-    z-index: ${LEVEL_1};
-    width: 4px;
-    height: calc(100% - 56px);
-    content: '';
-    background-color: ${p => p.theme.borderColorSplit};
-  }
-`;
-
-const ProcessItem = styled.div`
-  position: relative;
-  display: flex;
-
-  .run-fragment {
-    position: absolute;
-    top: ${SPACE_SM};
-    left: ${SPACE_MD};
-    display: none;
-  }
-
-  .delete-item {
-    display: none;
-    font-size: ${FONT_SIZE_ICON_MD};
-  }
-
-  &:hover {
-    background-color: ${p => p.theme.bodyBackground};
-
-    .run-fragment {
-      display: inline-block;
-    }
-    .delete-item {
-      display: inline-block;
-    }
-  }
-
-  &:before {
-    position: absolute;
-    top: 22px;
-    left: ${SPACE_TIMES(17)};
-    z-index: ${LEVEL_5};
-    width: ${SPACE_TIMES(3)};
-    height: ${SPACE_TIMES(3)};
-    content: '';
-    background-color: ${p => p.theme.primary};
-    border-radius: 50%;
-  }
-
-  &:after {
-    position: absolute;
-    top: ${22 + SPACE_UNIT / 2}px;
-    left: ${SPACE_TIMES(17.5)};
-    z-index: ${LEVEL_5};
-    width: ${SPACE_TIMES(2)};
-    height: ${SPACE_TIMES(2)};
-    content: '';
-    background-color: ${p => p.theme.componentBackground};
-    border-radius: 50%;
-  }
-`;
-
-const ProcessItemLabel = styled.p`
-  position: relative;
-  flex-shrink: 0;
-  width: ${SPACE_TIMES(40)};
-  padding: ${SPACE_SM} 0 ${SPACE_SM} ${SPACE_TIMES(26)};
-  font-weight: ${FONT_WEIGHT_MEDIUM};
-  line-height: 32px;
-  color: ${p => p.theme.textColorSnd};
-`;
-
-const ProcessItemContent = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  padding-left: ${SPACE_XL};
-`;
-
-const ProcessItemAction = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  margin: 0 ${SPACE_XL};
-`;
