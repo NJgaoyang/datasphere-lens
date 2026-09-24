@@ -1,4 +1,5 @@
 import { IChart } from 'app/types/Chart';
+import { ChartConfig } from 'app/types/ChartConfig';
 import ChartDataSetDTO from 'app/types/ChartDataSet';
 import { VisualConfigSchema } from '../config/ConfigSchema';
 import { ChartSpec } from '../core/ChartSpec';
@@ -24,6 +25,7 @@ export interface VisualCapabilities {
 export type VisualOptionBuilder = (
   spec: ChartSpec,
   dataset?: ChartDataSetDTO,
+  config?: ChartConfig,
 ) => unknown;
 
 export interface VisualPluginDefinition {

@@ -202,6 +202,18 @@ ChartSpec 必须从 v1 开始版本化。
 
 原则：优先通过一个核心 Renderer 派生多种视觉类型，不为每个细分图表复制完整实现。
 
+
+### 第六阶段当前进度
+
+- [x] Area、StackArea、Scatter、Radar、Funnel、Gauge、Waterfall、WordCloud 已接入统一 ECharts Renderer。
+- [x] StackColumn、StackBar、PercentageStackColumn、PercentageStackBar、Doughnut、Rose 已接入统一 ECharts Renderer。
+- [x] DoubleY 已接入统一 ECharts Renderer。
+- [x] PivotSheet 已建立独立 S2 Renderer 边界。
+- [x] Scorecard、RichText 已建立独立 React Renderer 边界。
+- [x] Outline Map、Scatter Outline Map 已建立独立 Map Renderer 边界并保留现有资源加载兼容。
+- [ ] 关系型新图表（Sankey/Graph/Tree 等）作为新增 Visual Plugin 在下一批扩展。
+- [ ] G2/G6/MapLibre/D3 Renderer 按实际新增图表需要再引入，避免提前增加依赖和复杂度。
+
 ## 11. 开发任务拆分
 
 ### P0：架构骨架

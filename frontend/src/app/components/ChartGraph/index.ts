@@ -25,6 +25,7 @@ export { default as BasicGaugeChart } from './BasicGaugeChart';
 export { default as BasicLineChart } from './BasicLineChart';
 export { default as BasicOutlineMapChart } from './BasicOutlineMapChart';
 export { default as BasicPieChart } from './BasicPieChart';
+export { default as BasicRadarChart } from './BasicRadarChart';
 export { default as BasicRichText } from './BasicRichText';
 export { default as BasicScatterChart } from './BasicScatterChart';
 export { default as BasicTableChart } from './BasicTableChart';

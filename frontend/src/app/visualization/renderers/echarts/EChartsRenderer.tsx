@@ -6,6 +6,7 @@ const EChartsRenderer: FC<VisualRendererProps> = ({
   spec,
   plugin,
   dataset,
+  config,
   style,
   isShown = true,
 }) => {
@@ -23,8 +24,8 @@ const EChartsRenderer: FC<VisualRendererProps> = ({
 
   useEffect(() => {
     if (!chartRef.current || !plugin.buildOption) return;
-    chartRef.current.setOption(plugin.buildOption(spec, dataset) as any, true);
-  }, [dataset, plugin, spec]);
+    chartRef.current.setOption(plugin.buildOption(spec, dataset, config) as any, true);
+  }, [config, dataset, plugin, spec]);
 
   useEffect(() => {
     chartRef.current?.resize();
