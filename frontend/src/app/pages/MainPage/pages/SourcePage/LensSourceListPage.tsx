@@ -56,7 +56,7 @@ import { SourceSimpleViewModel } from './slice/types';
 
 const { Text } = Typography;
 
-type FilterType = 'ALL' | 'JDBC';
+type FilterType = 'ALL' | 'MYSQL' | 'STARROCKS';
 
 function parseConfig(source: SourceSimpleViewModel) {
   try {
@@ -283,7 +283,8 @@ export function LensSourceListPage() {
             onChange={value => setFilter(value as FilterType)}
             options={[
               { label: '全部', value: 'ALL' },
-              { label: '数据库', value: 'JDBC' },
+              { label: 'MySQL', value: 'MYSQL' },
+              { label: 'StarRocks', value: 'STARROCKS' },
             ]}
           />
           <Input

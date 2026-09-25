@@ -157,7 +157,8 @@ export function LensViewListPage() {
   );
 
   const createDataset = useCallback(() => {
-    navigate(`/organizations/${orgId}/datasets/new`);
+    const query = folderId ? `?parentId=${folderId}` : '';
+    navigate(`/organizations/${orgId}/datasets/new${query}`);
   }, [folderId, navigate, orgId]);
 
   const createFolder = useCallback(() => {

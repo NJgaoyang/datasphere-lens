@@ -75,13 +75,19 @@ function DatasetCreateRoute({ orgId }: { orgId: string }) {
     () => `${UNPERSISTED_ID_PREFIX}${uuidv4()}`,
     [],
   );
-  const sourceId = new URLSearchParams(location.search).get('sourceId');
+  const params = new URLSearchParams(location.search);
+  const sourceId = params.get('sourceId');
+  const parentId = params.get('parentId');
+  const state = {
+    ...(sourceId ? { sourcesId: sourceId } : {}),
+    ...(parentId ? { parentId } : {}),
+  };
 
   return (
     <Navigate
       to={`/organizations/${orgId}/views/${newViewId}`}
       replace
-      state={sourceId ? { sourcesId: sourceId } : undefined}
+      state={Object.keys(state).length ? state : undefined}
     />
   );
 }
