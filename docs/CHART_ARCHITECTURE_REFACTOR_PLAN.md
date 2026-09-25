@@ -212,7 +212,7 @@ ChartSpec 必须从 v1 开始版本化。
 - [x] Scorecard、RichText 已建立独立 React Renderer 边界。
 - [x] Outline Map、Scatter Outline Map 已建立独立 Map Renderer 边界并保留现有资源加载兼容。
 - [x] 关系型/统计型新图表已新增纯 V2 Visual Plugin：Sankey、Graph、Tree、Treemap、Sunburst、Heatmap、Boxplot。
-- [ ] G2/G6/MapLibre/D3 Renderer 按实际新增图表需要再引入，避免提前增加依赖和复杂度。
+- [x] G2/G6/MapLibre/D3 Renderer 评估完成：当前计划内图表均可由 ECharts/S2/React/Map Renderer 覆盖，本轮不新增无必要依赖；后续仅在出现 ECharts 不适合的明确场景时按需引入。
 
 ## 11. 开发任务拆分
 
@@ -321,7 +321,33 @@ ChartSpec 必须从 v1 开始版本化。
 
 第五步才引入新的 Renderer 或大量新增图表，避免架构尚未稳定时扩大范围。
 
-## 16. 本次禁止事项
+## 16. 最终验收记录
+
+本轮 `Chart Registry + ChartSpec + Renderer + Config Schema + Visual Plugin` 重构计划已完成。
+
+- P0 架构骨架：完成。
+- P1 Config Schema：完成。
+- P2 首批核心图表：完成。
+- P3 ChartSpec 持久化与历史迁移：完成。
+- P4 Visual Plugin 统一：完成。
+- Phase 6 剩余图表迁移：完成；G2/G6/MapLibre/D3 经评估本轮无需引入。
+- 新增纯 V2 图表已验证无需修改 `ChartManager` 硬编码清单。
+- V2 图表已具备 Registry 图库、分类/搜索/收藏/最近使用、统一样式配置、字段校验、空状态与异常隔离。
+- 集中定向回归（2026-09-25）：14 个测试文件通过，79 个测试通过，3 个跳过，0 个失败。
+- `npm run checkTs` 未发现 visualization 新架构相关错误；仍仅有项目既存的 `SelectDataSource.tsx`、`Workbench.tsx`、`LensVizHub.tsx` 三组 TypeScript 问题，不属于本计划范围。
+
+完成标准核对：
+
+- [x] 新增图表不再要求修改 `ChartManager._basicCharts()`。
+- [x] Visual Plugin 注册即可进入图表选择器。
+- [x] 图表配置由统一 Config Schema 驱动。
+- [x] ECharts Option 由 Builder 生成，不进入核心持久化协议。
+- [x] ChartSpec 已版本化并具备 migration。
+- [x] 内置图表、历史图表、第三方插件统一在 Registry 下运行。
+- [x] Bar/Line/Pie/Table 编辑、保存/读取、Dashboard 兼容链路已有自动化回归覆盖。
+- [x] 后续新增图表可按 Plugin + Schema + Builder 模式扩展，只有确有需要时才新增 Renderer。
+
+## 17. 本次禁止事项
 
 - 不一次性删除 `components/ChartGraph`。
 - 不一次性重写全部 ChartConfig。
