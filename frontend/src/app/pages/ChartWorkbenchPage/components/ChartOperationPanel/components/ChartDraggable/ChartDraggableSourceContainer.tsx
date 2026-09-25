@@ -70,6 +70,7 @@ export const ChartDraggableSourceContainer: FC<
     folderRole?: string;
     onDeleteComputedField?: (fieldName) => void;
     onEditComputedField?: (fieldName) => void;
+    onFieldDoubleClick?: (field: renderMataProps) => void;
     onSelectionChange?: (dataItemId, cmdKeyActive, shiftKeyActive) => void;
     onClearCheckedList?: () => void;
   } & renderMataProps
@@ -98,6 +99,7 @@ export const ChartDraggableSourceContainer: FC<
   dateFormat,
   onDeleteComputedField,
   onEditComputedField,
+  onFieldDoubleClick,
   onSelectionChange,
   onClearCheckedList,
 }) {
@@ -407,6 +409,7 @@ export const ChartDraggableSourceContainer: FC<
           isActive={selectedItemsIds?.includes(item.name)}
           availableSourceFunctions={availableSourceFunctions}
           onDeleteComputedField={onDeleteComputedField}
+          onFieldDoubleClick={onFieldDoubleClick}
           onClearCheckedList={onClearCheckedList}
           onSelectionChange={onSelectionChange}
           selectedItems={selectedItems}
@@ -417,6 +420,7 @@ export const ChartDraggableSourceContainer: FC<
     role,
     children,
     onDeleteComputedField,
+    onFieldDoubleClick,
     onClearCheckedList,
     selectedItems,
     viewType,
@@ -437,6 +441,29 @@ export const ChartDraggableSourceContainer: FC<
           return;
         }
         onSelectionChange?.(colName, e.metaKey || e.ctrlKey, e.shiftKey);
+      }}
+      onDoubleClick={e => {
+        e.stopPropagation();
+        if (isHierarchyFieldOrTable) {
+          return;
+        }
+        onFieldDoubleClick?.({
+          fieldId,
+          originName,
+          sourceComment,
+          customName,
+          name: colName,
+          type,
+          subType,
+          category,
+          path,
+          dateFormat,
+          displayName,
+          comment,
+          isDisplayNameCustom,
+          children,
+          role,
+        });
       }}
       ref={type === 'DATE' && category === 'field' ? null : drag}
       className={

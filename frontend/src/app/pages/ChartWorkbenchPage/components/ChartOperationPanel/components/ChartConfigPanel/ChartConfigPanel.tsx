@@ -31,6 +31,7 @@ import ChartPaletteContext from 'app/pages/ChartWorkbenchPage/contexts/ChartPale
 import { ChartConfigReducerActionType } from 'app/pages/ChartWorkbenchPage/slice/constant';
 import { currentDataViewSelector } from 'app/pages/ChartWorkbenchPage/slice/selectors';
 import { ChartConfigPayloadType } from 'app/pages/ChartWorkbenchPage/slice/types';
+import ChartManager from 'app/models/ChartManager';
 import { IChart } from 'app/types/Chart';
 import { selectVizs } from 'app/pages/MainPage/pages/VizPage/slice/selectors';
 import {
@@ -39,7 +40,10 @@ import {
   ChartStyleConfig,
 } from 'app/types/ChartConfig';
 import ChartDataView from 'app/types/ChartDataView';
-import { reconcileChartConfigFieldMeta } from 'app/utils/internalChartHelper';
+import {
+  reconcileChartConfigFieldMeta,
+  transferChartDataConfig,
+} from 'app/utils/internalChartHelper';
 import { FC, memo, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
@@ -48,7 +52,8 @@ import {
   FONT_WEIGHT_MEDIUM,
   SPACE_MD,
 } from 'styles/StyleConstants';
-import { cond, isEmptyArray } from 'utils/object';
+import { CloneValueDeep, cond, isEmptyArray } from 'utils/object';
+import { recommendVisualTypes } from '../../visualRecommendation';
 import ChartGraphPanel from '../ChartGraphPanel';
 import ChartToolbar from '../ChartToolbar';
 import ChartDataConfigPanel from './ChartDataConfigPanel';
@@ -86,6 +91,20 @@ const ChartConfigPanel: FC<{
         : chartConfig;
     }, [chartConfig, dataview?.computedFields, dataview?.meta]);
     const editorDataConfigs = editorChartConfig?.datas;
+    const recommendedCharts = useMemo(() => {
+      ChartManager.instance();
+      return recommendVisualTypes(editorChartConfig)
+        .map(type => ChartManager.instance().getById(type))
+        .filter((candidate): candidate is IChart => {
+          if (!candidate || candidate.meta.id === chart?.meta?.id) return false;
+          const transferred = transferChartDataConfig(
+            { datas: CloneValueDeep(candidate.config?.datas || []) },
+            { datas: editorDataConfigs },
+          );
+          return candidate.isMatchRequirement(transferred);
+        })
+        .slice(0, 3);
+    }, [chart?.meta?.id, editorChartConfig, editorDataConfigs]);
     const [tabActiveKey, setTabActiveKey] = useComputedState(
       () => {
         return cond(
@@ -163,6 +182,25 @@ const ChartConfigPanel: FC<{
               </Space>
               <strong>{chart?.meta?.name ? t(chart.meta.name, true) : '未选择'}</strong>
             </CurrentVisual>
+            {recommendedCharts.length > 0 ? (
+              <RecommendationBar>
+                <RecommendationLabel>推荐图表</RecommendationLabel>
+                <RecommendationList>
+                  {recommendedCharts.map(candidate => (
+                    <Button
+                      key={candidate.meta.id}
+                      size="small"
+                      type="text"
+                      onClick={() => onChartChange(candidate)}
+                    >
+                      {t(candidate.meta.name, true)}
+                    </Button>
+                  ))}
+                </RecommendationList>
+              </RecommendationBar>
+            ) : (
+              <RecommendationHint>双击左侧字段可快速添加到当前图表</RecommendationHint>
+            )}
             <ConfigBlock>
               <Tabs
                 activeKey={tabActiveKey}
@@ -348,4 +386,41 @@ const AnalysisSectionTitle = styled.div`
   font-size: 12px;
   font-weight: 600;
   color: ${p => p.theme.textColor};
+`;
+
+const RecommendationBar = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 4px 10px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const RecommendationLabel = styled.span`
+  flex-shrink: 0;
+  font-size: 12px;
+  color: ${p => p.theme.textColorSnd};
+`;
+
+const RecommendationList = styled.div`
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+
+  .ant-btn {
+    padding: 0 6px;
+    color: ${p => p.theme.info};
+  }
+`;
+
+const RecommendationHint = styled.div`
+  flex-shrink: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: ${p => p.theme.textColorDisabled};
+  background: ${p => p.theme.bodyBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;

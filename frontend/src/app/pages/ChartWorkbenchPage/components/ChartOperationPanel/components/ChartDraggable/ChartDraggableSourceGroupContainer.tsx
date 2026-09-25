@@ -30,10 +30,12 @@ export const ChartDraggableSourceGroupContainer: FC<{
   meta?: renderMataProps[];
   onDeleteComputedField: (fieldName) => void;
   onEditComputedField: (fieldName) => void;
+  onFieldDoubleClick?: (field: renderMataProps) => void;
 }> = memo(function ChartDraggableSourceGroupContainer({
   meta,
   onDeleteComputedField,
   onEditComputedField,
+  onFieldDoubleClick,
 }) {
   const [selectedItems, setSelectedItems] = useState<renderMataProps[]>([]);
   const [selectedItemsIds, setSelectedItemsIds] = useState<Array<string>>([]);
@@ -134,6 +136,7 @@ export const ChartDraggableSourceGroupContainer: FC<{
               isViewComputedFields={item.isViewComputedFields}
               onDeleteComputedField={onDeleteComputedField}
               onEditComputedField={handleEditComputedField}
+              onFieldDoubleClick={onFieldDoubleClick}
               onSelectionChange={onDataItemSelectionChange}
               onClearCheckedList={onClearCheckedList}
               isActive={selectedItemsIds.includes(item.name)}

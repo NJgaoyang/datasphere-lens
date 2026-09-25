@@ -43,6 +43,7 @@ import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useMount from 'app/hooks/useMount';
 import useStateModal, { StateModalSize } from 'app/hooks/useStateModal';
+import ChartAggregationContext from 'app/pages/ChartWorkbenchPage/contexts/ChartAggregationContext';
 import ChartDataViewContext from 'app/pages/ChartWorkbenchPage/contexts/ChartDataViewContext';
 import workbenchSlice from 'app/pages/ChartWorkbenchPage/slice';
 import {
@@ -50,6 +51,7 @@ import {
   makeDataviewTreeSelector,
   viewDetailLoadingSelector,
 } from 'app/pages/ChartWorkbenchPage/slice/selectors';
+import { ChartConfigReducerActionType } from 'app/pages/ChartWorkbenchPage/slice/constant';
 import { fetchViewDetailAction } from 'app/pages/ChartWorkbenchPage/slice/thunks';
 import { useAccess, useCascadeAccess } from 'app/pages/MainPage/Access';
 import {
@@ -83,6 +85,7 @@ import {
   SPACE_XS,
 } from 'styles/StyleConstants';
 import { getPath } from 'utils/utils';
+import { placeFieldInChartConfig } from '../../fieldPlacement';
 import { getAllFieldsOfEachType } from '../../utils';
 import { ChartDraggableSourceGroupContainer } from '../ChartDraggable';
 import ChartComputedFieldSettingPanel from './components/ChartComputedFieldSettingPanel';
@@ -92,13 +95,21 @@ const ChartDataViewPanel: FC<{
   defaultViewId?: string;
   chartConfig?: ChartConfig;
   onDataViewChange?: (clear?: boolean) => void;
-}> = memo(({ dataView, defaultViewId, chartConfig, onDataViewChange }) => {
+  onChartConfigChange?: (type, payload) => void;
+}> = memo(({
+  dataView,
+  defaultViewId,
+  chartConfig,
+  onDataViewChange,
+  onChartConfigChange,
+}) => {
   const t = useI18NPrefix(`viz.workbench.dataview`);
   const tView = useI18NPrefix('view');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showModal, modalContextHolder] = useStateModal({});
   const { availableSourceFunctions } = useContext(ChartDataViewContext);
+  const { aggregation } = useContext(ChartAggregationContext);
   const dataviewTreeSelector = useMemo(makeDataviewTreeSelector, []);
   const getSelectable = useCallback(v => !v.isFolder, []);
   const dataviewTreeData = useSelector(state =>
@@ -417,6 +428,26 @@ const ChartDataViewPanel: FC<{
     [filteredTreeData],
   );
 
+  const handleFieldDoubleClick = useCallback(
+    (field: ChartDataViewMeta) => {
+      const placement = placeFieldInChartConfig(
+        chartConfig,
+        field,
+        aggregation,
+      );
+      if (!placement) {
+        message.warning('当前图表没有可用的字段位置');
+        return;
+      }
+      onChartConfigChange?.(ChartConfigReducerActionType.DATA, {
+        ancestors: [placement.sectionIndex],
+        value: placement.section,
+        needRefresh: true,
+      });
+    },
+    [aggregation, chartConfig, onChartConfigChange],
+  );
+
   const editView = useCallback(() => {
     let orgId = dataView?.orgId as string;
     let viewId = dataView?.id as string;
@@ -505,6 +536,7 @@ const ChartDataViewPanel: FC<{
                 meta={dimensionFields}
                 onDeleteComputedField={handleDeleteComputedField}
                 onEditComputedField={handleEditComputedField}
+                onFieldDoubleClick={handleFieldDoubleClick}
               />
             ) : (
               <FieldSectionEmpty>暂无维度字段</FieldSectionEmpty>
@@ -523,6 +555,7 @@ const ChartDataViewPanel: FC<{
                 meta={measureFields}
                 onDeleteComputedField={handleDeleteComputedField}
                 onEditComputedField={handleEditComputedField}
+                onFieldDoubleClick={handleFieldDoubleClick}
               />
             ) : (
               <FieldSectionEmpty>暂无度量字段</FieldSectionEmpty>
