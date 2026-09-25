@@ -24,7 +24,10 @@ export function VizPage() {
   useEditBoardSlice();
   useStoryBoardSlice();
   const saveFormContextValue = useSaveFormContext();
-  const isHub = !!useMatch('/organizations/:orgId/vizs');
+  const isHub =
+    !!useMatch('/organizations/:orgId/vizs') ||
+    !!useMatch('/organizations/:orgId/charts') ||
+    !!useMatch('/organizations/:orgId/dashboards');
   const [sliderVisible, setSliderVisible] = useState<boolean>(false);
 
   const { sizes, setSizes } = useSplitSizes({

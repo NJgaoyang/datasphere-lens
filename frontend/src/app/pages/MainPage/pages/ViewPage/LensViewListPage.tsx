@@ -510,13 +510,26 @@ export function LensViewListPage() {
                     onClick={e => e.stopPropagation()}
                   >
                     {!view.isFolder && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => navigate(`/organizations/${orgId}/views/${view.id}`)}
-                      >
-                        打开编辑器
-                      </Button>
+                      <>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() =>
+                            navigate(
+                              `/organizations/${orgId}/charts/new?dataChartId=&chartType=dataChart&container=dataChart&defaultViewId=${view.id}`,
+                            )
+                          }
+                        >
+                          创建图表
+                        </Button>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => navigate(`/organizations/${orgId}/views/${view.id}`)}
+                        >
+                          编辑
+                        </Button>
+                      </>
                     )}
                     <CascadeAccess
                       module={ResourceTypes.View}

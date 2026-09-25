@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { Spin } from 'antd';
 import ChartEditor, { ChartEditorBaseProps } from 'app/components/ChartEditor';
 import useMount from 'app/hooks/useMount';
 import { useIsMobile } from 'app/hooks/useIsMobile';
@@ -110,9 +111,13 @@ export function MainPage() {
   const orgId = useSelector(selectOrgId);
   const navigate = useNavigate();
   const location = useLocation();
-  const useLensShell = !shouldUseMobileViz &&
+  const useLensShell =
+    !shouldUseMobileViz &&
     !location.pathname.includes('/storyEditor/') &&
-    !location.pathname.includes('/storyPlayer/');
+    !location.pathname.includes('/storyPlayer/') &&
+    !location.pathname.includes('/charts/new') &&
+    !location.pathname.includes('/chartEditor') &&
+    !location.pathname.includes('/boardEditor');
   // loaded first time
 
   useMount(
@@ -153,7 +158,14 @@ export function MainPage() {
     [dispatch, navigate],
   );
 
-  if (!orgId) return null;
+  if (!orgId) {
+    return (
+      <LoadingContainer>
+        <Spin size="large" />
+        <span>正在加载工作空间...</span>
+      </LoadingContainer>
+    );
+  }
 
   const routeContent = (
     <Routes>
@@ -180,6 +192,32 @@ export function MainPage() {
                 onClose={() => navigate(-1)}
                 onSaveInDataChart={onSaveInDataChart}
               />
+            }
+          />
+          <Route
+            path="/organizations/:orgId/charts/new"
+            element={
+              <ChartEditorRoute
+                orgId={orgId}
+                onClose={() => navigate(`/organizations/${orgId}/charts`)}
+                onSaveInDataChart={onSaveInDataChart}
+              />
+            }
+          />
+          <Route
+            path="/organizations/:orgId/charts/*"
+            element={
+              <AccessRoute module={ResourceTypes.Viz}>
+                <VizPage />
+              </AccessRoute>
+            }
+          />
+          <Route
+            path="/organizations/:orgId/dashboards/*"
+            element={
+              <AccessRoute module={ResourceTypes.Viz}>
+                <VizPage />
+              </AccessRoute>
             }
           />
           <Route
@@ -326,4 +364,17 @@ const AppContainer = styled.main`
   left: 0;
   display: flex;
   background-color: ${p => p.theme.bodyBackground};
+`;
+
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  color: ${p => p.theme.textColorSnd};
+  background: ${p => p.theme.bodyBackground};
 `;

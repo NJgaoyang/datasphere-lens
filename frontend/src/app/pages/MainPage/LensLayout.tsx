@@ -31,6 +31,8 @@ import {
 import { selectLoggedInUser } from 'app/slice/selectors';
 import { logout } from 'app/slice/thunks';
 import { BASE_RESOURCE_URL } from 'globalConstants';
+import { uuidv4 } from 'utils/utils';
+import { UNPERSISTED_ID_PREFIX } from './pages/ViewPage/constants';
 import React, { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -112,25 +114,33 @@ export function LensLayout({
         items: visible(ResourceTypes.Viz)
           ? [
               {
-                path: `/organizations/${orgId}/vizs`,
-                name: '分析资产',
+                path: `/organizations/${orgId}/charts`,
+                name: '图表',
                 icon: <BarChartOutlined />,
+              },
+              {
+                path: `/organizations/${orgId}/dashboards`,
+                name: '仪表板',
+                icon: <AreaChartOutlined />,
               },
             ]
           : [],
       },
       {
-        title: '协作',
+        title: '任务',
+        items: visible(ResourceTypes.Schedule)
+          ? [
+              {
+                path: `/organizations/${orgId}/schedules`,
+                name: '定时任务',
+                icon: <CalendarOutlined />,
+              },
+            ]
+          : [],
+      },
+      {
+        title: '管理',
         items: [
-          ...(visible(ResourceTypes.Schedule)
-            ? [
-                {
-                  path: `/organizations/${orgId}/schedules`,
-                  name: '定时任务',
-                  icon: <CalendarOutlined />,
-                },
-              ]
-            : []),
           ...(visible(ResourceTypes.User)
             ? [
                 {
@@ -219,13 +229,19 @@ export function LensLayout({
     ],
     onClick: ({ key }) => {
       if (key === 'source') navigate(`/organizations/${orgId}/sources/add`);
-      if (key === 'dataset') navigate(`/organizations/${orgId}/views`);
-      if (key === 'chart') {
+      if (key === 'dataset') {
         navigate(
-          `/organizations/${orgId}/vizs/chartEditor?dataChartId=&chartType=dataChart&container=dataChart`,
+          `/organizations/${orgId}/views/${UNPERSISTED_ID_PREFIX}${uuidv4()}`,
         );
       }
-      if (key === 'dashboard') navigate(`/organizations/${orgId}/vizs`);
+      if (key === 'chart') {
+        navigate(
+          `/organizations/${orgId}/charts/new?dataChartId=&chartType=dataChart&container=dataChart`,
+        );
+      }
+      if (key === 'dashboard') {
+        navigate(`/organizations/${orgId}/dashboards?create=dashboard`);
+      }
     },
   };
 

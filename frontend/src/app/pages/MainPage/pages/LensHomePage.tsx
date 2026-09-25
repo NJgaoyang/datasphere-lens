@@ -4,7 +4,6 @@ import {
   DashboardOutlined,
   DatabaseOutlined,
   PlusOutlined,
-  SafetyCertificateOutlined,
   TableOutlined,
 } from '@ant-design/icons';
 import {
@@ -20,6 +19,8 @@ import {
   theme,
 } from 'antd';
 import React from 'react';
+import { uuidv4 } from 'utils/utils';
+import { UNPERSISTED_ID_PREFIX } from './ViewPage/constants';
 import { useNavigate } from 'react-router-dom';
 
 const { Paragraph, Text, Title } = Typography;
@@ -35,6 +36,9 @@ export function LensHomePage({ orgId }: { orgId: string }) {
   const navigate = useNavigate();
   const { token } = theme.useToken();
   const go = (path: string) => navigate(`/organizations/${orgId}/${path}`);
+  const createDataset = () => go(`views/${UNPERSISTED_ID_PREFIX}${uuidv4()}`);
+  const createChart = () => go('charts/new?dataChartId=&chartType=dataChart&container=dataChart');
+  const createDashboard = () => go('dashboards?create=dashboard');
 
   const entries: Entry[] = [
     {
@@ -50,16 +54,16 @@ export function LensHomePage({ orgId }: { orgId: string }) {
       icon: <TableOutlined />,
     },
     {
-      title: '开始分析',
-      desc: '从数据集快速创建可视化',
-      path: 'vizs',
+      title: '创建图表',
+      desc: '从数据集快速创建可视化分析',
+      path: 'charts',
       icon: <BarChartOutlined />,
     },
     {
-      title: '管理权限',
-      desc: '控制资源与数据访问范围',
-      path: 'permissions/subject',
-      icon: <SafetyCertificateOutlined />,
+      title: '制作仪表板',
+      desc: '组合图表构建业务分析看板',
+      path: 'dashboards',
+      icon: <DashboardOutlined />,
     },
   ];
 
@@ -90,12 +94,12 @@ export function LensHomePage({ orgId }: { orgId: string }) {
                   type="primary"
                   size="large"
                   icon={<PlusOutlined />}
-                  onClick={() => go('views')}
+                  onClick={createDataset}
                 >
                   新建数据集
                 </Button>
-                <Button size="large" onClick={() => go('vizs')}>
-                  进入分析资产
+                <Button size="large" onClick={() => go('charts')}>
+                  查看图表
                 </Button>
               </Space>
             </Space>
@@ -179,12 +183,12 @@ export function LensHomePage({ orgId }: { orgId: string }) {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="当前阶段">
-            <Space direction="vertical" size={10} style={{ width: '100%' }}>
-              <Flex justify="space-between"><Text>数据源管理</Text><Tag color="success">完成</Tag></Flex>
-              <Flex justify="space-between"><Text>数据集工作台</Text><Tag color="success">完成</Tag></Flex>
-              <Flex justify="space-between"><Text>分析资产与图表</Text><Tag color="processing">进行中</Tag></Flex>
-              <Flex justify="space-between"><Text>仪表板产品化</Text><Tag>待完善</Tag></Flex>
+          <Card title="快捷创建">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Button block onClick={() => go('sources/add')}>新建数据源</Button>
+              <Button block onClick={createDataset}>新建数据集</Button>
+              <Button block onClick={createChart}>新建图表</Button>
+              <Button block type="primary" onClick={createDashboard}>新建仪表板</Button>
             </Space>
           </Card>
         </Col>

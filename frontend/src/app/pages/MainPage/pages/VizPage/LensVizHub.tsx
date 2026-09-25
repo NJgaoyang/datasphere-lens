@@ -28,9 +28,16 @@ import {
 import { useAccess } from 'app/pages/MainPage/Access';
 import { selectOrgId } from 'app/pages/MainPage/slice/selectors';
 import { CommonFormTypes } from 'globalConstants';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PermissionLevels, ResourceTypes } from '../PermissionPage/constants';
 import { useAddViz } from './hooks/useAddViz';
 import { SaveFormContext } from './SaveFormContext';
@@ -51,14 +58,22 @@ const typeMeta: Record<string, { label: string; icon: React.ReactNode }> = {
 export function LensVizHub() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const orgId = useSelector(selectOrgId);
   const vizs = useSelector(selectVizs);
   const loading = useSelector(selectVizListLoading);
   const { token } = theme.useToken();
   const { showSaveForm } = useContext(SaveFormContext);
   const addViz = useAddViz({ showSaveForm });
+  const routeFilter: AssetFilter | null = location.pathname.endsWith('/charts')
+    ? 'DATACHART'
+    : location.pathname.endsWith('/dashboards')
+      ? 'DASHBOARD'
+      : null;
   const [folderId, setFolderId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<AssetFilter>('ALL');
+  const [filter, setFilter] = useState<AssetFilter>(routeFilter || 'ALL');
+  const createTriggeredRef = useRef(false);
   const [keyword, setKeyword] = useState('');
   const canCreate = useAccess({
     module: ResourceTypes.Viz,
@@ -70,8 +85,11 @@ export function LensVizHub() {
   }, [dispatch, orgId]);
 
   const assets = useMemo(
-    () => vizs.filter(item => item.parentId === folderId),
-    [folderId, vizs],
+    () =>
+      routeFilter
+        ? vizs.filter(item => item.relType === routeFilter)
+        : vizs.filter(item => item.parentId === folderId),
+    [folderId, routeFilter, vizs],
   );
   const chartCount = useMemo(
     () => vizs.filter(item => item.relType === 'DATACHART').length,
@@ -92,11 +110,13 @@ export function LensVizHub() {
   const filtered = useMemo(() => {
     const q = keyword.trim().toLowerCase();
     return assets.filter(item => {
-      const matchesType = filter === 'ALL' || item.relType === filter;
+      const effectiveFilter = routeFilter || filter;
+      const matchesType =
+        effectiveFilter === 'ALL' || item.relType === effectiveFilter;
       const matchesKeyword = !q || item.name.toLowerCase().includes(q);
       return matchesType && matchesKeyword;
     });
-  }, [assets, filter, keyword]);
+  }, [assets, filter, keyword, routeFilter]);
 
   const openAsset = useCallback(
     (item: FolderViewModel) => {
@@ -111,7 +131,7 @@ export function LensVizHub() {
 
   const createChart = useCallback(() => {
     navigate(
-      `/organizations/${orgId}/vizs/chartEditor?dataChartId=&chartType=dataChart&container=dataChart`,
+      `/organizations/${orgId}/charts/new?dataChartId=&chartType=dataChart&container=dataChart`,
     );
   }, [navigate, orgId]);
 
@@ -124,13 +144,40 @@ export function LensVizHub() {
         initialValues: { parentId: folderId },
         callback: resource => {
           if (type === 'DASHBOARD' && resource?.relId) {
-            navigate(`/organizations/${orgId}/vizs/${resource.relId}`);
+            navigate(`/organizations/${orgId}/vizs/${resource.relId}/boardEditor`);
           }
         },
       });
     },
     [addViz, folderId, navigate, orgId],
   );
+
+  useEffect(() => {
+    if (
+      searchParams.get('create') === 'dashboard' &&
+      !createTriggeredRef.current &&
+      canCreate({})
+    ) {
+      createTriggeredRef.current = true;
+      createResource('DASHBOARD');
+      const next = new URLSearchParams(searchParams);
+      next.delete('create');
+      setSearchParams(next, { replace: true });
+    }
+  }, [canCreate, createResource, searchParams, setSearchParams]);
+
+  const pageTitle =
+    routeFilter === 'DATACHART'
+      ? '图表'
+      : routeFilter === 'DASHBOARD'
+        ? '仪表板'
+        : '分析资产';
+  const pageSubtitle =
+    routeFilter === 'DATACHART'
+      ? '基于数据集创建和管理可视化图表'
+      : routeFilter === 'DASHBOARD'
+        ? '组合多个图表，构建业务分析看板'
+        : '统一管理图表、仪表板与分析文件夹';
 
   const createMenu = {
     items: [
@@ -147,25 +194,36 @@ export function LensVizHub() {
 
   const statisticCards = [
     { title: '图表', value: chartCount, icon: <BarChartOutlined />, color: token.colorPrimary },
-    { title: '仪表板', value: dashboardCount, icon: <DashboardOutlined />, color: token.colorPurple },
+    { title: '仪表板', value: dashboardCount, icon: <DashboardOutlined />, color: token.colorInfo },
     { title: '文件夹', value: folderCount, icon: <FolderOutlined />, color: token.colorWarning },
   ];
 
   return (
     <PageContainer
-      title="分析资产"
-      subTitle="统一管理图表、仪表板与分析文件夹"
+      title={pageTitle}
+      subTitle={pageSubtitle}
       style={{ flex: 1, overflow: 'auto' }}
       extra={[
-        <Dropdown key="create" menu={createMenu} disabled={!canCreate({})}>
-          <Button type="primary" icon={<PlusOutlined />}>
-            新建分析
+        routeFilter === 'DATACHART' ? (
+          <Button key="create-chart" type="primary" icon={<PlusOutlined />} disabled={!canCreate({})} onClick={createChart}>
+            新建图表
           </Button>
-        </Dropdown>,
+        ) : routeFilter === 'DASHBOARD' ? (
+          <Button key="create-dashboard" type="primary" icon={<PlusOutlined />} disabled={!canCreate({})} onClick={() => createResource('DASHBOARD')}>
+            新建仪表板
+          </Button>
+        ) : (
+          <Dropdown key="create" menu={createMenu} disabled={!canCreate({})}>
+            <Button type="primary" icon={<PlusOutlined />}>
+              新建分析
+            </Button>
+          </Dropdown>
+        ),
       ]}
     >
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        {statisticCards.map(item => (
+      {!routeFilter && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          {statisticCards.map(item => (
           <Col xs={24} md={8} key={item.title}>
             <Card>
               <Space size={14} align="center">
@@ -187,14 +245,19 @@ export function LensVizHub() {
               </Space>
             </Card>
           </Col>
-        ))}
-      </Row>
+          ))}
+        </Row>
+      )}
 
       <Card
         title={
           <Space size={4}>
             <Button type="link" style={{ paddingInline: 0 }} onClick={() => setFolderId(null)}>
-              全部资产
+              {routeFilter === 'DATACHART'
+                ? '全部图表'
+                : routeFilter === 'DASHBOARD'
+                  ? '全部仪表板'
+                  : '全部资产'}
             </Button>
             {currentFolder && (
               <>
@@ -206,22 +269,24 @@ export function LensVizHub() {
         }
         extra={
           <Space wrap>
-            <Segmented
-              value={filter}
-              onChange={value => setFilter(value as AssetFilter)}
-              options={[
-                { label: '全部', value: 'ALL' },
-                { label: '图表', value: 'DATACHART' },
-                { label: '仪表板', value: 'DASHBOARD' },
-                { label: '文件夹', value: 'FOLDER' },
-              ]}
-            />
+            {!routeFilter && (
+              <Segmented
+                value={filter}
+                onChange={value => setFilter(value as AssetFilter)}
+                options={[
+                  { label: '全部', value: 'ALL' },
+                  { label: '图表', value: 'DATACHART' },
+                  { label: '仪表板', value: 'DASHBOARD' },
+                  { label: '文件夹', value: 'FOLDER' },
+                ]}
+              />
+            )}
             <Input
               allowClear
               value={keyword}
               onChange={event => setKeyword(event.target.value)}
               prefix={<SearchOutlined />}
-              placeholder="搜索分析资产"
+              placeholder={routeFilter === 'DATACHART' ? '搜索图表' : routeFilter === 'DASHBOARD' ? '搜索仪表板' : '搜索分析资产'}
               style={{ width: 240 }}
             />
           </Space>
@@ -282,13 +347,17 @@ export function LensVizHub() {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={keyword ? '没有匹配的分析资产' : '当前目录还没有分析资产'}
+            description={keyword ? `没有匹配的${pageTitle}` : routeFilter ? `还没有${pageTitle}` : '当前目录还没有分析资产'}
           >
-            {canCreate({}) && (
+            {canCreate({}) && (routeFilter === 'DASHBOARD' ? (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => createResource('DASHBOARD')}>
+                创建第一个仪表板
+              </Button>
+            ) : (
               <Button type="primary" icon={<PlusOutlined />} onClick={createChart}>
                 创建第一个图表
               </Button>
-            )}
+            ))}
           </Empty>
         )}
       </Card>
