@@ -117,3 +117,20 @@ export function getDropInfo(
     inTabs,
   };
 }
+
+export const filterLayerTree = (
+  nodes: LayerNode[] = [],
+  keyword: string,
+  getTypeName: (node: LayerNode) => string = node => node.originalType || '',
+): LayerNode[] => {
+  const normalized = keyword.trim().toLowerCase();
+  if (!normalized) return nodes;
+  return nodes.reduce<LayerNode[]>((result, node) => {
+    const children = filterLayerTree(node.children || [], normalized, getTypeName);
+    const text = `${String(node.title || '')} ${getTypeName(node)} ${node.originalType || ''}`.toLowerCase();
+    if (text.includes(normalized) || children.length) {
+      result.push({ ...node, children });
+    }
+    return result;
+  }, []);
+};

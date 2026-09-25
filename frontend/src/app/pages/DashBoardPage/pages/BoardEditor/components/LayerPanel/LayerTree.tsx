@@ -21,7 +21,7 @@ import { renderIcon } from 'app/hooks/useGetVizIcon';
 import useResizeObserver from 'app/hooks/useResizeObserver';
 import { WidgetActionContext } from 'app/pages/DashBoardPage/components/ActionProvider/WidgetActionProvider';
 import widgetManager from 'app/pages/DashBoardPage/components/WidgetManager';
-import { FC, memo, useCallback, useContext } from 'react';
+import { FC, memo, useCallback, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { stopPPG } from 'utils/utils';
 import { dropLayerNodeAction } from '../../slice/actions/actions';
@@ -31,10 +31,18 @@ import {
   selectSelectedIds,
 } from '../../slice/selectors';
 import { EventLayerNode, LayerTreeItem } from './LayerTreeItem';
+import { filterLayerTree } from './utils';
 
-export const LayerTree: FC<{}> = memo(() => {
+export const LayerTree: FC<{ keyword?: string }> = memo(({ keyword = '' }) => {
   const dispatch = useDispatch();
   const treeData = useSelector(selectLayerTree);
+  const filteredTreeData = useMemo(
+    () =>
+      filterLayerTree(treeData, keyword, node =>
+        widgetManager.toolkit(node.originalType).getName(),
+      ),
+    [keyword, treeData],
+  );
   const renderTreeItem = useCallback(n => <LayerTreeItem node={n} />, []);
   const { onEditSelectWidget } = useContext(WidgetActionContext);
   const editingWidgetIds = useSelector(selectEditingWidgetIds);
@@ -82,7 +90,7 @@ export const LayerTree: FC<{}> = memo(() => {
   return (
     <Tree
       className="medium"
-      draggable={!editingWidgetIds ? { icon: false } : false}
+      draggable={!keyword && !editingWidgetIds ? { icon: false } : false}
       multiple
       loading={false}
       titleRender={renderTreeItem}
@@ -90,7 +98,7 @@ export const LayerTree: FC<{}> = memo(() => {
       onSelect={treeSelect}
       onClick={stopPPG}
       onDrop={onDrop}
-      treeData={treeData}
+      treeData={filteredTreeData}
       selectedKeys={selectedIds ? selectedIds.split(',') : []}
       height={height}
       wrapperRef={ref}

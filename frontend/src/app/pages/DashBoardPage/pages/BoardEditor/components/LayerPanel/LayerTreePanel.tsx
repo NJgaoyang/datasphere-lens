@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import { ListTitle } from 'app/components';
-import useI18NPrefix from 'app/hooks/useI18NPrefix';
+import { Input } from 'antd';
 import { DeviceType } from 'app/pages/DashBoardPage/pages/Board/slice/types';
-import { FC, memo, useMemo } from 'react';
+import { FC, memo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { LayerTree } from './LayerTree';
@@ -27,15 +27,8 @@ import { selectDeviceType } from '../../slice/selectors';
 
 export const LayerTreePanel: FC<{}> = memo(() => {
   const deviceType = useSelector(selectDeviceType);
-  const t = useI18NPrefix(`viz.board.action`);
-  const titleProps = useMemo(
-    () => ({
-      title: '图层',
-      // search: true,
-      // onSearch: null,
-    }),
-    [t],
-  );
+  const [keyword, setKeyword] = useState('');
+  const titleProps = { title: '图层' };
 
   return (
     <Panel>
@@ -44,7 +37,16 @@ export const LayerTreePanel: FC<{}> = memo(() => {
       ) : (
         <>
           <ListTitle {...titleProps} className="layer-panel-title" />
-          <LayerTree />
+          <LayerSearch>
+            <Input.Search
+              allowClear
+              size="small"
+              value={keyword}
+              placeholder="搜索图层名称或组件类型"
+              onChange={event => setKeyword(event.target.value)}
+            />
+          </LayerSearch>
+          <LayerTree keyword={keyword} />
         </>
       )}
     </Panel>
@@ -73,4 +75,10 @@ const Panel = styled.div`
   .ant-tree-treenode:hover .ant-tree-node-content-wrapper {
     border-radius: 6px;
   }
+`;
+
+const LayerSearch = styled.div`
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;
