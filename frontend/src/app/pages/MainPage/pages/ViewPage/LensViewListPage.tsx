@@ -395,7 +395,7 @@ export function LensViewListPage() {
               if (view.isFolder) {
                 setFolderId(view.id);
               } else {
-                navigate(`/organizations/${orgId}/views/${view.id}`);
+                navigate(`/organizations/${orgId}/datasets/${view.id}`);
               }
             },
           })}
@@ -419,7 +419,7 @@ export function LensViewListPage() {
                     onClick={() =>
                       view.isFolder
                         ? setFolderId(view.id)
-                        : navigate(`/organizations/${orgId}/views/${view.id}`)
+                        : navigate(`/organizations/${orgId}/datasets/${view.id}`)
                     }
                   >
                     {view.name}
@@ -504,7 +504,7 @@ export function LensViewListPage() {
                           onClick={() =>
                             view.isFolder
                               ? editFolder(view)
-                              : navigate(`/organizations/${orgId}/views/${view.id}`)
+                              : navigate(`/organizations/${orgId}/datasets/${view.id}`)
                           }
                         >
                           编辑

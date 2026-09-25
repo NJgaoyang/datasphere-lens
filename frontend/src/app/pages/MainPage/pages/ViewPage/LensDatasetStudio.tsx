@@ -35,8 +35,9 @@ export function LensDatasetStudio() {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const orgId = useSelector(selectOrgId);
-  const match = useMatch('/organizations/:orgId/views/:viewId');
-  const viewId = match?.params.viewId;
+  const datasetMatch = useMatch('/organizations/:orgId/datasets/:viewId');
+  const legacyMatch = useMatch('/organizations/:orgId/views/:viewId');
+  const viewId = datasetMatch?.params.viewId || legacyMatch?.params.viewId;
   const currentView = useSelector(selectCurrentEditingView);
   const meta = currentView?.type
     ? typeMeta[currentView.type as keyof typeof typeMeta]
@@ -54,7 +55,7 @@ export function LensDatasetStudio() {
     <Flex vertical style={{ width: '100%', height: '100%', minHeight: 0, background: token.colorBgLayout }}>
       <Flex align="center" justify="space-between" style={{ height: 52, flexShrink: 0, padding: '0 12px', background: token.colorBgContainer, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
         <Space size={12}>
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(`/organizations/${orgId}/views`)} />
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(`/organizations/${orgId}/datasets`)} />
           <Divider type="vertical" style={{ height: 28, margin: 0 }} />
           <div style={{ display: 'grid', placeItems: 'center', width: 36, height: 36, borderRadius: token.borderRadiusLG, background: token.colorPrimaryBg, color: token.colorPrimary, fontSize: 17 }}>
             <DatabaseOutlined />

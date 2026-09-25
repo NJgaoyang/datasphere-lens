@@ -32,7 +32,9 @@ export function ViewPage() {
   useSourceSlice();
   const saveFormContextValue = useSaveFormContext();
   const editorContextValue = useEditorContext();
-  const rootMatch = useMatch('/organizations/:orgId/views');
+  const datasetRootMatch = useMatch('/organizations/:orgId/datasets');
+  const legacyRootMatch = useMatch('/organizations/:orgId/views');
+  const rootMatch = datasetRootMatch || legacyRootMatch;
 
   useEffect(() => () => cancelQuery('view-preview'), []);
 

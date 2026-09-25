@@ -451,7 +451,7 @@ const ChartDataViewPanel: FC<{
   const editView = useCallback(() => {
     let orgId = dataView?.orgId as string;
     let viewId = dataView?.id as string;
-    navigate(`/organizations/${orgId}/views/${viewId}`);
+    navigate(`/organizations/${orgId}/datasets/${viewId}`);
   }, [dataView?.id, dataView?.orgId, navigate]);
 
   const handleConfirmVisible = useCallback(() => {

@@ -99,7 +99,7 @@ export function LensLayout({
           ...(visible(ResourceTypes.View)
             ? [
                 {
-                  path: `/organizations/${orgId}/views`,
+                  path: `/organizations/${orgId}/datasets`,
                   name: '数据集',
                   icon: <TableOutlined />,
                 },

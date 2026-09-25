@@ -85,7 +85,7 @@ function DatasetCreateRoute({ orgId }: { orgId: string }) {
 
   return (
     <Navigate
-      to={`/organizations/${orgId}/views/${newViewId}`}
+      to={`/organizations/${orgId}/datasets/${newViewId}`}
       replace
       state={Object.keys(state).length ? state : undefined}
     />
@@ -277,6 +277,14 @@ export function MainPage() {
                   <VizPage />
                 </AccessRoute>
               )
+            }
+          />
+          <Route
+            path="/organizations/:orgId/datasets/*"
+            element={
+              <AccessRoute module={ResourceTypes.View}>
+                <ViewPage />
+              </AccessRoute>
             }
           />
           <Route
