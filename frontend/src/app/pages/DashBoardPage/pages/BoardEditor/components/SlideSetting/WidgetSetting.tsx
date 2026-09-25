@@ -122,7 +122,6 @@ export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
   return (
     <Inspector onClick={event => event.stopPropagation()}>
       <InspectorHeader>
-        <InspectorTitle>{`${t('widget')}${t('setting')}`}</InspectorTitle>
         <WidgetMeta>
           <WidgetType>{widgetTypeName}</WidgetType>
           <WidgetName title={widget.config.name || undefined}>
@@ -134,24 +133,41 @@ export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
         activeKey={currentTab}
         onChange={key => setCurrentTab(key)}
       >
-        <TabPane tab={t('style')} key="style">
-          <SettingPanel title={`${t('widget')}${t('setting')}`}>
+        <TabPane tab="外观" key="style">
+          <SettingPanel
+            title="组件外观"
+            description="配置组件名称、位置尺寸和视觉样式"
+          >
             <>
-              <NameSet
+              <SubSection>
+                <SubSectionTitle>基础信息</SubSectionTitle>
+                <NameSet
                 wid={widget.id}
                 name={widget.config.name}
                 boardVizs={allWidgets}
               />
-              {showRect && <RectSet wid={widget.id} rect={widget.config.rect} />}
-              <WidgetConfigPanel
+              </SubSection>
+              {showRect && (
+                <SubSection>
+                  <SubSectionTitle>布局尺寸</SubSectionTitle>
+                  <RectSet wid={widget.id} rect={widget.config.rect} />
+                </SubSection>
+              )}
+              <SubSection>
+                <SubSectionTitle>视觉样式</SubSectionTitle>
+                <WidgetConfigPanel
                 configs={widget.config.customConfig.props || []}
                 onChange={handleStyleConfigChange}
               />
+              </SubSection>
             </>
           </SettingPanel>
         </TabPane>
-        <TabPane tab={t('interaction')} key="interaction">
-          <SettingPanel title={`${t('widget')}${t('setting')}`}>
+        <TabPane tab="交互" key="interaction">
+          <SettingPanel
+            title="交互行为"
+            description="设置组件与其他图表之间的钻取、联动和查看明细行为"
+          >
             <WidgetConfigPanel
               configs={updateInteractionOptionWhenHasChartInteraction(
                 widget.config.customConfig.interactions || [],
@@ -185,22 +201,16 @@ const Inspector = styled.div`
 
 const InspectorHeader = styled.div`
   flex: 0 0 auto;
-  padding: 18px 18px 14px;
+  padding: 10px 12px;
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;
 
-const InspectorTitle = styled.div`
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 22px;
-  color: ${p => p.theme.textColor};
-`;
 
 const WidgetMeta = styled.div`
   display: flex;
   align-items: center;
   min-width: 0;
-  margin-top: 10px;
+  margin-top: 0;
 `;
 
 const WidgetType = styled.span`
@@ -256,4 +266,19 @@ const StyledWidgetSetting = styled(Tabs)`
     height: 100%;
   }
 
+`;
+
+const SubSection = styled.section`
+  padding: 10px 0;
+
+  & + & {
+    border-top: 1px solid ${p => p.theme.borderColorSplit};
+  }
+`;
+
+const SubSectionTitle = styled.div`
+  padding: 0 8px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: ${p => p.theme.textColorSnd};
 `;

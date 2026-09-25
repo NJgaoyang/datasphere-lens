@@ -5,12 +5,19 @@ import { stopPPG } from 'utils/utils';
 
 interface SettingPanelProps {
   title?: string;
+  description?: string;
   children?: ReactElement;
 }
 
-export function SettingPanel({ title, children }: SettingPanelProps) {
+export function SettingPanel({ title, description, children }: SettingPanelProps) {
   return (
     <Wrapper>
+      {(title || description) && (
+        <SectionHeader>
+          {title && <strong>{title}</strong>}
+          {description && <span>{description}</span>}
+        </SectionHeader>
+      )}
       <div onClick={stopPPG} className="form-wrapper">
         {children}
       </div>
@@ -36,4 +43,23 @@ const Wrapper = styled.div`
 
 export const Group = styled.div`
   padding: 0 ${SPACE_LG};
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  strong {
+    font-size: 12px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 11px;
+    color: ${p => p.theme.textColorDisabled};
+  }
 `;

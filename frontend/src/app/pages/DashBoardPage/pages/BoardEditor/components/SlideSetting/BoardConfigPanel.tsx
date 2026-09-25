@@ -16,17 +16,13 @@
  * limitations under the License.
  */
 
-import { Collapse } from 'antd';
-import { CollapseHeader } from 'app/components/FormGenerator';
-import { FormGroupLayoutMode } from 'app/components/FormGenerator/constants';
-import GroupLayout from 'app/components/FormGenerator/Layout/GroupLayout';
-import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import ChartI18NContext from 'app/pages/ChartWorkbenchPage/contexts/Chart18NContext';
 import { BoardConfigContext } from 'app/pages/DashBoardPage/components/BoardProvider/BoardConfigProvider';
 import { ChartStyleConfig } from 'app/types/ChartConfig';
 import { FC, memo, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
+import { BoardConfigCollapse } from './WidgetConfigPanel';
 import { editBoardStackActions } from '../../slice';
 
 const StyledWrapper = styled.div`
@@ -36,7 +32,6 @@ const StyledWrapper = styled.div`
 `;
 export const BoardConfigPanel: FC<{}> = memo(() => {
   const dispatch = useDispatch();
-  const t = useI18NPrefix(`viz.board.setting`);
   const boardConfig = useContext(BoardConfigContext);
   const configs = boardConfig.jsonConfig.props;
   const i18ns = boardConfig.jsonConfig.i18ns;
@@ -51,46 +46,9 @@ export const BoardConfigPanel: FC<{}> = memo(() => {
   };
   return (
     <ChartI18NContext.Provider value={{ i18NConfigs: i18ns }}>
-      <h3 style={{ textAlign: 'center' }}>{t('board')}</h3>
       <StyledWrapper onClick={e => e.stopPropagation()}>
         <BoardConfigCollapse configs={configs} onChange={onChange} />
       </StyledWrapper>
     </ChartI18NContext.Provider>
-  );
-});
-
-export const BoardConfigCollapse: FC<{
-  configs: ChartStyleConfig[];
-  onChange: (
-    ancestors: number[],
-    config: ChartStyleConfig,
-    needRefresh?: boolean,
-  ) => void;
-}> = memo(({ configs, onChange }) => {
-  const t = useI18NPrefix();
-  return (
-    <Collapse className="" ghost>
-      {configs
-        ?.filter(c => !Boolean(c.hidden))
-        .map((c, index) => (
-          <Collapse.Panel
-            header={<CollapseHeader title={t(c.label, true)} />}
-            key={c.key}
-          >
-            <GroupLayout
-              ancestors={[index]}
-              mode={
-                c.comType === 'group'
-                  ? FormGroupLayoutMode.INNER
-                  : FormGroupLayoutMode.OUTER
-              }
-              data={c}
-              translate={t}
-              dataConfigs={[]}
-              onChange={onChange}
-            />
-          </Collapse.Panel>
-        ))}
-    </Collapse>
   );
 });

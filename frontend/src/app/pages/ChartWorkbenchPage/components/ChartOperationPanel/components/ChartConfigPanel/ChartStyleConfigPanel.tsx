@@ -30,6 +30,21 @@ import {
 import { FC, memo, useMemo } from 'react';
 import styled from 'styled-components';
 
+
+const describeGroup = (key = '', label = '') => {
+  const text = `${key} ${label}`.toLowerCase();
+  if (/title|header/.test(text)) return '控制图表标题、说明与标题区域展示';
+  if (/legend/.test(text)) return '控制图例位置、方向与显示方式';
+  if (/axis|xaxis|yaxis/.test(text)) return '控制坐标轴、刻度、网格线与轴标题';
+  if (/label/.test(text)) return '控制数据标签内容、位置与显示格式';
+  if (/tooltip/.test(text)) return '控制鼠标悬停时的数据提示内容';
+  if (/color|theme|palette/.test(text)) return '控制图表主题、配色与视觉风格';
+  if (/animation/.test(text)) return '控制图表加载与数据变化动画';
+  if (/drill|link|interaction|zoom/.test(text)) return '控制钻取、联动、缩放等分析行为';
+  if (/grid|layout|margin/.test(text)) return '控制绘图区布局、留白与间距';
+  return '配置这一组的展示与行为参数';
+};
+
 const ChartStyleConfigPanel: FC<{
   configs?: ChartStyleConfig[];
   dataConfigs?: ChartDataConfig[];
@@ -88,7 +103,10 @@ const ChartStyleConfigPanel: FC<{
                 <Collapse.Panel
                   header={
                     <GroupHeader>
-                      <span>{t(c.label, true)}</span>
+                      <GroupHeaderText>
+                        <span>{t(c.label, true)}</span>
+                        <small>{describeGroup(c.key, t(c.label, true))}</small>
+                      </GroupHeaderText>
                       <em>{countConfigLeaves(c)} 项</em>
                     </GroupHeader>
                   }
@@ -165,5 +183,21 @@ const GroupHeader = styled.div`
     font-style: normal;
     font-weight: 400;
     color: ${p => p.theme.textColorDisabled};
+  }
+`;
+
+const GroupHeaderText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  small {
+    overflow: hidden;
+    font-size: 10px;
+    font-weight: 400;
+    color: ${p => p.theme.textColorDisabled};
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `;
