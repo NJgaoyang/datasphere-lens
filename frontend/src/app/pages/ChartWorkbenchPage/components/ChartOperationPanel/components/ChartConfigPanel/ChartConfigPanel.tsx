@@ -53,6 +53,7 @@ import {
   SPACE_MD,
 } from 'styles/StyleConstants';
 import { CloneValueDeep, cond, isEmptyArray } from 'utils/object';
+import { countVisibleConfigItems } from 'app/visualization/config/configPanelUtils';
 import { getVisualStylePresetPatches, VisualStylePreset } from 'app/visualization/config/stylePresets';
 import { recommendVisualTypes } from '../../visualRecommendation';
 import ChartGraphPanel from '../ChartGraphPanel';
@@ -92,6 +93,20 @@ const ChartConfigPanel: FC<{
         : chartConfig;
     }, [chartConfig, dataview?.computedFields, dataview?.meta]);
     const editorDataConfigs = editorChartConfig?.datas;
+    const dataFieldCount = useMemo(
+      () => (editorDataConfigs || []).reduce((count, section) => count + (section.rows?.length || 0), 0),
+      [editorDataConfigs],
+    );
+    const styleConfigCount = useMemo(
+      () => countVisibleConfigItems(chartConfig?.styles || []),
+      [chartConfig?.styles],
+    );
+    const analysisConfigCount = useMemo(
+      () =>
+        countVisibleConfigItems(chartConfig?.settings || []) +
+        countVisibleConfigItems(chartConfig?.interactions || []),
+      [chartConfig?.interactions, chartConfig?.settings],
+    );
     const recommendedCharts = useMemo(() => {
       ChartManager.instance();
       return recommendVisualTypes(editorChartConfig)
@@ -226,6 +241,7 @@ const ChartConfigPanel: FC<{
                       <span>
                         <DatabaseOutlined />
                         {t('title.content')}
+                        <TabCount>{dataFieldCount}</TabCount>
                       </span>
                     }
                     key={CONFIG_PANEL_TABS.DATA}
@@ -237,6 +253,7 @@ const ChartConfigPanel: FC<{
                       <span>
                         <DashboardOutlined />
                         {t('title.design')}
+                        <TabCount>{styleConfigCount}</TabCount>
                       </span>
                     }
                     key={CONFIG_PANEL_TABS.STYLE}
@@ -249,6 +266,7 @@ const ChartConfigPanel: FC<{
                       <span>
                         <LineChartOutlined />
                         分析
+                        <TabCount>{analysisConfigCount}</TabCount>
                       </span>
                     }
                     key={CONFIG_PANEL_TABS.ANALYSIS}
@@ -476,4 +494,19 @@ const StylePresetBar = styled.div`
     font-size: 10px;
     color: ${p => p.theme.textColorDisabled};
   }
+`;
+
+const TabCount = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 4px;
+  font-size: 10px;
+  font-weight: 400;
+  color: ${p => p.theme.textColorDisabled};
+  background: ${p => p.theme.bodyBackground};
+  border-radius: 9px;
 `;

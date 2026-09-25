@@ -23,6 +23,7 @@ import { WidgetChartContext } from 'app/pages/DashBoardPage/components/WidgetPro
 import { WidgetContext } from 'app/pages/DashBoardPage/components/WidgetProvider/WidgetProvider';
 import { selectVizs } from 'app/pages/MainPage/pages/VizPage/slice/selectors';
 import { ChartStyleConfig } from 'app/types/ChartConfig';
+import { countVisibleConfigItems } from 'app/visualization/config/configPanelUtils';
 import { updateBy } from 'app/utils/mutation';
 import { FC, memo, useContext, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,17 +39,6 @@ import { WidgetConfigPanel } from './WidgetConfigPanel';
 
 const { TabPane } = Tabs;
 
-const countVisibleConfigItems = (configs: ChartStyleConfig[] = []): number =>
-  configs
-    .filter(config => !config.hidden)
-    .reduce(
-      (count, config) =>
-        count +
-        (config.comType === 'group'
-          ? countVisibleConfigItems((config as any).rows || [])
-          : 1),
-      0,
-    );
 
 export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
   const t = useI18NPrefix(`viz.board.setting`);

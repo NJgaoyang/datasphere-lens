@@ -33,3 +33,17 @@ export const matchesConfigQuery = (
     matchesConfigQuery(row, normalized, resolveLabel),
   );
 };
+
+export const countVisibleConfigItems = (
+  configs: ChartStyleConfig[] = [],
+): number =>
+  configs
+    .filter(config => !config.hidden)
+    .reduce(
+      (count, config) =>
+        count +
+        (config.comType === 'group'
+          ? countVisibleConfigItems(config.rows || [])
+          : 1),
+      0,
+    );

@@ -1,5 +1,6 @@
 import {
   countConfigLeaves,
+  countVisibleConfigItems,
   getDefaultExpandedConfigKeys,
   getVisibleConfigItems,
   matchesConfigQuery,
@@ -37,6 +38,7 @@ describe('config panel utils', () => {
   it('counts visible leaf settings', () => {
     expect(countConfigLeaves(configs[0])).toBe(2);
     expect(countConfigLeaves(configs[2])).toBe(1);
+    expect(countVisibleConfigItems(configs)).toBe(3);
   });
 
   it('opens the first two visible groups by default', () => {
