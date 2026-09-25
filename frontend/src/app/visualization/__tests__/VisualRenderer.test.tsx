@@ -53,4 +53,31 @@ describe('VisualRenderer', () => {
     consoleSpy.mockRestore();
   });
 
+  test('shows field guidance before rendering an invalid native visual', () => {
+    chartRegistry.register({
+      type: 'sankey-v2',
+      name: '桑基图',
+      category: 'relationship',
+      renderer: 'unit-renderer',
+      configSchema: {
+        fieldSlots: [
+          { key: 'source', label: '源维度', type: 'dimension', required: true, min: 1, max: 1 },
+          { key: 'target', label: '目标维度', type: 'dimension', required: true, min: 1, max: 1 },
+          { key: 'value', label: '权重', type: 'measure', required: true, min: 1, max: 1 },
+        ],
+        styles: [], settings: [], interactions: [],
+      },
+    });
+    rendererRegistry.register('unit-renderer', () => <div>should not render</div>);
+
+    render(
+      <VisualRenderer
+        spec={{ version: 1, type: 'sankey-v2', dimensions: [], measures: [] }}
+      />,
+    );
+
+    expect(screen.getByText('字段配置不完整')).toBeInTheDocument();
+    expect(screen.queryByText('should not render')).not.toBeInTheDocument();
+  });
+
 });

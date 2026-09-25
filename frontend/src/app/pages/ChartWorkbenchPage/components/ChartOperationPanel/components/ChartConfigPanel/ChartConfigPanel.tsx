@@ -160,15 +160,27 @@ const ChartConfigPanel: FC<{
                     <FieldSlotList>
                       {fieldSlots
                         .filter(slot => slot.type !== 'filter')
-                        .map(slot => (
-                          <FieldSlotChip key={slot.key}>
-                            <span>{slot.label}</span>
-                            <small>
-                              {slot.required ? '必填' : '可选'} · {slot.min ?? 0}
-                              {typeof slot.max === 'number' ? `-${slot.max}` : '+'}
-                            </small>
-                          </FieldSlotChip>
-                        ))}
+                        .map(slot => {
+                          const count =
+                            editorDataConfigs?.find(item => item.key === slot.key)
+                              ?.rows?.length || 0;
+                          const min = slot.required ? slot.min ?? 1 : slot.min ?? 0;
+                          const valid =
+                            count >= min &&
+                            (typeof slot.max !== 'number' || count <= slot.max);
+                          return (
+                            <FieldSlotChip
+                              key={slot.key}
+                              data-valid={valid ? 'true' : 'false'}
+                            >
+                              <span>{slot.label}</span>
+                              <small>
+                                {valid ? '已满足' : '待配置'} · 当前 {count} · 要求 {min}
+                                {typeof slot.max === 'number' ? `-${slot.max}` : '+'}
+                              </small>
+                            </FieldSlotChip>
+                          );
+                        })}
                     </FieldSlotList>
                   </MetaSection>
                 )}
@@ -395,6 +407,16 @@ const FieldSlotChip = styled.div`
   background: #f8fafc;
   border: 1px solid #eef2f6;
   border-radius: 6px;
+
+  &[data-valid='true'] {
+    background: #f6ffed;
+    border-color: #b7eb8f;
+  }
+
+  &[data-valid='false'] {
+    background: #fffbe6;
+    border-color: #ffe58f;
+  }
 
   span,
   small {
