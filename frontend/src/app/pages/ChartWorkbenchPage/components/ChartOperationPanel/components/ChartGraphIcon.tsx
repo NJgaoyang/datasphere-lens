@@ -157,14 +157,24 @@ const Base64ImageRender = ({ iconStr, isMatchRequirement, isActive }) => {
 };
 
 const StyledChartIconWrapper = styled(IW)`
-  margin: ${SPACE_TIMES(0.5)};
+  margin: 0;
+  color: ${p => p.theme.textColorLight};
   cursor: pointer;
-  border-radius: ${BORDER_RADIUS};
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.15s ease;
 
-  &:hover,
+  &:hover {
+    color: ${p => p.theme.primary};
+    background: ${p => p.theme.bodyBackground};
+    border-color: ${p => p.theme.borderColorSplit};
+  }
+
   &.active {
-    color: ${p => p.theme.componentBackground};
-    background-color: ${p => p.theme.primary};
+    color: ${p => p.theme.primary};
+    background: rgba(22, 119, 255, 0.08);
+    border-color: rgba(22, 119, 255, 0.35);
   }
 `;
 

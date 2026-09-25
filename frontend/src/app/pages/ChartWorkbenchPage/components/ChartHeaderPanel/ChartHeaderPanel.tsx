@@ -112,16 +112,17 @@ const ChartHeaderPanel: FC<{
               }
             }}
             renderDom={
-              <Button icon={<DownloadOutlined />}>{t('downloadList')}</Button>
+              <Button size="small" type="text" icon={<DownloadOutlined />}>{t('downloadList')}</Button>
             }
           />
-          <Button onClick={onGoBack}>{t('cancel')}</Button>
-          <Button type="primary" onClick={onSaveChart}>
+          <Button size="small" onClick={onGoBack}>{t('cancel')}</Button>
+          <Button size="small" type="primary" onClick={onSaveChart}>
             {t('save')}
           </Button>
           {!(container === 'widget') && (
             <Button
-              type="primary"
+              size="small"
+              type="default"
               onClick={() => {
                 setIsModalVisible(true);
               }}
@@ -150,15 +151,20 @@ const Wrapper = styled.div`
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  padding: ${SPACE_SM} ${SPACE_MD} ${SPACE_SM} ${SPACE_SM};
+  min-height: 48px;
+  padding: 7px 12px;
   background-color: ${p => p.theme.componentBackground};
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 
   h1 {
     flex: 1;
-    padding: 0 ${SPACE_XS};
-    font-size: ${FONT_SIZE_ICON_SM};
+    padding: 0 4px;
+    overflow: hidden;
+    font-size: 14px;
     font-weight: ${FONT_WEIGHT_MEDIUM};
-    line-height: ${LINE_HEIGHT_ICON_SM};
+    line-height: 32px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `;

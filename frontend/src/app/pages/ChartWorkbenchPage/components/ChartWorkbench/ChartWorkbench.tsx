@@ -176,11 +176,11 @@ const StyledChartWorkbench = styled.div`
 
   .flexlayout__tab {
     overflow: hidden;
-    background-color: ${p => p.theme.bodyBackground};
+    background-color: ${p => p.theme.componentBackground};
   }
 
   .flexlayout__splitter {
-    background: ${p => p.theme.bodyBackground};
+    background: ${p => p.theme.borderColorSplit};
 
     &:hover {
       background-color: ${p => p.theme.primary};

@@ -594,13 +594,16 @@ const StyledChartDataViewPanel = styled.div`
   flex-direction: column;
   height: 100%;
   background-color: ${p => p.theme.componentBackground};
+  border-right: 1px solid ${p => p.theme.borderColorSplit};
 `;
 
 const Header = styled.div`
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  padding: ${SPACE} ${SPACE_XS};
+  min-height: 38px;
+  padding: 3px 6px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 
   .view-selector {
     flex: 1;
@@ -610,7 +613,8 @@ const Header = styled.div`
 
 const StyleSearchbar = styled.div<{ visible: boolean }>`
   display: ${p => (p.visible ? 'block' : 'none')};
-  padding: ${SPACE} 0;
+  padding: 4px 0;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 
   .search-input {
     padding: ${SPACE} ${SPACE_MD};

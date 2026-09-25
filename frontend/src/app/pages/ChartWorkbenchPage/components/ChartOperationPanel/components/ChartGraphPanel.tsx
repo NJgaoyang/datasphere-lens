@@ -30,6 +30,17 @@ const CATEGORY_ORDER: VisualCategory[] = [
   'custom',
 ];
 
+const CATEGORY_LABELS: Record<VisualCategory, string> = {
+  table: '表格',
+  indicator: '指标',
+  comparison: '比较',
+  trend: '趋势',
+  distribution: '分布',
+  relationship: '关系',
+  map: '地图',
+  custom: '其他',
+};
+
 const ChartGraphPanel: FC<{
   chart?: IChart;
   chartConfig?: ChartConfig;
@@ -67,7 +78,7 @@ const ChartGraphPanel: FC<{
     <StyledChartGraphPanel>
       {groupedPlugins.map(group => (
         <CategoryGroup key={group.category} data-category={group.category}>
-          <CategoryTitle>{group.category}</CategoryTitle>
+          <CategoryTitle>{CATEGORY_LABELS[group.category]}</CategoryTitle>
           <CategoryIcons>
             {group.plugins.map(plugin => {
               const current = visualPluginToChart(plugin);
@@ -95,29 +106,31 @@ const ChartGraphPanel: FC<{
 export default ChartGraphPanel;
 
 const StyledChartGraphPanel = styled.div`
-  padding: ${SPACE_XS};
+  padding: 8px 10px 10px;
   margin-bottom: ${SPACE_MD};
   color: ${p => p.theme.textColorLight};
-  background: #fff;
-  border: 1px solid #eaecf0;
+  background: ${p => p.theme.componentBackground};
+  border: 1px solid ${p => p.theme.borderColorSplit};
   border-radius: ${BORDER_RADIUS};
-  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.03);
 `;
 
 const CategoryGroup = styled.div`
   & + & {
-    margin-top: ${SPACE_XS};
+    padding-top: 8px;
+    margin-top: 8px;
+    border-top: 1px solid ${p => p.theme.borderColorSplit};
   }
 `;
 
 const CategoryTitle = styled.div`
-  padding: 4px 6px 2px;
-  font-size: 11px;
-  color: ${p => p.theme.textColorLight};
-  text-transform: capitalize;
+  padding: 0 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: ${p => p.theme.textColorSnd};
 `;
 
 const CategoryIcons = styled.div`
-  display: flex;
-  flex-flow: row wrap;
+  display: grid;
+  grid-template-columns: repeat(5, 34px);
+  gap: 6px;
 `;

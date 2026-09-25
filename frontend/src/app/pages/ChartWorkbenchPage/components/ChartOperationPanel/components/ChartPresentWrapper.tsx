@@ -104,7 +104,6 @@ const StyledChartPresentWrapper = styled.div<{ borderWidth }>`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: ${p => p.borderWidth}px ${p => p.borderWidth}px
-    ${p => p.borderWidth}px 0;
+  padding: 12px;
   background-color: ${p => p.theme.bodyBackground};
 `;

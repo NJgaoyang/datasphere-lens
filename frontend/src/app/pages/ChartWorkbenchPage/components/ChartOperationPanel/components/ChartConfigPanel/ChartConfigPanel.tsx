@@ -131,10 +131,7 @@ const ChartConfigPanel: FC<{
       <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
         <ChartPaletteContext.Provider value={{ datas: editorDataConfigs }}>
           <StyledChartDataViewPanel>
-            <PanelIntro>
-              <strong>图表配置</strong>
-              <span>配置字段、样式、交互和高级选项</span>
-            </PanelIntro>
+            <PanelHeader>图表配置</PanelHeader>
             <ChartToolbar />
             <ConfigBlock>
               <Tabs
@@ -243,29 +240,21 @@ const StyledChartDataViewPanel = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 ${SPACE_MD} ${SPACE_MD};
-  background: #f8fafc;
-  border-left: 1px solid #eaecf0;
+  padding: 0;
+  background: ${p => p.theme.componentBackground};
+  border-left: 1px solid ${p => p.theme.borderColorSplit};
 `;
 
-const PanelIntro = styled.div`
+const PanelHeader = styled.div`
   flex-shrink: 0;
-  padding: 14px 0 10px;
-
-  strong {
-    display: block;
-    font-size: 12px;
-    font-weight: 650;
-    color: #1d2939;
-  }
-
-  span {
-    display: block;
-    margin-top: 3px;
-    font-size: 10px;
-    line-height: 1.5;
-    color: #98a2b3;
-  }
+  height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 38px;
+  color: ${p => p.theme.textColor};
+  background: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;
 
 const ConfigBlock = styled.div`
@@ -273,23 +262,22 @@ const ConfigBlock = styled.div`
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: ${BORDER_RADIUS};
+  background: ${p => p.theme.componentBackground};
 
   .tabs {
     flex-shrink: 0;
-    padding: 0 ${SPACE_MD};
+    padding: 0 12px;
+    font-size: 12px;
     font-weight: ${FONT_WEIGHT_MEDIUM};
     color: ${p => p.theme.textColorSnd};
 
     .ant-tabs-tab + .ant-tabs-tab {
-      margin: 0 0 0 ${SPACE_MD};
+      margin: 0 0 0 18px;
     }
   }
 `;
 
 const Pane = styled(PaneWrapper)`
-  padding: 0 ${SPACE_MD};
+  padding: 0 12px 12px;
   overflow-y: auto;
 `;
