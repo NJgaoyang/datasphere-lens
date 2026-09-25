@@ -27,7 +27,7 @@ export function useStartAnalysis() {
   const startAnalysis = useCallback(
     viewId => {
       navigate({
-        pathname: `/organizations/${orgId}/vizs/chartEditor`,
+        pathname: `/organizations/${orgId}/charts/new`,
         search: `dataChartId=&chartType=dataChart&container=dataChart&defaultViewId=${viewId}`,
       });
     },
