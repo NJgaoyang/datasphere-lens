@@ -24,18 +24,51 @@ const uniq = (values: unknown[]) =>
   );
 
 const getVisualStyle = (config?: ChartConfig) => {
-  const [showLabel, showTooltip, animation, roam] = getStyles(
+  const [showLabel, labelFontSize, showTooltip, animation] = getStyles(
     config?.styles || [],
     ['v2Basic'],
-    ['showLabel', 'showTooltip', 'animation', 'roam'],
+    ['showLabel', 'labelFontSize', 'showTooltip', 'animation'],
+  );
+  const [showTitle, titleText, titleAlign] = getStyles(
+    config?.styles || [],
+    ['v2Title'],
+    ['showTitle', 'titleText', 'titleAlign'],
+  );
+  const [showXAxis, showYAxis] = getStyles(
+    config?.styles || [],
+    ['v2Axis'],
+    ['showXAxis', 'showYAxis'],
+  );
+  const [roam] = getStyles(
+    config?.settings || [],
+    ['v2Interaction'],
+    ['roam'],
   );
   return {
     showLabel: showLabel ?? true,
+    labelFontSize: Number(labelFontSize ?? 12),
     showTooltip: showTooltip ?? true,
     animation: animation ?? true,
     roam: roam ?? true,
+    showTitle: showTitle ?? false,
+    titleText: String(titleText ?? ''),
+    titleAlign: String(titleAlign ?? 'left'),
+    showXAxis: showXAxis ?? true,
+    showYAxis: showYAxis ?? true,
   };
 };
+
+const titleOption = (style: ReturnType<typeof getVisualStyle>) => ({
+  show: style.showTitle,
+  text: style.titleText,
+  left: style.titleAlign,
+  top: 4,
+});
+
+const labelOption = (style: ReturnType<typeof getVisualStyle>) => ({
+  show: style.showLabel,
+  fontSize: style.labelFontSize,
+});
 
 export const buildSankeyOption = (
   spec: ChartSpec,
@@ -57,13 +90,14 @@ export const buildSankeyOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip, trigger: 'item' },
     series: [
       {
         type: 'sankey',
         data: nodes,
         links,
-        label: { show: style.showLabel },
+        label: labelOption(style),
         emphasis: { focus: 'adjacency' },
       },
     ],
@@ -97,13 +131,14 @@ export const buildGraphOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip },
     series: [
       {
         type: 'graph',
         layout: 'force',
         roam: style.roam,
-        label: { show: style.showLabel },
+        label: labelOption(style),
         data,
         links,
         force: { repulsion: 120, edgeLength: 80 },
@@ -167,6 +202,7 @@ export const buildTreeOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: {
       show: style.showTooltip,
       trigger: 'item',
@@ -183,14 +219,14 @@ export const buildTreeOption = (
         symbolSize: 9,
         roam: style.roam,
         label: {
-          show: style.showLabel,
+          ...labelOption(style),
           position: 'left',
           verticalAlign: 'middle',
           align: 'right',
         },
         leaves: {
           label: {
-            show: style.showLabel,
+            ...labelOption(style),
             position: 'right',
             verticalAlign: 'middle',
             align: 'left',
@@ -210,12 +246,13 @@ export const buildTreemapOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip, trigger: 'item' },
     series: [
       {
         type: 'treemap',
         roam: style.roam,
-        label: { show: style.showLabel },
+        label: labelOption(style),
         nodeClick: 'zoomToNode',
         data: buildHierarchy(spec, dataset),
       },
@@ -231,12 +268,13 @@ export const buildSunburstOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip, trigger: 'item' },
     series: [
       {
         type: 'sunburst',
         radius: ['10%', '90%'],
-        label: { show: style.showLabel },
+        label: labelOption(style),
         data: buildHierarchy(spec, dataset),
         emphasis: { focus: 'ancestor' },
       },
@@ -265,10 +303,11 @@ export const buildHeatmapOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip, position: 'top' },
     grid: { left: '10%', right: '8%', top: '8%', bottom: '16%' },
-    xAxis: { type: 'category', data: xValues, splitArea: { show: true } },
-    yAxis: { type: 'category', data: yValues, splitArea: { show: true } },
+    xAxis: { show: style.showXAxis, type: 'category', data: xValues, splitArea: { show: true } },
+    yAxis: { show: style.showYAxis, type: 'category', data: yValues, splitArea: { show: true } },
     visualMap: {
       min: Math.min(0, ...values),
       max: Math.max(1, ...values),
@@ -281,7 +320,7 @@ export const buildHeatmapOption = (
       {
         type: 'heatmap',
         data,
-        label: { show: style.showLabel },
+        label: labelOption(style),
         emphasis: { itemStyle: { shadowBlur: 8 } },
       },
     ],
@@ -329,9 +368,10 @@ export const buildBoxplotOption = (
   const style = getVisualStyle(config);
   return {
     animation: style.animation,
+    title: titleOption(style),
     tooltip: { show: style.showTooltip, trigger: 'item' },
-    xAxis: { type: 'category', data: categories, boundaryGap: true },
-    yAxis: { type: 'value' },
-    series: [{ type: 'boxplot', data }],
+    xAxis: { show: style.showXAxis, type: 'category', data: categories, boundaryGap: true },
+    yAxis: { show: style.showYAxis, type: 'value' },
+    series: [{ type: 'boxplot', data, label: labelOption(style) }],
   };
 };

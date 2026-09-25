@@ -22,6 +22,7 @@ const schema = (
     min?: number;
     max?: number;
   }>,
+  options: { axis?: boolean } = {},
 ): VisualConfigSchema => ({
   fieldSlots: [
     ...dimensions.map(item => ({
@@ -60,6 +61,13 @@ const schema = (
           comType: 'switch',
         },
         {
+          label: '标签字号',
+          key: 'labelFontSize',
+          default: 12,
+          comType: 'inputNumber',
+          options: { min: 8, max: 32 },
+        },
+        {
           label: '显示 Tooltip',
           key: 'showTooltip',
           default: true,
@@ -71,6 +79,70 @@ const schema = (
           default: true,
           comType: 'switch',
         },
+      ],
+    },
+    {
+      label: '标题',
+      key: 'v2Title',
+      comType: 'group',
+      rows: [
+        {
+          label: '显示标题',
+          key: 'showTitle',
+          default: false,
+          comType: 'switch',
+        },
+        {
+          label: '标题文本',
+          key: 'titleText',
+          default: '',
+          comType: 'input',
+        },
+        {
+          label: '标题位置',
+          key: 'titleAlign',
+          default: 'left',
+          comType: 'select',
+          options: {
+            items: [
+              { label: '左侧', value: 'left' },
+              { label: '居中', value: 'center' },
+              { label: '右侧', value: 'right' },
+            ],
+          },
+        },
+      ],
+    },
+    ...(options.axis
+      ? [
+          {
+            label: '坐标轴',
+            key: 'v2Axis',
+            comType: 'group' as const,
+            rows: [
+              {
+                label: '显示 X 轴',
+                key: 'showXAxis',
+                default: true,
+                comType: 'switch' as const,
+              },
+              {
+                label: '显示 Y 轴',
+                key: 'showYAxis',
+                default: true,
+                comType: 'switch' as const,
+              },
+            ],
+          },
+        ]
+      : []),
+  ],
+  settings: [
+    {
+      label: '浏览与交互',
+      key: 'v2Interaction',
+      comType: 'group',
+      rows: [
         {
           label: '允许缩放/拖拽',
           key: 'roam',
@@ -80,7 +152,6 @@ const schema = (
       ],
     },
   ],
-  settings: [],
   interactions: [],
 });
 
@@ -168,6 +239,7 @@ const plugins: VisualPluginDefinition[] = [
         { key: 'y', label: 'Y 维度' },
       ],
       [{ key: 'value', label: '指标' }],
+      { axis: true },
     ),
     buildOption: buildHeatmapOption,
     capabilities: { zoom: true, export: true },
@@ -181,6 +253,7 @@ const plugins: VisualPluginDefinition[] = [
     configSchema: schema(
       [{ key: 'category', label: '分类维度' }],
       [{ key: 'value', label: '数值' }],
+      { axis: true },
     ),
     buildOption: buildBoxplotOption,
     capabilities: { export: true },
