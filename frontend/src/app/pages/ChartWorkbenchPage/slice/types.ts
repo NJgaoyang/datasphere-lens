@@ -41,6 +41,7 @@ export type WorkbenchState = {
   backendChartId?: string;
   aggregation?: boolean;
   datasetLoading: boolean;
+  viewDetailLoading: boolean;
   chartEditorDownloadPolling: boolean;
   availableSourceFunctions?: string[];
   selectedItems: SelectedItem[];

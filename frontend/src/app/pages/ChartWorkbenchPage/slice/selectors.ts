@@ -88,6 +88,11 @@ export const datasetLoadingSelector = createSelector(
   wb => wb.datasetLoading,
 );
 
+export const viewDetailLoadingSelector = createSelector(
+  workbenchSelector,
+  wb => wb.viewDetailLoading,
+);
+
 export const selectChartEditorDownloadPolling = createSelector(
   workbenchSelector,
   wb => wb.chartEditorDownloadPolling,

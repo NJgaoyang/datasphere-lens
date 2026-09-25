@@ -51,6 +51,7 @@ export const initState: WorkbenchState = {
   dataset: {},
   aggregation: true,
   datasetLoading: false,
+  viewDetailLoading: false,
   chartEditorDownloadPolling: false,
   selectedItems: [],
 };
@@ -172,7 +173,11 @@ const workbenchSlice = createSlice({
       .addCase(fetchDataViewsAction.fulfilled, (state, { payload }) => {
         state.dataviews = payload;
       })
+      .addCase(fetchViewDetailAction.pending, state => {
+        state.viewDetailLoading = true;
+      })
       .addCase(fetchViewDetailAction.fulfilled, (state, { payload }) => {
+        state.viewDetailLoading = false;
         const index = state.dataviews?.findIndex(
           view => view.id === payload.id,
         );
@@ -220,6 +225,9 @@ const workbenchSlice = createSlice({
           };
         }
         state.dataset = initState.dataset;
+      })
+      .addCase(fetchViewDetailAction.rejected, state => {
+        state.viewDetailLoading = false;
       })
       .addCase(fetchDataSetAction.fulfilled, (state, { payload }) => {
         state.selectedItems = [];

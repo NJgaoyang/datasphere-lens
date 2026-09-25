@@ -59,11 +59,21 @@ export const initWorkbenchAction = createAsyncThunk(
         await thunkAPI.dispatch(
           fetchChartAction({ chartId: arg.backendChartId }),
         );
+        const currentViewId = (thunkAPI.getState() as any).workbench
+          ?.currentDataView?.id;
+        if (currentViewId) {
+          await thunkAPI.dispatch(fetchViewDetailAction(currentViewId));
+        }
         await thunkAPI.dispatch(refreshDatasetAction({}));
       } else if (arg.backendChart) {
         await thunkAPI.dispatch(
           fetchChartAction({ backendChart: arg.backendChart }),
         );
+        const currentViewId = (thunkAPI.getState() as any).workbench
+          ?.currentDataView?.id;
+        if (currentViewId) {
+          await thunkAPI.dispatch(fetchViewDetailAction(currentViewId));
+        }
         await thunkAPI.dispatch(refreshDatasetAction({}));
       }
     } catch (error) {
@@ -114,10 +124,10 @@ export const fetchDataViewsAction = createAsyncThunk(
 
 export const fetchViewDetailAction = createAsyncThunk(
   'workbench/fetchViewDetailAction',
-  async (arg: { viewId }) => {
+  async (viewId: string) => {
     const response = await request2<View>({
       method: 'GET',
-      url: `views/${arg}`,
+      url: `views/${viewId}`,
     });
     if (response?.data) {
       response.data = migrationViewConfig(response.data);

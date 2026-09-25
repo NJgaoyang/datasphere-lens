@@ -24,11 +24,13 @@ import {
 } from '@ant-design/icons';
 import {
   Button,
+  Empty,
   Input,
   Menu,
   message,
   Popover,
   Space,
+  Spin,
   Tooltip,
   TreeSelect,
 } from 'antd';
@@ -45,6 +47,7 @@ import workbenchSlice from 'app/pages/ChartWorkbenchPage/slice';
 import {
   dataviewsSelector,
   makeDataviewTreeSelector,
+  viewDetailLoadingSelector,
 } from 'app/pages/ChartWorkbenchPage/slice/selectors';
 import { fetchViewDetailAction } from 'app/pages/ChartWorkbenchPage/slice/thunks';
 import { useAccess, useCascadeAccess } from 'app/pages/MainPage/Access';
@@ -104,6 +107,7 @@ const ChartDataViewPanel: FC<{
 
   const [isDisplayAddNewModal, setIsDisplayAddNewModal] = useToggle();
   const views = useSelector(dataviewsSelector);
+  const viewDetailLoading = useSelector(viewDetailLoadingSelector);
   const [allMetaFields, setAllMetaFields] = useState<ChartDataViewMeta[]>([]);
   const [isGroup, setIsGroup] = useState<boolean>(true);
   const [sortType, setSortType] = useState<string>('byNameSort');
@@ -578,11 +582,25 @@ const ChartDataViewPanel: FC<{
       </StyleSearchbar>
       <Confirm {...confirmProps} />
 
-      <ChartDraggableSourceGroupContainer
-        meta={filteredTreeData as ChartDataViewMeta[]}
-        onDeleteComputedField={handleDeleteComputedField}
-        onEditComputedField={handleEditComputedField}
-      />
+      {viewDetailLoading ? (
+        <FieldState>
+          <Spin size="small" />
+          <span>正在加载字段...</span>
+        </FieldState>
+      ) : filteredTreeData?.length ? (
+        <ChartDraggableSourceGroupContainer
+          meta={filteredTreeData as ChartDataViewMeta[]}
+          onDeleteComputedField={handleDeleteComputedField}
+          onEditComputedField={handleEditComputedField}
+        />
+      ) : (
+        <FieldState>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={dataView ? '当前数据集没有可用字段' : '请选择数据集'}
+          />
+        </FieldState>
+      )}
     </StyledChartDataViewPanel>
   );
 });
@@ -624,4 +642,13 @@ const StyleSearchbar = styled.div<{ visible: boolean }>`
       color: ${p => p.theme.textColorDisabled};
     }
   }
+`;
+
+const FieldState = styled.div`
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  color: ${p => p.theme.textColorSnd};
 `;
