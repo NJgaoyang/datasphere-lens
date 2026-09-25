@@ -22,7 +22,7 @@ import {
   DatabaseOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { Tag, Tabs } from 'antd';
+import { Tabs } from 'antd';
 import { PaneWrapper } from 'app/components';
 import useComputedState from 'app/hooks/useComputedState';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -38,7 +38,6 @@ import {
   ChartStyleConfig,
 } from 'app/types/ChartConfig';
 import ChartDataView from 'app/types/ChartDataView';
-import { chartRegistry } from 'app/visualization/registry/ChartRegistry';
 import { reconcileChartConfigFieldMeta } from 'app/utils/internalChartHelper';
 import { FC, memo, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -83,15 +82,6 @@ const ChartConfigPanel: FC<{
         : chartConfig;
     }, [chartConfig, dataview?.computedFields, dataview?.meta]);
     const editorDataConfigs = editorChartConfig?.datas;
-    const visualPlugin = useMemo(() => chartRegistry.get(chartId), [chartId]);
-    const fieldSlots = visualPlugin?.configSchema?.fieldSlots || [];
-    const capabilityLabels = useMemo(
-      () =>
-        Object.entries(visualPlugin?.capabilities || {})
-          .filter(([, enabled]) => enabled)
-          .map(([capability]) => capability),
-      [visualPlugin],
-    );
     const [tabActiveKey, setTabActiveKey] = useComputedState(
       () => {
         return cond(
@@ -145,57 +135,6 @@ const ChartConfigPanel: FC<{
               <strong>图表配置</strong>
               <span>配置字段、样式、交互和高级选项</span>
             </PanelIntro>
-            {visualPlugin && (
-              <VisualMetaCard>
-                <VisualMetaHeader>
-                  <div>
-                    <strong>{visualPlugin.name}</strong>
-                    <span>{visualPlugin.renderer.toUpperCase()} Renderer</span>
-                  </div>
-                  {!visualPlugin.legacyChart && <Tag color="blue">V2</Tag>}
-                </VisualMetaHeader>
-                {!!fieldSlots.length && (
-                  <MetaSection>
-                    <MetaSectionTitle>字段要求</MetaSectionTitle>
-                    <FieldSlotList>
-                      {fieldSlots
-                        .filter(slot => slot.type !== 'filter')
-                        .map(slot => {
-                          const count =
-                            editorDataConfigs?.find(item => item.key === slot.key)
-                              ?.rows?.length || 0;
-                          const min = slot.required ? slot.min ?? 1 : slot.min ?? 0;
-                          const valid =
-                            count >= min &&
-                            (typeof slot.max !== 'number' || count <= slot.max);
-                          return (
-                            <FieldSlotChip
-                              key={slot.key}
-                              data-valid={valid ? 'true' : 'false'}
-                            >
-                              <span>{slot.label}</span>
-                              <small>
-                                {valid ? '已满足' : '待配置'} · 当前 {count} · 要求 {min}
-                                {typeof slot.max === 'number' ? `-${slot.max}` : '+'}
-                              </small>
-                            </FieldSlotChip>
-                          );
-                        })}
-                    </FieldSlotList>
-                  </MetaSection>
-                )}
-                {!!capabilityLabels.length && (
-                  <MetaSection>
-                    <MetaSectionTitle>图表能力</MetaSectionTitle>
-                    <CapabilityList>
-                      {capabilityLabels.map(capability => (
-                        <Tag key={capability}>{capability}</Tag>
-                      ))}
-                    </CapabilityList>
-                  </MetaSection>
-                )}
-              </VisualMetaCard>
-            )}
             <ChartToolbar />
             <ConfigBlock>
               <Tabs
@@ -353,97 +292,4 @@ const ConfigBlock = styled.div`
 const Pane = styled(PaneWrapper)`
   padding: 0 ${SPACE_MD};
   overflow-y: auto;
-`;
-
-
-const VisualMetaCard = styled.div`
-  flex-shrink: 0;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: ${BORDER_RADIUS};
-`;
-
-const VisualMetaHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-
-  strong {
-    display: block;
-    font-size: 12px;
-    color: #1d2939;
-  }
-
-  span {
-    display: block;
-    margin-top: 2px;
-    font-size: 10px;
-    color: #98a2b3;
-  }
-`;
-
-const MetaSection = styled.div`
-  margin-top: 9px;
-`;
-
-const MetaSectionTitle = styled.div`
-  margin-bottom: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #667085;
-`;
-
-const FieldSlotList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-`;
-
-const FieldSlotChip = styled.div`
-  min-width: 72px;
-  padding: 5px 7px;
-  background: #f8fafc;
-  border: 1px solid #eef2f6;
-  border-radius: 6px;
-
-  &[data-valid='true'] {
-    background: #f6ffed;
-    border-color: #b7eb8f;
-  }
-
-  &[data-valid='false'] {
-    background: #fffbe6;
-    border-color: #ffe58f;
-  }
-
-  span,
-  small {
-    display: block;
-  }
-
-  span {
-    font-size: 10px;
-    font-weight: 600;
-    color: #344054;
-  }
-
-  small {
-    margin-top: 1px;
-    font-size: 9px;
-    color: #98a2b3;
-  }
-`;
-
-const CapabilityList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-
-  .ant-tag {
-    margin: 0;
-    font-size: 9px;
-    line-height: 18px;
-  }
 `;

@@ -1,11 +1,24 @@
-import {
-  ArrowLeftOutlined,
-  DashboardOutlined,
-  DownloadOutlined,
-  SaveOutlined,
-} from '@ant-design/icons';
-import { Button, Divider, Flex, Space, Typography, theme } from 'antd';
+/**
+ * Datart
+ *
+ * Copyright 2021
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { DownloadOutlined } from '@ant-design/icons';
+import { Button, Space } from 'antd';
 import SaveToDashboard from 'app/components/SaveToDashboard';
+import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useMount from 'app/hooks/useMount';
 import { useWorkbenchSlice } from 'app/pages/ChartWorkbenchPage/slice';
 import { DownloadListPopup } from 'app/pages/MainPage/Navbar/DownloadListPopup';
@@ -15,6 +28,15 @@ import { getFolders } from 'app/pages/MainPage/pages/VizPage/slice/thunks';
 import { downloadFile } from 'app/utils/fetch';
 import { FC, memo, useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
+import {
+  FONT_SIZE_ICON_SM,
+  FONT_WEIGHT_MEDIUM,
+  LINE_HEIGHT_ICON_SM,
+  SPACE_MD,
+  SPACE_SM,
+  SPACE_XS,
+} from 'styles/StyleConstants';
 import {
   backendChartSelector,
   selectChartEditorDownloadPolling,
@@ -36,72 +58,48 @@ const ChartHeaderPanel: FC<{
     onGoBack,
     onSaveChartToDashBoard,
   }) => {
+    const t = useI18NPrefix(`viz.workbench.header`);
     const hasVizFetched = useSelector(selectHasVizFetched);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const backendChart = useSelector(backendChartSelector);
     const downloadPolling = useSelector(selectChartEditorDownloadPolling);
     const dispatch = useDispatch();
     const { actions } = useWorkbenchSlice();
-    const { token } = theme.useToken();
 
     const handleModalOk = useCallback(
       (dashboardId: string, dashboardType: string) => {
         onSaveChartToDashBoard?.(dashboardId, dashboardType);
-        setIsModalVisible(false);
+        setIsModalVisible(true);
       },
       [onSaveChartToDashBoard],
     );
+
+    const handleModalCancel = useCallback(() => {
+      setIsModalVisible(false);
+    }, []);
+
+    const handleModalOpen = useCallback(() => {
+      setIsModalVisible(true);
+    }, []);
 
     const onSetPolling = useCallback(
       (polling: boolean) => {
         dispatch(actions.setChartEditorDownloadPolling(polling));
       },
-      [actions, dispatch],
+      [dispatch, actions],
     );
 
     useMount(() => {
-      if (!hasVizFetched && orgId) {
-        dispatch(getFolders(orgId));
+      if (!hasVizFetched) {
+        // Request data when there is no data
+        dispatch(getFolders(orgId as string));
       }
     });
 
     return (
-      <Flex
-        align="center"
-        justify="space-between"
-        gap={16}
-        style={{
-          minHeight: 62,
-          padding: '0 18px',
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
-        <Flex align="center" gap={10} style={{ minWidth: 0 }}>
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={onGoBack}
-          />
-          <Divider type="vertical" style={{ height: 28, marginInline: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <Typography.Text
-              type="secondary"
-              style={{ display: 'block', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em' }}
-            >
-              CHART WORKBENCH
-            </Typography.Text>
-            <Typography.Text
-              ellipsis={{ tooltip: chartName || '未命名图表' }}
-              strong
-              style={{ display: 'block', maxWidth: 420, fontSize: 14 }}
-            >
-              {chartName || '未命名图表'}
-            </Typography.Text>
-          </div>
-        </Flex>
-
-        <Space wrap>
+      <Wrapper>
+        <h1>{chartName}</h1>
+        <Space>
           <DownloadListPopup
             polling={downloadPolling}
             setPolling={onSetPolling}
@@ -113,34 +111,54 @@ const ChartHeaderPanel: FC<{
                 });
               }
             }}
-            renderDom={<Button icon={<DownloadOutlined />}>下载</Button>}
+            renderDom={
+              <Button icon={<DownloadOutlined />}>{t('downloadList')}</Button>
+            }
           />
-          <Button icon={<SaveOutlined />} type="primary" onClick={onSaveChart}>
-            保存
+          <Button onClick={onGoBack}>{t('cancel')}</Button>
+          <Button type="primary" onClick={onSaveChart}>
+            {t('save')}
           </Button>
-          {container !== 'widget' && (
+          {!(container === 'widget') && (
             <Button
-              icon={<DashboardOutlined />}
-              onClick={() => setIsModalVisible(true)}
+              type="primary"
+              onClick={() => {
+                setIsModalVisible(true);
+              }}
             >
-              添加到仪表板
+              {t('saveToDashboard')}
             </Button>
           )}
+          <SaveToDashboard
+            orgId={orgId as string}
+            title={t('saveToDashboard')}
+            isModalVisible={isModalVisible}
+            backendChartId={backendChart?.id}
+            handleOk={handleModalOk}
+            handleCancel={handleModalCancel}
+            handleOpen={handleModalOpen}
+          ></SaveToDashboard>
         </Space>
-
-        <SaveToDashboard
-          orgId={orgId as string}
-          title="添加到仪表板"
-          isModalVisible={isModalVisible}
-          backendChartId={backendChart?.id}
-          handleOk={handleModalOk}
-          handleCancel={() => setIsModalVisible(false)}
-          handleOpen={() => setIsModalVisible(true)}
-        />
-      </Flex>
+      </Wrapper>
     );
   },
 );
 
 export default ChartHeaderPanel;
 
+const Wrapper = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: ${SPACE_SM} ${SPACE_MD} ${SPACE_SM} ${SPACE_SM};
+  background-color: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  h1 {
+    flex: 1;
+    padding: 0 ${SPACE_XS};
+    font-size: ${FONT_SIZE_ICON_SM};
+    font-weight: ${FONT_WEIGHT_MEDIUM};
+    line-height: ${LINE_HEIGHT_ICON_SM};
+  }
+`;

@@ -504,10 +504,6 @@ const ChartDataViewPanel: FC<{
 
   return (
     <StyledChartDataViewPanel>
-      <PanelIntro>
-        <strong>数据字段</strong>
-        <span>选择数据集并拖拽字段到配置区</span>
-      </PanelIntro>
       <Header>
         <Tooltip placement="topLeft" title={t('editView')}>
           <ToolbarButton
@@ -597,28 +593,7 @@ const StyledChartDataViewPanel = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f8fafc;
-  border-right: 1px solid #eaecf0;
-`;
-
-const PanelIntro = styled.div`
-  flex-shrink: 0;
-  padding: 14px 14px 8px;
-
-  strong {
-    display: block;
-    font-size: 12px;
-    font-weight: 650;
-    color: #1d2939;
-  }
-
-  span {
-    display: block;
-    margin-top: 3px;
-    font-size: 10px;
-    line-height: 1.5;
-    color: #98a2b3;
-  }
+  background-color: ${p => p.theme.componentBackground};
 `;
 
 const Header = styled.div`
@@ -626,10 +601,6 @@ const Header = styled.div`
   flex-shrink: 0;
   align-items: center;
   padding: ${SPACE} ${SPACE_XS};
-  margin: 0 10px 6px;
-  background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: 9px;
 
   .view-selector {
     flex: 1;

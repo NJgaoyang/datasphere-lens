@@ -23,6 +23,7 @@ import 'flexlayout-react/style/light.css';
 import { FC, memo, useContext, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import styled from 'styled-components';
 import ChartDatasetContext from '../../contexts/ChartDatasetContext';
 import ChartDataViewContext from '../../contexts/ChartDataViewContext';
 import layoutConfig, { LayoutComponentType } from './ChartOperationPanelLayout';
@@ -107,16 +108,17 @@ const ChartOperationPanel: FC<{
     };
 
     return (
-      <DndProvider backend={HTML5Backend}>
+      <StyledChartOperationPanel backend={HTML5Backend}>
         <FlexLayout.Layout
           model={layout}
           onModelChange={setLayout}
           factory={layoutFactory}
         />
-      </DndProvider>
+      </StyledChartOperationPanel>
     );
   },
 );
 
 export default ChartOperationPanel;
 
+const StyledChartOperationPanel = styled(DndProvider)<{ backend }>``;

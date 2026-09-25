@@ -1,115 +1,96 @@
 /**
  * Datart
- * Licensed under the Apache License, Version 2.0.
+ *
+ * Copyright 2021
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-import {
-  ApartmentOutlined,
-  AreaChartOutlined,
-  BarChartOutlined,
-  BoxPlotOutlined,
-  BranchesOutlined,
-  DeploymentUnitOutlined,
-  DotChartOutlined,
-  FundOutlined,
-  GatewayOutlined,
-  HeatMapOutlined,
-  LineChartOutlined,
-  NodeIndexOutlined,
-  PartitionOutlined,
-  PieChartOutlined,
-  RadarChartOutlined,
-  StarFilled,
-  StarOutlined,
-  TableOutlined,
-} from '@ant-design/icons';
-import { Badge, Tooltip, Typography } from 'antd';
+import { Tooltip } from 'antd';
+import { IW } from 'app/components';
 import { ChartDataSectionType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { IChart } from 'app/types/Chart';
 import classnames from 'classnames';
-import { FC, memo, ReactNode } from 'react';
+import { FC, memo, useCallback } from 'react';
+import { CloneValueDeep } from 'utils/object';
 import styled from 'styled-components';
-import { FONT_SIZE_ICON_MD } from 'styles/StyleConstants';
-
-const iconByType = (type?: string): ReactNode => {
-  if (!type) return undefined;
-  if (type.includes('table') || type.includes('sheet')) return <TableOutlined />;
-  if (type.includes('bar') || type.includes('column') || type.includes('waterfall')) return <BarChartOutlined />;
-  if (type.includes('line')) return <LineChartOutlined />;
-  if (type.includes('area')) return <AreaChartOutlined />;
-  if (type.includes('pie') || type.includes('doughnut') || type.includes('rose')) return <PieChartOutlined />;
-  if (type.includes('scatter')) return <DotChartOutlined />;
-  if (type.includes('radar')) return <RadarChartOutlined />;
-  if (type.includes('heatmap')) return <HeatMapOutlined />;
-  if (type.includes('boxplot')) return <BoxPlotOutlined />;
-  if (type.includes('sankey')) return <GatewayOutlined />;
-  if (type.includes('sunburst')) return <PartitionOutlined />;
-  if (type.includes('treemap')) return <ApartmentOutlined />;
-  if (type.includes('tree-v2')) return <BranchesOutlined />;
-  if (type.includes('graph-v2')) return <DeploymentUnitOutlined />;
-  if (type.includes('funnel')) return <FundOutlined />;
-  if (type.includes('double-y')) return <NodeIndexOutlined />;
-  return undefined;
-};
+import {
+  BORDER_RADIUS,
+  FONT_SIZE_ICON_MD,
+  SPACE_TIMES,
+} from 'styles/StyleConstants';
 
 const ChartGraphIcon: FC<{
   chart?: IChart;
-  pluginType?: string;
   isActive?: boolean;
   isMatchRequirement?: boolean;
-  displayName?: string;
-  isV2?: boolean;
-  isFavorite?: boolean;
-  onFavoriteToggle?: () => void;
   onChartChange: (chart: IChart) => void;
-}> = memo(({
-  chart,
-  pluginType,
-  isActive,
-  isMatchRequirement,
-  displayName,
-  isV2,
-  isFavorite,
-  onFavoriteToggle,
-  onChartChange,
-}) => {
+}> = memo(({ chart, isActive, isMatchRequirement, onChartChange }) => {
   const t = useI18NPrefix(`viz.palette.graph`);
 
-  const renderIcon = () => {
-    const mapped = iconByType(pluginType);
-    if (mapped) return mapped;
-    const iconStr = chart?.meta?.icon || '';
-    if (/^<svg/.test(iconStr) || /^<\?xml/.test(iconStr)) {
-      const encodedStr = window.encodeURIComponent(iconStr);
-      return <StyledInlineSVGIcon alt="svg icon" src={`data:image/svg+xml;utf8,${encodedStr}`} />;
+  const handleChartChange = useCallback(
+    () => () => {
+      if (chart) {
+        onChartChange(CloneValueDeep(chart));
+      }
+    },
+    [chart, onChartChange],
+  );
+
+  const renderIcon = ({
+    ...args
+  }: {
+    iconStr;
+    isMatchRequirement;
+    isActive;
+  }) => {
+    if (/^<svg/.test(args?.iconStr) || /^<\?xml/.test(args?.iconStr)) {
+      return <SVGImageRender {...args} />;
     }
-    if (/svg\+xml;base64/.test(iconStr)) {
-      return <StyledInlineSVGIcon alt="svg icon" src={iconStr} />;
+    if (/svg\+xml;base64/.test(args?.iconStr)) {
+      return <Base64ImageRender {...args} />;
     }
-    return <i className={`iconfont icon-${!iconStr ? 'chart' : iconStr}`} />;
+    return <SVGFontIconRender {...args} />;
   };
 
   const renderChartRequirements = requirements => {
-    const lintMessages = requirements?.flatMap((requirement, index) =>
-      [ChartDataSectionType.Group, ChartDataSectionType.Aggregate].map(type => {
-        const limit = requirement[type.toLocaleLowerCase()];
-        const getMaxValueStr = value => !!value && +value >= 999 ? 'N' : value;
-        return (
-          <li key={type + index}>
-            {Number.isInteger(limit)
-              ? t('onlyAllow', undefined, { type: t(type), num: getMaxValueStr(limit) })
-              : Array.isArray(limit) && limit.length === 2
-              ? t('allowRange', undefined, {
-                  type: t(type),
-                  start: limit?.[0],
-                  end: getMaxValueStr(limit?.[1]),
-                })
-              : null}
-          </li>
-        );
-      }),
-    );
+    const lintMessages = requirements?.flatMap((requirement, index) => {
+      return [ChartDataSectionType.Group, ChartDataSectionType.Aggregate].map(
+        type => {
+          const limit = requirement[type.toLocaleLowerCase()];
+          const getMaxValueStr = limit =>
+            !!limit && +limit >= 999 ? 'N' : limit;
+
+          return (
+            <li key={type + index}>
+              {Number.isInteger(limit)
+                ? t('onlyAllow', undefined, {
+                    type: t(type),
+                    num: getMaxValueStr(limit),
+                  })
+                : Array.isArray(limit) && limit.length === 2
+                ? t('allowRange', undefined, {
+                    type: t(type),
+                    start: limit?.[0],
+                    end: getMaxValueStr(limit?.[1]),
+                  })
+                : null}
+            </li>
+          );
+        },
+      );
+    });
     return <ul>{lintMessages}</ul>;
   };
 
@@ -118,132 +99,87 @@ const ChartGraphIcon: FC<{
       key={chart?.meta?.id}
       title={
         <>
-          {displayName || t(chart?.meta?.name!, true)}
+          {t(chart?.meta?.name!, true)}
           {renderChartRequirements(chart?.meta?.requirements)}
         </>
       }
     >
-      <VisualTile
-        className={classnames({ active: isActive, disabled: !isMatchRequirement })}
-        onClick={() => {
-          if (chart && isMatchRequirement) onChartChange(chart);
-        }}
+      <StyledChartIconWrapper
+        fontSize={FONT_SIZE_ICON_MD}
+        size={SPACE_TIMES(9)}
+        className={classnames({
+          active: isActive,
+        })}
+        onClick={handleChartChange()}
       >
-        <FavoriteButton
-          className={isFavorite ? 'favorite' : undefined}
-          onClick={event => {
-            event.stopPropagation();
-            onFavoriteToggle?.();
-          }}
-          title={isFavorite ? '取消常用' : '加入常用'}
-        >
-          {isFavorite ? <StarFilled /> : <StarOutlined />}
-        </FavoriteButton>
-        {isV2 && <V2Badge count="V2" />}
-        <VisualIcon>{renderIcon()}</VisualIcon>
-        <Typography.Text ellipsis style={{ width: '100%', fontSize: 10, textAlign: 'center' }}>
-          {displayName || t(chart?.meta?.name!, true)}
-        </Typography.Text>
-      </VisualTile>
+        {renderIcon({
+          iconStr: chart?.meta?.icon,
+          isMatchRequirement,
+          isActive,
+        })}
+      </StyledChartIconWrapper>
     </Tooltip>
   );
 });
 
 export default ChartGraphIcon;
 
-const VisualTile = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 72px;
-  padding: 9px 6px 6px;
+const SVGFontIconRender = ({ iconStr, isMatchRequirement }) => {
+  return (
+    <StyledSVGFontIcon
+      isMatchRequirement={isMatchRequirement}
+      className={`iconfont icon-${!iconStr ? 'chart' : iconStr}`}
+    />
+  );
+};
+
+const SVGImageRender = ({ iconStr, isMatchRequirement, isActive }) => {
+  const encodedStr = window.encodeURIComponent(iconStr);
+  return (
+    <StyledInlineSVGIcon
+      alt="svg icon"
+      style={{ height: FONT_SIZE_ICON_MD, width: FONT_SIZE_ICON_MD }}
+      src={`data:image/svg+xml;utf8,${encodedStr}`}
+      isMatchRequirement={isMatchRequirement}
+    />
+  );
+};
+
+const Base64ImageRender = ({ iconStr, isMatchRequirement, isActive }) => {
+  return (
+    <StyledBase64Icon
+      alt="svg icon"
+      style={{ height: FONT_SIZE_ICON_MD, width: FONT_SIZE_ICON_MD }}
+      src={iconStr}
+      isMatchRequirement={isMatchRequirement}
+    />
+  );
+};
+
+const StyledChartIconWrapper = styled(IW)`
+  margin: ${SPACE_TIMES(0.5)};
   cursor: pointer;
-  background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: 8px;
-  transition: all 0.16s ease;
+  border-radius: ${BORDER_RADIUS};
 
-  &:hover {
-    border-color: ${p => p.theme.primary};
-    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.12);
-    transform: translateY(-1px);
-  }
-
+  &:hover,
   &.active {
-    background: ${p => p.theme.primary}0d;
-    border-color: ${p => p.theme.primary};
-    box-shadow: 0 0 0 2px ${p => p.theme.primary}1a;
-  }
-
-  &.disabled {
-    cursor: not-allowed;
-    filter: grayscale(0.5);
-    opacity: 0.42;
-  }
-
-  &.disabled:hover {
-    border-color: #eaecf0;
-    box-shadow: none;
-    transform: none;
+    color: ${p => p.theme.componentBackground};
+    background-color: ${p => p.theme.primary};
   }
 `;
 
-const FavoriteButton = styled.button`
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  z-index: 2;
-  padding: 0;
-  color: #98a2b3;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-
-  ${VisualTile}:hover &,
-  &.favorite {
-    opacity: 1;
-  }
-
-  &.favorite {
-    color: #faad14;
-  }
+const StyledInlineSVGIcon = styled.img<{ isMatchRequirement?: boolean }>`
+  opacity: ${p => (p.isMatchRequirement ? 1 : 0.4)};
 `;
 
-const VisualIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  margin-bottom: 4px;
-  font-size: 22px;
-  color: ${p => p.theme.textColorLight};
-
-  .active & {
-    color: ${p => p.theme.primary};
-  }
+const StyledSVGFontIcon = styled.i<{ isMatchRequirement?: boolean }>`
+  opacity: ${p => (p.isMatchRequirement ? 1 : 0.4)};
 `;
 
-const V2Badge = styled(Badge)`
-  position: absolute;
-  top: 3px;
-  right: 3px;
-
-  .ant-badge-count {
-    min-width: 20px;
-    height: 14px;
-    padding: 0 4px;
-    font-size: 8px;
-    line-height: 14px;
-    box-shadow: none;
-  }
-`;
-
-const StyledInlineSVGIcon = styled.img`
-  width: ${FONT_SIZE_ICON_MD};
-  height: ${FONT_SIZE_ICON_MD};
+const StyledBase64Icon = styled.i<{
+  isMatchRequirement?: boolean;
+  alt: any;
+  src: any;
+}>`
+  opacity: ${p => (p.isMatchRequirement ? 1 : 0.4)};
 `;
