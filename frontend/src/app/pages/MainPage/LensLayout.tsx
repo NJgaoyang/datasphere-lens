@@ -251,7 +251,7 @@ export function LensLayout({
   };
 
   return (
-    <Layout style={{ width: '100vw', minHeight: '100vh' }}>
+    <Layout style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
       <Sider
         width={232}
         collapsedWidth={72}
@@ -337,7 +337,7 @@ export function LensLayout({
         </Button>
       </Sider>
 
-      <Layout style={{ minWidth: 0 }}>
+      <Layout style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden' }}>
         <Header
           style={{
             display: 'flex',
@@ -381,7 +381,7 @@ export function LensLayout({
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ minHeight: 0, overflow: 'auto' }}>{children}</Content>
+        <Content style={{ minWidth: 0, minHeight: 0, overflow: 'auto' }}>{children}</Content>
       </Layout>
 
       <Profile
