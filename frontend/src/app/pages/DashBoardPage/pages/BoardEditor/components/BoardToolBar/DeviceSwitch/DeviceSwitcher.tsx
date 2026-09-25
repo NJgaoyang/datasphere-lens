@@ -17,7 +17,7 @@
  */
 import { DesktopOutlined, MobileOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { DeviceType } from 'app/pages/DashBoardPage/pages/Board/slice/types';
 import { dispatchResize } from 'app/utils/dispatchResize';
@@ -70,7 +70,7 @@ export const DeviceSwitcher = () => {
   return (
     <Dropdown overlay={deviceItems} placement="bottomLeft" trigger={['click']}>
       <Tooltip title={t('deviceSwitch')}>
-        <ToolbarButton icon={curIcon} />
+        <LensToolButton icon={curIcon} />
       </Tooltip>
     </Dropdown>
   );

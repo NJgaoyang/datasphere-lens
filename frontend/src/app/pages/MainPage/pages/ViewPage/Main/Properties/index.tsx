@@ -22,7 +22,12 @@ import {
   FunctionOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
-import { PaneWrapper } from 'app/components';
+import {
+  LensPane,
+  LensPanel,
+  LensPanelBody,
+  LensPanelHeader,
+} from 'app/components/LensWorkspace';
 import { Segmented } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import {
@@ -80,13 +85,8 @@ export const Properties = memo(({ allowManage, viewType }: PropertiesProps) => {
   }, []);
 
   return allowManage ? (
-    <Panel>
-      <PanelHeader>
-        <div>
-          <strong>数据集配置</strong>
-          <span>字段、变量与权限</span>
-        </div>
-      </PanelHeader>
+    <LensPanel $width={340} $edge="left">
+      <LensPanelHeader title="数据集配置" description="字段、变量与权限" />
       <PanelTabs>
         <Segmented
           block
@@ -100,61 +100,24 @@ export const Properties = memo(({ allowManage, viewType }: PropertiesProps) => {
           onChange={value => tabSelect(String(value))}
         />
       </PanelTabs>
-      <PanelBody>
-        <PaneWrapper selected={selectedTab === 'variable'}>
+      <LensPanelBody>
+        <LensPane $active={selectedTab === 'variable'}>
           <ViewErrorBoundary><Variables /></ViewErrorBoundary>
-        </PaneWrapper>
-        <PaneWrapper selected={selectedTab === 'reference'}>
+        </LensPane>
+        <LensPane $active={selectedTab === 'reference'}>
           <ViewErrorBoundary><Resource /></ViewErrorBoundary>
-        </PaneWrapper>
-        <PaneWrapper selected={selectedTab === 'model'}>
+        </LensPane>
+        <LensPane $active={selectedTab === 'model'}>
           <ViewErrorBoundary><DataModelTree /></ViewErrorBoundary>
-        </PaneWrapper>
-        <PaneWrapper selected={selectedTab === 'columnPermissions'}>
+        </LensPane>
+        <LensPane $active={selectedTab === 'columnPermissions'}>
           <ViewErrorBoundary><ColumnPermissions /></ViewErrorBoundary>
-        </PaneWrapper>
-      </PanelBody>
-    </Panel>
+        </LensPane>
+      </LensPanelBody>
+    </LensPanel>
   ) : null;
 });
 
-
-const Panel = styled.aside`
-  z-index: 1;
-  display: flex;
-  flex: 0 0 340px;
-  flex-direction: column;
-  width: 340px;
-  min-width: 0;
-  min-height: 0;
-  background: ${p => p.theme.componentBackground};
-  border-left: 1px solid ${p => p.theme.borderColorSplit};
-`;
-
-const PanelHeader = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  min-height: 44px;
-  padding: 6px 12px;
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
-
-  > div {
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-  }
-
-  strong {
-    font-size: 13px;
-    color: ${p => p.theme.textColor};
-  }
-
-  span {
-    font-size: 11px;
-    color: ${p => p.theme.textColorDisabled};
-  }
-`;
 
 const PanelTabs = styled.div`
   flex-shrink: 0;
@@ -165,11 +128,4 @@ const PanelTabs = styled.div`
     padding-inline: 6px;
     font-size: 11px;
   }
-`;
-
-const PanelBody = styled.div`
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
 `;

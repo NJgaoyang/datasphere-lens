@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-import { Tree } from 'app/components';
+import { Empty, Tree as AntTree } from 'antd';
 import { renderIcon } from 'app/hooks/useGetVizIcon';
 import useResizeObserver from 'app/hooks/useResizeObserver';
 import { WidgetActionContext } from 'app/pages/DashBoardPage/components/ActionProvider/WidgetActionProvider';
 import widgetManager from 'app/pages/DashBoardPage/components/WidgetManager';
 import { FC, memo, useCallback, useContext, useMemo } from 'react';
+import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { stopPPG } from 'utils/utils';
 import { dropLayerNodeAction } from '../../slice/actions/actions';
@@ -88,21 +89,68 @@ export const LayerTree: FC<{ keyword?: string }> = memo(({ keyword = '' }) => {
   );
 
   return (
-    <Tree
-      className="medium"
-      draggable={!keyword && !editingWidgetIds ? { icon: false } : false}
-      multiple
-      loading={false}
-      titleRender={renderTreeItem}
-      icon={icon}
-      onSelect={treeSelect}
-      onClick={stopPPG}
-      onDrop={onDrop}
-      treeData={filteredTreeData}
-      selectedKeys={selectedIds ? selectedIds.split(',') : []}
-      height={height}
-      wrapperRef={ref}
-      defaultExpandAll
-    />
+    <TreeViewport ref={ref} onClick={stopPPG}>
+      {filteredTreeData.length ? (
+        <LensTree
+          blockNode
+          showIcon
+          draggable={!keyword && !editingWidgetIds ? { icon: false } : false}
+          multiple
+          titleRender={renderTreeItem}
+          icon={icon}
+          onSelect={treeSelect}
+          onDrop={onDrop}
+          treeData={filteredTreeData}
+          selectedKeys={selectedIds ? selectedIds.split(',') : []}
+          height={height}
+          defaultExpandAll
+        />
+      ) : (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无匹配图层" />
+      )}
+    </TreeViewport>
   );
 });
+
+const TreeViewport = styled.div`
+  flex: 1;
+  min-height: 0;
+  padding: 6px 8px 10px;
+  overflow: auto;
+`;
+
+const LensTree = styled(AntTree)`
+  background: transparent;
+
+  .ant-tree-treenode {
+    align-items: center;
+    width: 100%;
+    min-height: 32px;
+    padding: 1px 0;
+  }
+
+  .ant-tree-node-content-wrapper {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    min-height: 30px;
+    padding: 0 6px;
+    border-radius: 6px;
+  }
+
+  .ant-tree-node-content-wrapper:hover {
+    background: ${p => p.theme.bodyBackground};
+  }
+
+  .ant-tree-node-content-wrapper.ant-tree-node-selected {
+    color: ${p => p.theme.primary};
+    background: ${p => p.theme.emphasisBackground} !important;
+  }
+
+  .ant-tree-iconEle {
+    display: inline-flex;
+    align-items: center;
+    color: ${p => p.theme.textColorDisabled};
+  }
+`;

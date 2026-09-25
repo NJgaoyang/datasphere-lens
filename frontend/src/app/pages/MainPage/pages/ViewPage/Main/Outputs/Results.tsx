@@ -22,7 +22,9 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import { Empty, Flex, Tooltip, Typography, theme } from 'antd';
-import { Popup, ToolbarButton, Tree } from 'app/components';
+import { Popup } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { APP_CURRENT_VERSION } from 'app/migration/constants';
 import classnames from 'classnames';
@@ -221,7 +223,7 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
           trigger={['click']}
           placement="bottomRight"
           content={
-            <Tree
+            <LensTree
               className="check-list medium"
               treeData={roleDropdownData}
               checkedKeys={checkedKeys}
@@ -235,7 +237,7 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
           }
         >
           <Tooltip title={t('columnPermission.title')}>
-            <ToolbarButton
+            <LensToolButton
               size="small"
               iconSize={FONT_SIZE_BASE}
               icon={

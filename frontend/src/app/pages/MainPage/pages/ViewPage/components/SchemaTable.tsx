@@ -22,7 +22,7 @@ import {
   NumberOutlined,
 } from '@ant-design/icons';
 import { TableColumnType, TableProps } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { VirtualTable } from 'app/components/VirtualTable';
 import { DataViewFieldType } from 'app/constants';
 import { TABLE_DATA_INDEX } from 'globalConstants';
@@ -184,7 +184,7 @@ export const SchemaTable = memo(
               hasFormat={hasFormat}
               onChange={onSchemaTypeChange(name, hierarchyColumn)}
               icon={
-                <ToolbarButton
+                <LensToolButton
                   size="small"
                   iconSize={FONT_SIZE_BASE}
                   className="suffix"

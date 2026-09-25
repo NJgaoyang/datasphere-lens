@@ -20,7 +20,7 @@ import {
   VerticalAlignTopOutlined,
 } from '@ant-design/icons';
 import { Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { FC, MouseEventHandler } from 'react';
 export const ToTopBtn: FC<{
   fn: MouseEventHandler<HTMLElement> | undefined;
@@ -28,7 +28,7 @@ export const ToTopBtn: FC<{
 }> = ({ fn, title }) => {
   return (
     <Tooltip title={title}>
-      <ToolbarButton onClick={fn} icon={<VerticalAlignTopOutlined />} />
+      <LensToolButton onClick={fn} icon={<VerticalAlignTopOutlined />} />
     </Tooltip>
   );
 };
@@ -38,7 +38,7 @@ export const ToBottomBtn: FC<{
 }> = ({ fn, title }) => {
   return (
     <Tooltip title={title}>
-      <ToolbarButton onClick={fn} icon={<VerticalAlignBottomOutlined />} />
+      <LensToolButton onClick={fn} icon={<VerticalAlignBottomOutlined />} />
     </Tooltip>
   );
 };

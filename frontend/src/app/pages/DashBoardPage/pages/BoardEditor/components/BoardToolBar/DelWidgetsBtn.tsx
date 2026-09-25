@@ -17,7 +17,7 @@
  */
 import { DeleteOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { FC } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedIds } from '../../slice/selectors';
@@ -29,7 +29,7 @@ export const DelWidgetsBtn: FC<{
   const selectedIds = useSelector(selectSelectedIds);
   return (
     <Tooltip title={title}>
-      <ToolbarButton
+      <LensToolButton
         disabled={!selectedIds}
         onClick={fn}
         icon={<DeleteOutlined />}

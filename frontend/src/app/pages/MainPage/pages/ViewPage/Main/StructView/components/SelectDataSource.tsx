@@ -22,7 +22,7 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { Button, Checkbox, Divider, Empty, Flex, Input, List, Menu, Popover, Typography, theme } from 'antd';
-import { Tree } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { useSearchAndExpand } from 'app/hooks/useSearchAndExpand';
 import classnames from 'classnames';
@@ -299,7 +299,7 @@ const SelectDataSource = memo(
                   />
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 4 }}>
-                  <Tree
+                  <LensTree
                     autoExpandParent
                     defaultExpandParent
                     className="medium without-indent"

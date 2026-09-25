@@ -33,7 +33,7 @@ import {
   Tooltip,
   TreeSelect,
 } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { Confirm, ConfirmProps } from 'app/components/Confirm';
 import {
   ChartDataViewFieldCategory,
@@ -488,7 +488,7 @@ const ChartDataViewPanel: FC<{
           bordered={false}
         />
         <Tooltip placement="topLeft" title={t('editView')}>
-          <ToolbarButton
+          <LensToolButton
             disabled={!(allowEnableView && allowManage && dataView)}
             iconSize={14}
             icon={<FormOutlined />}

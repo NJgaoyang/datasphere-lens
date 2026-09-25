@@ -17,7 +17,7 @@
  */
 import { CopyOutlined, SnippetsOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { FC } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -36,7 +36,7 @@ export const CopyBtn: FC<{
   };
   return (
     <Tooltip title={title}>
-      <ToolbarButton
+      <LensToolButton
         disabled={!selectedIds}
         onClick={onCopy}
         icon={<CopyOutlined />}
@@ -51,7 +51,7 @@ export const PasteBtn: FC<{
   const clipboardWidgets = useSelector(selectClipboardWidgets);
   return (
     <Tooltip title={title}>
-      <ToolbarButton
+      <LensToolButton
         disabled={!Object.keys(clipboardWidgets).length}
         onClick={fn}
         icon={<SnippetsOutlined />}

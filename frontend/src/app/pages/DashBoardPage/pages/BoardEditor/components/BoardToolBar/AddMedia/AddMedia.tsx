@@ -18,7 +18,7 @@
 
 import { AppstoreAddOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import widgetManagerInstance from 'app/pages/DashBoardPage/components/WidgetManager';
 import { LightWidgetType } from 'app/pages/DashBoardPage/pages/Board/slice/types';
@@ -89,7 +89,7 @@ export const AddMedia: React.FC<{}> = () => {
       trigger={['click']}
     >
       <Tooltip title={t('media')}>
-        <ToolbarButton icon={<AppstoreAddOutlined />} />
+        <LensToolButton icon={<AppstoreAddOutlined />} />
       </Tooltip>
     </Dropdown>
   );

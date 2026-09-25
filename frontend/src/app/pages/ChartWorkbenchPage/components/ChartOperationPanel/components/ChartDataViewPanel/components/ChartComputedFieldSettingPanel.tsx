@@ -17,7 +17,8 @@
  */
 
 import { Col, Input, Row, Select, Space, Tabs, TreeDataNode } from 'antd';
-import { FormItemEx, Tree } from 'app/components';
+import { FormItemEx } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
 import { ChartDataViewFieldCategory, DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { ViewType } from 'app/pages/MainPage/pages/ViewPage/slice/types';
@@ -352,7 +353,7 @@ const ChartComputedFieldSettingPanel: FC<{
           <Tabs defaultActiveKey="field" onChange={() => {}}>
             <Tabs.TabPane tab={`${t('field')}`} key="field">
               {viewType === 'STRUCT' ? (
-                <Tree
+                <LensTree
                   className="medium"
                   loading={false}
                   showIcon={false}

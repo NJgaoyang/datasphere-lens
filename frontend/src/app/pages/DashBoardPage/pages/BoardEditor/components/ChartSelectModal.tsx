@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Input, Modal } from 'antd';
-import { Tree } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useGetVizIcon from 'app/hooks/useGetVizIcon';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -136,7 +136,7 @@ const ChartSelectModalModal: React.FC<IProps> = props => {
       <InputWrap>
         <Input onChange={treeSearch} placeholder={t('searchValue')} />
       </InputWrap>
-      <Tree
+      <LensTree
         loading={false}
         showIcon
         checkable

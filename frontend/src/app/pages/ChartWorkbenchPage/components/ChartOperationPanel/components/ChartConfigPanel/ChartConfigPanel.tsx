@@ -23,7 +23,11 @@ import {
   LineChartOutlined,
 } from '@ant-design/icons';
 import { Button, Popover, Segmented, Space, Tabs } from 'antd';
-import { PaneWrapper } from 'app/components';
+import {
+  LensPane,
+  LensPanel,
+  LensPanelHeader,
+} from 'app/components/LensWorkspace';
 import useComputedState from 'app/hooks/useComputedState';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import ChartI18NContext from 'app/pages/ChartWorkbenchPage/contexts/Chart18NContext';
@@ -179,30 +183,33 @@ const ChartConfigPanel: FC<{
     return (
       <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
         <ChartPaletteContext.Provider value={{ datas: editorDataConfigs }}>
-          <StyledChartDataViewPanel>
-            <PanelHeader>
-              <span>可视化配置</span>
-              <Popover
-                trigger="click"
-                placement="bottomRight"
-                open={visualPickerOpen}
-                onOpenChange={setVisualPickerOpen}
-                content={
-                  <ChartGraphPanel
-                    chart={chart}
-                    chartConfig={chartConfig}
-                    onChartChange={nextChart => {
-                      onChartChange(nextChart);
-                      setVisualPickerOpen(false);
-                    }}
-                  />
-                }
-              >
-                <Button size="small" icon={<AppstoreOutlined />}>
-                  切换图表
-                </Button>
-              </Popover>
-            </PanelHeader>
+          <LensPanel $edge="left">
+            <LensPanelHeader
+              title="可视化配置"
+              description="字段、样式与分析能力"
+              action={
+                <Popover
+                  trigger="click"
+                  placement="bottomRight"
+                  open={visualPickerOpen}
+                  onOpenChange={setVisualPickerOpen}
+                  content={
+                    <ChartGraphPanel
+                      chart={chart}
+                      chartConfig={chartConfig}
+                      onChartChange={nextChart => {
+                        onChartChange(nextChart);
+                        setVisualPickerOpen(false);
+                      }}
+                    />
+                  }
+                >
+                  <Button size="small" icon={<AppstoreOutlined />}>
+                    切换图表
+                  </Button>
+                </Popover>
+              }
+            />
             <CurrentVisual>
               <Space size={8}>
                 <AppstoreOutlined />
@@ -273,7 +280,7 @@ const ChartConfigPanel: FC<{
                   />
                 )}
               </Tabs>
-              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.DATA}>
+              <Pane $active={tabActiveKey === CONFIG_PANEL_TABS.DATA}>
                 <ChartToolbar />
                 <ChartDataConfigPanel
                   dataConfigs={editorDataConfigs}
@@ -281,7 +288,7 @@ const ChartConfigPanel: FC<{
                   onChange={onDataConfigChanged}
                 />
               </Pane>
-              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.STYLE}>
+              <Pane $active={tabActiveKey === CONFIG_PANEL_TABS.STYLE}>
                 <StylePresetBar>
                   <div>
                     <strong>样式预设</strong>
@@ -306,7 +313,7 @@ const ChartConfigPanel: FC<{
                   )}
                 />
               </Pane>
-              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.ANALYSIS}>
+              <Pane $active={tabActiveKey === CONFIG_PANEL_TABS.ANALYSIS}>
                 {!isEmptyArray(chartConfig?.settings) && (
                   <AnalysisSection>
                     <AnalysisSectionTitle>图表设置</AnalysisSectionTitle>
@@ -336,7 +343,7 @@ const ChartConfigPanel: FC<{
                 )}
               </Pane>
             </ConfigBlock>
-          </StyledChartDataViewPanel>
+          </LensPanel>
         </ChartPaletteContext.Provider>
       </ChartI18NContext.Provider>
     );
@@ -349,29 +356,6 @@ const ChartConfigPanel: FC<{
 );
 
 export default ChartConfigPanel;
-
-const StyledChartDataViewPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 0;
-  background: ${p => p.theme.componentBackground};
-  border-left: 1px solid ${p => p.theme.borderColorSplit};
-`;
-
-const PanelHeader = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  height: 42px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: ${p => p.theme.textColor};
-  background: ${p => p.theme.componentBackground};
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
-`;
 
 const CurrentVisual = styled.div`
   display: flex;
@@ -414,7 +398,7 @@ const ConfigBlock = styled.div`
   }
 `;
 
-const Pane = styled(PaneWrapper)`
+const Pane = styled(LensPane)`
   padding: 0 12px 12px;
   overflow-y: auto;
 `;

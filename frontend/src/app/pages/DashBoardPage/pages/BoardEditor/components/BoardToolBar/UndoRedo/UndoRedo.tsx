@@ -17,7 +17,7 @@
  */
 import { RedoOutlined, UndoOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { FC, MouseEventHandler, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectFutureState, selectPastState } from '../../../slice/selectors';
@@ -30,7 +30,7 @@ export const UndoBtn: FC<{
   const canUndo = useMemo(() => !!pastState.length, [pastState.length]);
   return (
     <Tooltip title={title}>
-      <ToolbarButton disabled={!canUndo} onClick={fn} icon={<UndoOutlined />} />
+      <LensToolButton disabled={!canUndo} onClick={fn} icon={<UndoOutlined />} />
     </Tooltip>
   );
 };
@@ -43,7 +43,7 @@ export const RedoBtn: FC<{
   const canRedo = useMemo(() => !!futureState.length, [futureState.length]);
   return (
     <Tooltip title={title}>
-      <ToolbarButton disabled={!canRedo} onClick={fn} icon={<RedoOutlined />} />
+      <LensToolButton disabled={!canRedo} onClick={fn} icon={<RedoOutlined />} />
     </Tooltip>
   );
 };

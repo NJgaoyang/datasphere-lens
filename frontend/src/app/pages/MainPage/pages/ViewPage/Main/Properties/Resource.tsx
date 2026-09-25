@@ -34,7 +34,7 @@ import {
   Space,
   TreeDataNode,
 } from 'antd';
-import { Tree } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
 import { DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useResizeObserver from 'app/hooks/useResizeObserver';
@@ -216,7 +216,7 @@ export const Resource = memo(() => {
         </Col>
       </SearchBar>
       <TreeWrapper ref={treeWrapperRef}>
-        <Tree
+        <LensTree
           className="medium"
           treeData={filteredData}
           loading={isDatabaseSchemaLoading}

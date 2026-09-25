@@ -18,7 +18,8 @@
 
 import { LoadingOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Input, List, theme } from 'antd';
-import { ListItem, Popup, Tree } from 'app/components';
+import { ListItem, Popup } from 'app/components';
+import { LensTree } from 'app/components/LensWorkspace';
 import { ViewFieldMeta } from 'app/types/View';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -152,7 +153,7 @@ export const ColumnPermissions = memo(() => {
               trigger={['click']}
               placement="bottomRight"
               content={
-                <Tree
+                <LensTree
                   className="check-list medium"
                   treeData={columnDropdownData}
                   checkedKeys={checkedKeys}

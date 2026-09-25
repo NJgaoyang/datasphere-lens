@@ -29,7 +29,8 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { Collapse, Dropdown, Menu, Row, Tooltip } from 'antd';
-import { IW, ToolbarButton } from 'app/components';
+import { IW } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { ChartDataViewFieldCategory, DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useToggle from 'app/hooks/useToggle';
@@ -379,7 +380,7 @@ export const ChartDraggableSourceContainer: FC<
           <StyledFieldContent>{fieldDisplayName}</StyledFieldContent>
           {!isHierarchyFieldOrTable && (
             <Tooltip title="添加到图表">
-              <ToolbarButton
+              <LensToolButton
                 className="quick-add"
                 icon={<PlusOutlined />}
                 iconSize={FONT_SIZE_BASE}
@@ -396,7 +397,7 @@ export const ChartDraggableSourceContainer: FC<
               overlay={_getExtraActionMenus()}
               trigger={['click']}
             >
-              <ToolbarButton
+              <LensToolButton
                 icon={<MoreOutlined />}
                 iconSize={FONT_SIZE_BASE}
                 className="setting"

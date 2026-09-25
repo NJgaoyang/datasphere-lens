@@ -17,7 +17,7 @@
  */
 import { BarChartOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import React, { useCallback } from 'react';
 
@@ -64,7 +64,7 @@ export const ChartWidgetDropdown: React.FC<{
       trigger={['click']}
     >
       <Tooltip title={t('dataChart')}>
-        <ToolbarButton icon={<BarChartOutlined />} />
+        <LensToolButton icon={<BarChartOutlined />} />
       </Tooltip>
     </Dropdown>
   );

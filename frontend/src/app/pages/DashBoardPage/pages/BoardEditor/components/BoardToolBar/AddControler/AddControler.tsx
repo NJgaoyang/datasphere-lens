@@ -17,7 +17,7 @@
  */
 import { ControlOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Tooltip } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { ControllerFacadeTypes } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import React, { useContext } from 'react';
@@ -174,7 +174,7 @@ export const AddController: React.FC<AddControlBtnProps> = () => {
       trigger={['click']}
     >
       <Tooltip title={t('controller')}>
-        <ToolbarButton icon={<ControlOutlined />} />
+        <LensToolButton icon={<ControlOutlined />} />
       </Tooltip>
     </Dropdown>
   );

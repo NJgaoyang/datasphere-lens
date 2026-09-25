@@ -15,8 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ListTitle } from 'app/components';
-import { Input } from 'antd';
+import {
+  LensPanel,
+  LensPanelHeader,
+  LensSearch,
+  LensToolbar,
+} from 'app/components/LensWorkspace';
 import { DeviceType } from 'app/pages/DashBoardPage/pages/Board/slice/types';
 import { FC, memo, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -28,45 +32,34 @@ import { selectDeviceType } from '../../slice/selectors';
 export const LayerTreePanel: FC<{}> = memo(() => {
   const deviceType = useSelector(selectDeviceType);
   const [keyword, setKeyword] = useState('');
-  const titleProps = { title: '图层' };
-
   return (
-    <Panel>
+    <Panel $edge="right">
       {deviceType === DeviceType.Mobile ? (
         <MobileAppearancePanel />
       ) : (
         <>
-          <ListTitle {...titleProps} className="layer-panel-title" />
-          <LayerSearch>
-            <Input.Search
+          <LensPanelHeader title="图层" description="管理画布组件与层级" />
+          <LensToolbar>
+            <LensSearch
               allowClear
               size="small"
               value={keyword}
               placeholder="搜索图层名称或组件类型"
               onChange={event => setKeyword(event.target.value)}
             />
-          </LayerSearch>
+          </LensToolbar>
           <LayerTree keyword={keyword} />
         </>
       )}
     </Panel>
   );
 });
-const Panel = styled.div`
+const Panel = styled(LensPanel)`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background-color: ${p => p.theme.componentBackground};
-  border-right: 1px solid ${p => p.theme.borderColorSplit};
-
-  .layer-panel-title .title {
-    min-height: 40px;
-    padding: 0 16px;
-    border-bottom: 1px solid ${p => p.theme.borderColorSplit};
-  }
-
   .ant-tree-treenode-selected .ant-tree-node-content-wrapper {
     background: ${p => p.theme.emphasisBackground};
     border-radius: 6px;
@@ -75,10 +68,4 @@ const Panel = styled.div`
   .ant-tree-treenode:hover .ant-tree-node-content-wrapper {
     border-radius: 6px;
   }
-`;
-
-const LayerSearch = styled.div`
-  flex-shrink: 0;
-  padding: 8px 10px;
-  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;

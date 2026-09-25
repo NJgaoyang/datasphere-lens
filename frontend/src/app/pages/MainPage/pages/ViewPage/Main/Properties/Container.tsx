@@ -5,40 +5,72 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
-import { Skeleton } from 'antd';
-import { ListTitle, ListTitleProps } from 'app/components';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Dropdown, Skeleton } from 'antd';
+import {
+  LensPanelBody,
+  LensPanelHeader,
+  LensSearch,
+  LensToolbar,
+} from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
-import { FC, memo, ReactNode } from 'react';
+import { FC, memo, ReactElement, ReactNode } from 'react';
 import styled from 'styled-components';
-import { SPACE_TIMES } from 'styles/StyleConstants';
 
-interface ContainerProps extends ListTitleProps {
+type AddAction = {
+  items: Array<{ key: string; text: string }>;
+  icon?: ReactElement;
+  callback: (info: { key: string }) => void;
+};
+
+interface ContainerProps {
   title: string;
   loading?: boolean;
+  search?: boolean;
+  add?: AddAction;
+  onSearch?: (event: any) => void;
   children?: ReactNode;
 }
 
 const Container: FC<ContainerProps> = memo(props => {
   const t = useI18NPrefix('view.properties');
-  const { title, children, loading, ...rest } = props;
+  const { title, children, loading, search, add, onSearch } = props;
+  const addAction = add ? (
+    <Dropdown
+      trigger={['click']}
+      menu={{
+        items: add.items.map(item => ({ key: item.key, label: item.text })),
+        onClick: info => add.callback({ key: String(info.key) }),
+      }}
+    >
+      <Button
+        type="text"
+        size="small"
+        icon={add.icon || <PlusOutlined />}
+      />
+    </Dropdown>
+  ) : undefined;
 
   return (
     <StyledContainer>
-      <ListTitle title={t(title)} {...rest} />
-      <Skeleton active loading={loading}>
-        {children}
-      </Skeleton>
+      <LensPanelHeader title={t(title)} action={addAction} />
+      {search ? (
+        <LensToolbar>
+          <LensSearch
+            allowClear
+            size="small"
+            placeholder={`搜索${t(title)}`}
+            onChange={onSearch}
+          />
+        </LensToolbar>
+      ) : null}
+      <LensPanelBody>
+        <Skeleton active loading={loading}>
+          {children}
+        </Skeleton>
+      </LensPanelBody>
     </StyledContainer>
   );
 });
@@ -49,7 +81,6 @@ const StyledContainer = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
-  width: ${SPACE_TIMES(100)};
+  width: 100%;
   min-height: 0;
-  border-left: 1px solid ${p => p.theme.borderColorSplit};
 `;

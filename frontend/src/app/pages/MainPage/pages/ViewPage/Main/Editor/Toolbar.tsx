@@ -26,7 +26,7 @@ import {
   SettingFilled,
 } from '@ant-design/icons';
 import { Divider, Dropdown, Flex, Select, Space, Tooltip, theme } from 'antd';
-import { ToolbarButton } from 'app/components';
+import { LensToolButton } from 'app/components/LensWorkspace';
 import { Chronograph } from 'app/components/Chronograph';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { CommonFormTypes } from 'globalConstants';
@@ -241,7 +241,7 @@ export const Toolbar = memo(
                     }
                     placement="bottom"
                   >
-                    <ToolbarButton
+                    <LensToolButton
                       icon={
                         stage === ViewViewModelStages.Running ? (
                           <PauseOutlined />
@@ -254,7 +254,7 @@ export const Toolbar = memo(
                     />
                   </Tooltip>
                   <Tooltip title={t('beautify')} placement="bottom">
-                    <ToolbarButton
+                    <LensToolButton
                       icon={<AlignCenterOutlined />}
                       disabled={isArchived}
                       onClick={formatSQL}
@@ -270,7 +270,7 @@ export const Toolbar = memo(
                 onClick: sizeMenuClick,
               }}
             >
-              <ToolbarButton size="small">{`Limit: ${size}`}</ToolbarButton>
+              <LensToolButton size="small">{`Limit: ${size}`}</LensToolButton>
             </Dropdown>
             <Chronograph
               running={stage === ViewViewModelStages.Running}
@@ -298,7 +298,7 @@ export const Toolbar = memo(
                 }
                 placement="bottom"
               >
-                <ToolbarButton
+                <LensToolButton
                   icon={<SaveFilled />}
                   disabled={
                     isArchived || stage !== ViewViewModelStages.Saveable
@@ -310,7 +310,7 @@ export const Toolbar = memo(
             )}
             {allowManage && (
               <Tooltip title={t('info')} placement="bottom">
-                <ToolbarButton
+                <LensToolButton
                   icon={<SettingFilled />}
                   disabled={isArchived || isNewView(id)}
                   color={INFO}
@@ -320,7 +320,7 @@ export const Toolbar = memo(
             )}
             {allowManage && (
               <Tooltip title={t('saveAs')} placement="bottom">
-                <ToolbarButton
+                <LensToolButton
                   icon={<CopyFilled />}
                   onClick={() => saveAsView(id)}
                   disabled={isNewView(id)}
@@ -329,11 +329,11 @@ export const Toolbar = memo(
               </Tooltip>
             )}
             {/* <Tooltip title={t('saveFragment')} placement="bottom">
-            <ToolbarButton icon={<SnippetsFilled />} />
+            <LensToolButton icon={<SnippetsFilled />} />
           </Tooltip> */}
             {allowEnableViz && (
               <Tooltip title={t('startAnalysis')} placement="bottom">
-                <ToolbarButton
+                <LensToolButton
                   disabled={isNewView(id)}
                   icon={<MonitorOutlined />}
                   color={INFO}
