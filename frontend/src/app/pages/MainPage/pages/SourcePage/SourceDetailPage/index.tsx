@@ -16,7 +16,12 @@
  * limitations under the License.
  */
 
-import { LoadingOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  DatabaseOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -26,7 +31,11 @@ import {
   Input,
   message,
   Popconfirm,
+  Space,
+  Steps,
   Table,
+  Tag,
+  Typography,
 } from 'antd';
 import { Authorized, EmptyFiller } from 'app/components';
 import { DetailPageHeader } from 'app/components/DetailPageHeader';
@@ -102,6 +111,7 @@ export function SourceDetailPage() {
   const [formType, setFormType] = useState(CommonFormTypes.Add);
   const [providerType, setProviderType] = useState('');
   const [testLoading, setTestLoading] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [lastUpdateTime, setLastUpdateTime] = useState<string | undefined>();
   const [poolStats, setPoolStats] = useState<Record<string, number | boolean>>();
   const [queryTraces, setQueryTraces] = useState<Record<string, any>[]>([]);
@@ -157,6 +167,7 @@ export function SourceDetailPage() {
 
   const resetForm = useCallback(() => {
     setProviderType('');
+    setTestStatus('idle');
     form.resetFields();
     dispatch(actions.clearEditingSource());
   }, [dispatch, form, actions]);
@@ -172,7 +183,7 @@ export function SourceDetailPage() {
   }, [dispatch, resetForm, sourceId]);
 
   useEffect(() => {
-    if (sourceId === 'add' && dataProviders.JDBC && !providerType) {
+    if ((sourceId === 'add' || sourceId === 'new') && dataProviders.JDBC && !providerType) {
       setProviderType('JDBC');
       form.setFieldValue('type', 'JDBC');
       if (dataProviders.JDBC.config === null) {
@@ -218,6 +229,7 @@ export function SourceDetailPage() {
   const dataProviderChange = useCallback(
     val => {
       setProviderType(val);
+      setTestStatus('idle');
       if (dataProviders[val].config === null) {
         dispatch(getDataProviderConfigTemplate(val));
       }
@@ -227,6 +239,7 @@ export function SourceDetailPage() {
 
   const dbTypeChange = useCallback(
     val => {
+      setTestStatus('idle');
       const dbTypeConfig = config?.attributes.find(
         ({ name }) => name === 'dbType',
       );
@@ -254,8 +267,10 @@ export function SourceDetailPage() {
         method: 'POST',
         data: { name, type, properties: config },
       });
+      setTestStatus('success');
       message.success(t('testSuccess'));
     } catch (error) {
+      setTestStatus('error');
       errorHandle(error);
     }
     setTestLoading(false);
@@ -530,13 +545,46 @@ export function SourceDetailPage() {
         />
         <Content>
           <Card
-            bordered={false}
+            title={
+              <ConnectionCardTitle>
+                <DatabaseOutlined />
+                <div>
+                  <strong>连接配置</strong>
+                  <span>配置 MySQL 或 StarRocks 数据库连接</span>
+                </div>
+              </ConnectionCardTitle>
+            }
             extra={
-              <div>
-                {lastUpdateTime && `${t('lastUpdateTime')}: ${lastUpdateTime}`}
-              </div>
+              <Space size={10}>
+                {testStatus === 'success' && (
+                  <Tag color="success" icon={<CheckCircleOutlined />}>连接正常</Tag>
+                )}
+                {testStatus === 'error' && (
+                  <Tag color="error" icon={<CloseCircleOutlined />}>连接失败</Tag>
+                )}
+                {lastUpdateTime && (
+                  <Typography.Text type="secondary">
+                    {`${t('lastUpdateTime')}: ${lastUpdateTime}`}
+                  </Typography.Text>
+                )}
+                {!isArchived && (
+                  <Button loading={testLoading} onClick={test}>测试连接</Button>
+                )}
+              </Space>
             }
           >
+            {formType === CommonFormTypes.Add && (
+              <CreateSteps
+                size="small"
+                current={testStatus === 'success' ? 2 : providerType ? 1 : 0}
+                items={[
+                  { title: '选择数据库' },
+                  { title: '配置连接' },
+                  { title: '测试连接' },
+                  { title: '保存' },
+                ]}
+              />
+            )}
             <Form
               name="source_form_"
               className="detailForm"
@@ -578,8 +626,8 @@ export function SourceDetailPage() {
                 <Alert
                   showIcon
                   type="info"
-                  message="当前支持 MySQL 与 StarRocks"
-                  description="请选择数据库类型并填写连接信息。保存前建议先执行连接测试。"
+                  message="当前仅支持 MySQL 与 StarRocks"
+                  description="先选择数据库类型并填写连接参数，测试成功后再保存数据源。"
                   style={{ marginBottom: 20 }}
                 />
               )}
@@ -611,7 +659,7 @@ export function SourceDetailPage() {
           </Card>
           {editingSource?.id && providerType === 'JDBC' && (
             <Card
-              title="连接池运行状态"
+              title="连接运行状态"
               extra={
                 <Button loading={poolStatsLoading} onClick={refreshPoolStats}>
                   刷新
@@ -687,7 +735,7 @@ const Content = styled.div`
     margin-top: ${SPACE_LG};
     background-color: ${p => p.theme.componentBackground};
     border-radius: ${BORDER_RADIUS};
-    box-shadow: ${p => p.theme.shadowBlock};
+    box-shadow: none;
 
     &:first-of-type {
       margin-top: 0;
@@ -698,4 +746,43 @@ const Content = styled.div`
     max-width: ${SPACE_TIMES(400)};
     padding-top: ${SPACE_MD};
   }
+`;
+
+const ConnectionCardTitle = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  > .anticon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: ${p => p.theme.primary};
+    background: ${p => p.theme.emphasisBackground};
+    border-radius: 6px;
+  }
+
+  > div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  strong {
+    font-size: 14px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 11px;
+    font-weight: 400;
+    color: ${p => p.theme.textColorDisabled};
+  }
+`;
+
+const CreateSteps = styled(Steps)`
+  max-width: 760px;
+  padding: 4px 0 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;
