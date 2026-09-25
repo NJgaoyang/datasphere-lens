@@ -35,13 +35,12 @@ import { CommonFormTypes } from 'globalConstants';
 import { memo, useCallback, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { onDropTreeFn, stopPPG, uuidv4 } from 'utils/utils';
+import { onDropTreeFn, stopPPG } from 'utils/utils';
 import { CascadeAccess, getCascadeAccess } from '../../../Access';
 import {
   PermissionLevels,
   ResourceTypes,
 } from '../../PermissionPage/constants';
-import { UNPERSISTED_ID_PREFIX } from '../../ViewPage/constants';
 import { SaveFormContext } from '../SaveFormContext';
 import {
   selectDeleteSourceLoading,
@@ -115,14 +114,7 @@ export const SourceList = memo(({ sourceId, list }: SourceListProps) => {
             });
             break;
           case 'addNewView':
-            navigate(
-              `/organizations/${orgId}/views/${`${UNPERSISTED_ID_PREFIX}${uuidv4()}`}`,
-              {
-                state: {
-                  sourcesId: id,
-                },
-              },
-            );
+            navigate(`/organizations/${orgId}/datasets/new?sourceId=${id}`);
             break;
           case 'delete':
             break;

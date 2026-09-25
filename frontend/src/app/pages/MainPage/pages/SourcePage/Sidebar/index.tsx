@@ -115,7 +115,7 @@ export const Sidebar = memo(
       ({ key }) => {
         switch (key) {
           case 'add':
-            navigate(`/organizations/${orgId}/sources/add`);
+            navigate(`/organizations/${orgId}/sources/new`);
             break;
           case 'folder':
             showSaveForm({

@@ -39,8 +39,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { LEVEL_10, SPACE_TIMES, SPACE_XS, WHITE } from 'styles/StyleConstants';
-import { getInsertedNodeIndex, uuidv4 } from 'utils/utils';
-import { UNPERSISTED_ID_PREFIX } from '../constants';
+import { getInsertedNodeIndex } from 'utils/utils';
 import { SaveFormContext } from '../SaveFormContext';
 import {
   makeSelectViewTree,
@@ -116,9 +115,7 @@ export const Sidebar = memo(
       ({ key }) => {
         switch (key) {
           case 'view':
-            navigate(
-              `/organizations/${orgId}/views/${`${UNPERSISTED_ID_PREFIX}${uuidv4()}`}`,
-            );
+            navigate(`/organizations/${orgId}/datasets/new`);
             break;
           case 'folder':
             showSaveForm({

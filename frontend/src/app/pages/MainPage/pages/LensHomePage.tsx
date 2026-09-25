@@ -21,11 +21,9 @@ import {
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { uuidv4 } from 'utils/utils';
 import { useSourceSlice } from './SourcePage/slice';
 import { selectSources } from './SourcePage/slice/selectors';
 import { getSources } from './SourcePage/slice/thunks';
-import { UNPERSISTED_ID_PREFIX } from './ViewPage/constants';
 import { selectViews } from './ViewPage/slice/selectors';
 import { getViews } from './ViewPage/slice/thunks';
 import { selectVizs } from './VizPage/slice/selectors';
@@ -49,10 +47,10 @@ export function LensHomePage({ orgId }: { orgId: string }) {
     dispatch(getFolders(orgId));
   }, [dispatch, orgId]);
 
-  const createDataset = () => go(`views/${UNPERSISTED_ID_PREFIX}${uuidv4()}`);
+  const createDataset = () => go('datasets/new');
   const createChart = () =>
     go('charts/new?dataChartId=&chartType=dataChart&container=dataChart');
-  const createDashboard = () => go('dashboards?create=dashboard');
+  const createDashboard = () => go('dashboards/new');
 
   const resourceStats = useMemo(
     () => [
@@ -207,7 +205,7 @@ export function LensHomePage({ orgId }: { orgId: string }) {
           <Space direction="vertical" size={16} style={{ width: '100%' }}>
             <Card size="small" title="快速创建">
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Button block icon={<DatabaseOutlined />} onClick={() => go('sources/add')}>
+                <Button block icon={<DatabaseOutlined />} onClick={() => go('sources/new')}>
                   新建数据源
                 </Button>
                 <Button block icon={<TableOutlined />} onClick={createDataset}>

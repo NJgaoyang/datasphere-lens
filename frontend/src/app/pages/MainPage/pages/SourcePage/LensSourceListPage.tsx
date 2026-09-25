@@ -34,9 +34,8 @@ import { CommonFormTypes } from 'globalConstants';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getInsertedNodeIndex, getPath, uuidv4 } from 'utils/utils';
+import { getInsertedNodeIndex, getPath } from 'utils/utils';
 import { PermissionLevels, ResourceTypes } from '../PermissionPage/constants';
-import { UNPERSISTED_ID_PREFIX } from '../ViewPage/constants';
 import { SaveFormContext } from './SaveFormContext';
 import {
   selectArchived,
@@ -108,7 +107,7 @@ export function LensSourceListPage() {
     const q = keyword.trim().toLowerCase();
     return sources.filter(source => {
       const kind = sourceKind(source);
-      const hitType = filter === 'ALL' || source.type === filter || kind === filter;
+      const hitType = filter === 'ALL' || kind === filter;
       const hitKeyword = !q || `${source.name} ${kind} ${sourceAddress(source)}`.toLowerCase().includes(q);
       return hitType && hitKeyword;
     });
@@ -127,7 +126,7 @@ export function LensSourceListPage() {
     ), [sources]);
 
   const openCreate = useCallback(() => {
-    navigate(`/organizations/${orgId}/sources/add`);
+    navigate(`/organizations/${orgId}/sources/new`);
   }, [navigate, orgId]);
 
   const createFolder = useCallback(() => {
@@ -236,9 +235,7 @@ export function LensSourceListPage() {
   }, [dispatch, orgId]);
 
   const createDataset = useCallback((source: SourceSimpleViewModel) => {
-    navigate(`/organizations/${orgId}/views/${`${UNPERSISTED_ID_PREFIX}${uuidv4()}`}`, {
-      state: { sourcesId: source.id },
-    });
+    navigate(`/organizations/${orgId}/datasets/new?sourceId=${source.id}`);
   }, [navigate, orgId]);
 
   return (

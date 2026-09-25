@@ -24,7 +24,7 @@ import { useIsWeappEmbed } from 'app/hooks/useEmbedMode';
 import ChartManager from 'app/models/ChartManager';
 import { useAppSlice } from 'app/slice';
 import { selectLoggedInUser } from 'app/slice/selectors';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Navigate,
@@ -58,6 +58,8 @@ import { MobileVizPage } from './MobileVizPage';
 import { VizPage } from './pages/VizPage';
 import { useVizSlice } from './pages/VizPage/slice';
 import { initChartPreviewData } from './pages/VizPage/slice/thunks';
+import { UNPERSISTED_ID_PREFIX } from './pages/ViewPage/constants';
+import { uuidv4 } from 'utils/utils';
 import { LensLayout } from './LensLayout';
 import { ProductErrorBoundary } from './ProductErrorBoundary';
 import { useMainSlice } from './slice';
@@ -67,6 +69,23 @@ import {
   getLoggedInUserPermissions,
   getUserSettings,
 } from './slice/thunks';
+function DatasetCreateRoute({ orgId }: { orgId: string }) {
+  const location = useLocation();
+  const newViewId = useMemo(
+    () => `${UNPERSISTED_ID_PREFIX}${uuidv4()}`,
+    [],
+  );
+  const sourceId = new URLSearchParams(location.search).get('sourceId');
+
+  return (
+    <Navigate
+      to={`/organizations/${orgId}/views/${newViewId}`}
+      replace
+      state={sourceId ? { sourcesId: sourceId } : undefined}
+    />
+  );
+}
+
 function ChartEditorRoute({
   orgId,
   onClose,
@@ -192,6 +211,19 @@ export function MainPage() {
                 orgId={orgId}
                 onClose={() => navigate(-1)}
                 onSaveInDataChart={onSaveInDataChart}
+              />
+            }
+          />
+          <Route
+            path="/organizations/:orgId/datasets/new"
+            element={<DatasetCreateRoute orgId={orgId} />}
+          />
+          <Route
+            path="/organizations/:orgId/dashboards/new"
+            element={
+              <Navigate
+                to={`/organizations/${orgId}/dashboards?create=dashboard`}
+                replace
               />
             }
           />

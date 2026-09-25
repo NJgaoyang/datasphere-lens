@@ -43,13 +43,12 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getInsertedNodeIndex, getPath, uuidv4 } from 'utils/utils';
+import { getInsertedNodeIndex, getPath } from 'utils/utils';
 import { PermissionLevels, ResourceTypes } from '../PermissionPage/constants';
 import {
   selectSources,
 } from '../SourcePage/slice/selectors';
 import { getSources } from '../SourcePage/slice/thunks';
-import { UNPERSISTED_ID_PREFIX } from './constants';
 import { SaveFormContext } from './SaveFormContext';
 import {
   selectArchived,
@@ -158,10 +157,7 @@ export function LensViewListPage() {
   );
 
   const createDataset = useCallback(() => {
-    navigate(
-      `/organizations/${orgId}/views/${`${UNPERSISTED_ID_PREFIX}${uuidv4()}`}`,
-      { state: { parentId: folderId } },
-    );
+    navigate(`/organizations/${orgId}/datasets/new`);
   }, [folderId, navigate, orgId]);
 
   const createFolder = useCallback(() => {

@@ -142,6 +142,10 @@ export function LensVizHub() {
     );
   }, [navigate, orgId]);
 
+  const createDashboard = useCallback(() => {
+    navigate(`/organizations/${orgId}/dashboards/new`);
+  }, [navigate, orgId]);
+
   const createResource = useCallback(
     (type: VizType) => {
       addViz({
@@ -335,7 +339,7 @@ export function LensVizHub() {
             type="primary"
             icon={<PlusOutlined />}
             disabled={!canCreate({})}
-            onClick={() => createResource('DASHBOARD')}
+            onClick={createDashboard}
           >
             新建仪表板
           </Button>

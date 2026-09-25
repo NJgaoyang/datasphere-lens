@@ -31,8 +31,6 @@ import {
 import { selectLoggedInUser } from 'app/slice/selectors';
 import { logout } from 'app/slice/thunks';
 import { BASE_RESOURCE_URL } from 'globalConstants';
-import { uuidv4 } from 'utils/utils';
-import { UNPERSISTED_ID_PREFIX } from './pages/ViewPage/constants';
 import React, { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -228,11 +226,9 @@ export function LensLayout({
       { key: 'dashboard', label: '新建仪表板', icon: <AreaChartOutlined /> },
     ],
     onClick: ({ key }) => {
-      if (key === 'source') navigate(`/organizations/${orgId}/sources/add`);
+      if (key === 'source') navigate(`/organizations/${orgId}/sources/new`);
       if (key === 'dataset') {
-        navigate(
-          `/organizations/${orgId}/views/${UNPERSISTED_ID_PREFIX}${uuidv4()}`,
-        );
+        navigate(`/organizations/${orgId}/datasets/new`);
       }
       if (key === 'chart') {
         navigate(
@@ -240,7 +236,7 @@ export function LensLayout({
         );
       }
       if (key === 'dashboard') {
-        navigate(`/organizations/${orgId}/dashboards?create=dashboard`);
+        navigate(`/organizations/${orgId}/dashboards/new`);
       }
     },
   };

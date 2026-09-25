@@ -66,7 +66,6 @@ import {
   errorHandle,
   getInsertedNodeIndex,
   getPath,
-  uuidv4,
 } from 'utils/utils';
 import {
   selectDataProviderConfigTemplateLoading,
@@ -75,7 +74,6 @@ import {
   selectOrgId,
 } from '../../../slice/selectors';
 import { getDataProviderConfigTemplate } from '../../../slice/thunks';
-import { UNPERSISTED_ID_PREFIX } from '../../ViewPage/constants';
 import { useViewSlice } from '../../ViewPage/slice';
 import { QueryResult } from '../../ViewPage/slice/types';
 import { SaveFormContext } from '../SaveFormContext';
@@ -131,7 +129,7 @@ export function SourceDetailPage() {
   const t = useI18NPrefix('source');
   const tg = useI18NPrefix('global');
   const isArchived = editingSource?.status === 0;
-  const allowCreate = sourceId === 'add';
+  const allowCreate = sourceId === 'add' || sourceId === 'new';
   const path = useMemo(
     () =>
       sourceData
@@ -165,7 +163,7 @@ export function SourceDetailPage() {
 
   useEffect(() => {
     resetForm();
-    if (sourceId === 'add') {
+    if (sourceId === 'add' || sourceId === 'new') {
       setFormType(CommonFormTypes.Add);
     } else {
       setFormType(CommonFormTypes.Edit);
@@ -417,12 +415,7 @@ export function SourceDetailPage() {
 
   const addNewView = useCallback(() => {
     navigate(
-      `/organizations/${orgId}/views/${`${UNPERSISTED_ID_PREFIX}${uuidv4()}`}`,
-      {
-        state: {
-          sourcesId: editingSource?.id,
-        },
-      },
+      `/organizations/${orgId}/datasets/new?sourceId=${editingSource?.id || ''}`,
     );
   }, [navigate, orgId, editingSource]);
 
