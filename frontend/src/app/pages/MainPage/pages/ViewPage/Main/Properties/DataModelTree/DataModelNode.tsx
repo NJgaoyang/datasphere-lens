@@ -26,7 +26,7 @@ import {
   NumberOutlined,
   SisternodeOutlined,
 } from '@ant-design/icons';
-import { Button, Tooltip } from 'antd';
+import { Button, Tag, Tooltip } from 'antd';
 import { IW } from 'app/components';
 import { DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -48,6 +48,7 @@ import {
 import SetFieldType from '../../../components/SetFieldType';
 import { Column, ColumnRole } from '../../../slice/types';
 import { ALLOW_COMBINE_COLUMN_TYPES } from './constant';
+import { getFieldSemanticLabel, getFieldSemanticRole, getFieldTypeLabel } from './fieldSemantics';
 const DataModelNode: FC<{
   node: Column;
   className?: string;
@@ -57,6 +58,7 @@ const DataModelNode: FC<{
   onCreateHierarchy?: (node: Column) => void;
   onDeleteFromHierarchy?: (node: Column) => void;
   onEditDisplayName?: (node: Column) => void;
+  dragDisabled?: boolean;
 }> = memo(
   ({
     node,
@@ -67,6 +69,7 @@ const DataModelNode: FC<{
     onNodeTypeChange,
     onDeleteFromHierarchy,
     onEditDisplayName,
+    dragDisabled = false,
   }) => {
     const t = useI18NPrefix('view.model');
     const [isHover, setIsHover] = useState(false);
@@ -120,7 +123,16 @@ const DataModelNode: FC<{
             hasCategory={hasCategory}
             icon={<StyledIW fontSize={FONT_SIZE_TITLE}>{icon}</StyledIW>}
           />
-          <span>{getFieldDisplayName(node)}</span>
+          <FieldName title={node.name}>{getFieldDisplayName(node)}</FieldName>
+          <FieldMeta>
+            <Tag
+              bordered={false}
+              color={getFieldSemanticRole(node) === 'measure' ? 'blue' : undefined}
+            >
+              {getFieldSemanticLabel(node)}
+            </Tag>
+            <TypeLabel>{getFieldTypeLabel(node)}</TypeLabel>
+          </FieldMeta>
           <div className="action">
             {isHover && !isDragging && onEditDisplayName && (
               <Tooltip title={t('setDisplayName')}>
@@ -171,6 +183,7 @@ const DataModelNode: FC<{
         key={node?.name}
         draggableId={node?.name}
         index={node?.index ?? 0}
+        isDragDisabled={dragDisabled}
       >
         {(draggableProvided, draggableSnapshot) => (
           <StyledDataModelNode
@@ -225,4 +238,31 @@ const StyledIW = styled(IW)`
   cursor: pointer;
   border: 1px solid ${p => p.theme.borderColorSplit};
   border-radius: 4px;
+`;
+
+const FieldName = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const FieldMeta = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  align-items: center;
+  margin-left: 6px;
+
+  .ant-tag {
+    padding-inline: 4px;
+    margin-inline-end: 0;
+    font-size: 10px;
+    line-height: 18px;
+  }
+`;
+
+const TypeLabel = styled.span`
+  font-size: 10px;
+  color: ${p => p.theme.textColorDisabled};
 `;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Form, Input, message, Select, theme } from 'antd';
+import { Form, Input, message, Select, Space, Tag, theme } from 'antd';
 import { DataViewFieldType, DateFormat } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useStateModal, { StateModalSize } from 'app/hooks/useStateModal';
@@ -28,6 +28,7 @@ import { updateBy, updateByKey } from 'app/utils/mutation';
 import { FC, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
 import { Nullable } from 'types';
 import { CloneValueDeep, isEmpty, isEmptyArray } from 'utils/object';
 import { request2 } from 'utils/request';
@@ -64,6 +65,7 @@ import {
 import DataModelBranch from './DataModelBranch';
 import DataModelComputerFieldNode from './DataModelComputerFieldNode';
 import DataModelNode from './DataModelNode';
+import { getFieldSemanticRole } from './fieldSemantics';
 import { toModel } from './utils';
 
 const DataModelTree: FC = memo(() => {
@@ -94,6 +96,7 @@ const DataModelTree: FC = memo(() => {
   const [computedFields, setComputedFields] = useState<ChartDataViewMeta[]>();
   const [fields, setFields] = useState<ChartDataViewMeta[]>();
   const [viewType, setViewType] = useState<ViewType>('SQL');
+  const [fieldKeyword, setFieldKeyword] = useState('');
 
   useEffect(() => {
     setViewType(type);
@@ -870,12 +873,64 @@ const DataModelTree: FC = memo(() => {
     return [...hierarchyColumn, ...columnTreeData];
   }, []);
 
+  const modelColumns = useMemo(
+    () => GroupTableColumn(tableColumns, viewType),
+    [GroupTableColumn, tableColumns, viewType],
+  );
+  const leafColumns = useMemo(
+    () =>
+      tableColumns.flatMap(column =>
+        column.children?.length ? column.children : [column],
+      ),
+    [tableColumns],
+  );
+  const semanticStats = useMemo(
+    () => ({
+      dimensions: leafColumns.filter(col => getFieldSemanticRole(col) === 'dimension').length,
+      measures: leafColumns.filter(col => getFieldSemanticRole(col) === 'measure').length,
+      unknown: leafColumns.filter(col => getFieldSemanticRole(col) === 'unknown').length,
+    }),
+    [leafColumns],
+  );
+  const visibleModelColumns = useMemo(() => {
+    const keyword = fieldKeyword.trim().toLowerCase();
+    if (!keyword) return modelColumns;
+    return modelColumns.reduce((result: Column[], column) => {
+      const columnName = getFieldDisplayName(column).toLowerCase();
+      const children = column.children?.filter(child =>
+        `${getFieldDisplayName(child)} ${child.name}`.toLowerCase().includes(keyword),
+      );
+      if (columnName.includes(keyword)) {
+        result.push(column);
+      } else if (children?.length) {
+        result.push({ ...column, children });
+      }
+      return result;
+    }, []);
+  }, [fieldKeyword, modelColumns]);
+
   return (
     <Container
       title="model"
       add={titleAdd}
       loading={stage === ViewViewModelStages.Running}
     >
+      <FieldModelToolbar>
+        <Input.Search
+          allowClear
+          size="small"
+          value={fieldKeyword}
+          placeholder="搜索字段名称"
+          onChange={event => setFieldKeyword(event.target.value)}
+        />
+        <Space size={4} wrap>
+          <Tag bordered={false}>{`维度 ${semanticStats.dimensions}`}</Tag>
+          <Tag bordered={false} color="blue">{`度量 ${semanticStats.measures}`}</Tag>
+          {semanticStats.unknown > 0 && (
+            <Tag bordered={false} color="warning">{`待确认 ${semanticStats.unknown}`}</Tag>
+          )}
+        </Space>
+      </FieldModelToolbar>
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable
           droppableId={ROOT_CONTAINER_ID}
@@ -887,7 +942,7 @@ const DataModelTree: FC = memo(() => {
               ref={droppableProvided.innerRef}
               style={{ overflow: 'auto', userSelect: 'none', background: droppableSnapshot.isDraggingOver ? token.colorFillTertiary : undefined }}
             >
-              {GroupTableColumn(tableColumns, viewType).map(col => {
+              {visibleModelColumns.map(col => {
                 return col.role === ColumnRole.Hierarchy ||
                   col.role === ColumnRole.Table ? (
                   <DataModelBranch
@@ -900,6 +955,7 @@ const DataModelTree: FC = memo(() => {
                     onDeleteFromHierarchy={handleDeleteFromBranch}
                     onCreateHierarchy={openCreateHierarchyModal}
                     onEditDisplayName={openEditDisplayNameModal}
+                    dragDisabled={Boolean(fieldKeyword)}
                   />
                 ) : (
                   <DataModelNode
@@ -909,6 +965,7 @@ const DataModelTree: FC = memo(() => {
                     onNodeTypeChange={handleNodeTypeChange}
                     onMoveToHierarchy={openMoveToHierarchyModal}
                     onEditDisplayName={openEditDisplayNameModal}
+                    dragDisabled={Boolean(fieldKeyword)}
                   />
                 );
               })}
@@ -917,7 +974,7 @@ const DataModelTree: FC = memo(() => {
           )}
         </Droppable>
       </DragDropContext>
-      {computedFields?.map((v, i) => {
+      {computedFields?.filter(v => !fieldKeyword || `${v.displayName || ''} ${v.name}`.toLowerCase().includes(fieldKeyword.toLowerCase())).map((v, i) => {
         return (
           <DataModelComputerFieldNode
             key={i}
@@ -934,3 +991,15 @@ const DataModelTree: FC = memo(() => {
 
 export default DataModelTree;
 
+const FieldModelToolbar = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  .ant-tag {
+    margin-inline-end: 0;
+    font-size: 10px;
+  }
+`;

@@ -51,6 +51,7 @@ const DataModelBranch: FC<{
   onDeleteFromHierarchy: (parent: Column) => (node: Column) => void;
   onCreateHierarchy?: (node: Column) => void;
   onEditDisplayName?: (node: Column) => void;
+  dragDisabled?: boolean;
 }> = memo(
   ({
     node,
@@ -61,6 +62,7 @@ const DataModelBranch: FC<{
     onDeleteFromHierarchy,
     onCreateHierarchy,
     onEditDisplayName,
+    dragDisabled = false,
   }) => {
     const t = useI18NPrefix('view.model');
     const [isHover, setIsHover] = useState(false);
@@ -127,6 +129,7 @@ const DataModelBranch: FC<{
                     : undefined
                 }
                 onEditDisplayName={onEditDisplayName}
+                dragDisabled={dragDisabled}
               />
             ))}
           </div>
