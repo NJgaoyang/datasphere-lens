@@ -47,7 +47,39 @@ const schema = (
       allowSameField: true,
     },
   ],
-  styles: [],
+  styles: [
+    {
+      label: '基础样式',
+      key: 'v2Basic',
+      comType: 'group',
+      rows: [
+        {
+          label: '显示数据标签',
+          key: 'showLabel',
+          default: true,
+          comType: 'switch',
+        },
+        {
+          label: '显示 Tooltip',
+          key: 'showTooltip',
+          default: true,
+          comType: 'switch',
+        },
+        {
+          label: '启用动画',
+          key: 'animation',
+          default: true,
+          comType: 'switch',
+        },
+        {
+          label: '允许缩放/拖拽',
+          key: 'roam',
+          default: true,
+          comType: 'switch',
+        },
+      ],
+    },
+  ],
   settings: [],
   interactions: [],
 });
