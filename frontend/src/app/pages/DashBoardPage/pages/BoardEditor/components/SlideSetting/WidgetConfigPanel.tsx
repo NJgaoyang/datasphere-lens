@@ -3,7 +3,7 @@
  *
  * Copyright 2021
  */
-import { Collapse } from 'antd';
+import { Collapse, Empty, Input } from 'antd';
 import { ItemLayout } from 'app/components/FormGenerator';
 import { FormGroupLayoutMode } from 'app/components/FormGenerator/constants';
 import GroupLayout from 'app/components/FormGenerator/Layout/GroupLayout';
@@ -15,8 +15,9 @@ import {
   countConfigLeaves,
   getDefaultExpandedConfigKeys,
   getVisibleConfigItems,
+  matchesConfigQuery,
 } from 'app/visualization/config/configPanelUtils';
-import { FC, memo, useContext, useMemo } from 'react';
+import { FC, memo, useContext, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import widgetManagerInstance from '../../../../components/WidgetManager';
 
@@ -73,7 +74,14 @@ export const BoardConfigCollapse: FC<{
   ) => void;
 }> = memo(({ configs, dataConfigs, context, onChange }) => {
   const t = useI18NPrefix();
-  const visible = useMemo(() => getVisibleConfigItems(configs), [configs]);
+  const [searchValue, setSearchValue] = useState('');
+  const visible = useMemo(
+    () =>
+      getVisibleConfigItems(configs).filter(config =>
+        matchesConfigQuery(config, searchValue, label => t(label || '', true)),
+      ),
+    [configs, searchValue, t],
+  );
   const defaultKeys = useMemo(
     () => getDefaultExpandedConfigKeys(configs),
     [configs],
@@ -82,6 +90,15 @@ export const BoardConfigCollapse: FC<{
   const groups = visible.filter(item => item.comType === 'group');
   return (
     <ConfigShell>
+      <ConfigSearch>
+        <Input.Search
+          allowClear
+          size="small"
+          value={searchValue}
+          placeholder="搜索组件配置"
+          onChange={event => setSearchValue(event.target.value)}
+        />
+      </ConfigSearch>
       {standalone.length > 0 && (
         <QuickSettings>
           <SectionTitle>常用设置</SectionTitle>
@@ -98,10 +115,14 @@ export const BoardConfigCollapse: FC<{
           ))}
         </QuickSettings>
       )}
+      {visible.length === 0 && (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有匹配的配置项" />
+      )}
       <StyledCollapse
+        key={searchValue || 'default'}
         ghost
         expandIconPosition="end"
-        defaultActiveKey={defaultKeys}
+        defaultActiveKey={searchValue ? groups.map(group => group.key) : defaultKeys}
       >
         {groups.map(item => {
           const index = configs.findIndex(config => config === item);
@@ -182,4 +203,13 @@ const GroupText = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+`;
+
+const ConfigSearch = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 0;
+  background: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;

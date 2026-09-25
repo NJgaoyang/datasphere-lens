@@ -18,3 +18,18 @@ export const getDefaultExpandedConfigKeys = (
     .filter(item => item.comType === 'group')
     .slice(0, limit)
     .map(item => item.key);
+
+export const matchesConfigQuery = (
+  config: ChartStyleConfig,
+  query: string,
+  resolveLabel: (label?: string) => string = label => label || '',
+): boolean => {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return true;
+  const ownText = `${config.key || ''} ${resolveLabel(config.label)}`.toLowerCase();
+  if (ownText.includes(normalized)) return true;
+  if (config.comType !== 'group') return false;
+  return (config.rows || []).some(row =>
+    matchesConfigQuery(row, normalized, resolveLabel),
+  );
+};

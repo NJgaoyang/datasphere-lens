@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Collapse } from 'antd';
+import { Collapse, Empty, Input } from 'antd';
 import { ItemLayout } from 'app/components/FormGenerator';
 import { FormGroupLayoutMode } from 'app/components/FormGenerator/constants';
 import GroupLayout from 'app/components/FormGenerator/Layout/GroupLayout';
@@ -26,8 +26,9 @@ import {
   countConfigLeaves,
   getDefaultExpandedConfigKeys,
   getVisibleConfigItems,
+  matchesConfigQuery,
 } from 'app/visualization/config/configPanelUtils';
-import { FC, memo, useMemo } from 'react';
+import { FC, memo, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 
@@ -58,9 +59,13 @@ const ChartStyleConfigPanel: FC<{
 }> = memo(
   ({ configs, dataConfigs, i18nPrefix, context, onChange }) => {
     const t = useI18NPrefix(i18nPrefix);
+    const [searchValue, setSearchValue] = useState('');
     const visibleConfigs = useMemo(
-      () => getVisibleConfigItems(configs),
-      [configs],
+      () =>
+        getVisibleConfigItems(configs).filter(config =>
+          matchesConfigQuery(config, searchValue, label => t(label || '', true)),
+        ),
+      [configs, searchValue, t],
     );
     const defaultActiveKeys = useMemo(
       () => getDefaultExpandedConfigKeys(configs),
@@ -71,6 +76,15 @@ const ChartStyleConfigPanel: FC<{
 
     return (
       <ConfigPanelShell>
+        <ConfigSearch>
+          <Input.Search
+            allowClear
+            size="small"
+            value={searchValue}
+            placeholder="搜索配置项"
+            onChange={event => setSearchValue(event.target.value)}
+          />
+        </ConfigSearch>
         {standaloneConfigs.length > 0 && (
           <QuickSettings>
             <QuickSettingsTitle>常用设置</QuickSettingsTitle>
@@ -90,11 +104,17 @@ const ChartStyleConfigPanel: FC<{
             })}
           </QuickSettings>
         )}
+        {visibleConfigs.length === 0 && (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有匹配的配置项" />
+        )}
         <StyledCollapse
+          key={searchValue || 'default'}
           className="datart-config-panel"
           ghost
           expandIconPosition="end"
-          defaultActiveKey={defaultActiveKeys}
+          defaultActiveKey={
+            searchValue ? groupConfigs.map(config => config.key) : defaultActiveKeys
+          }
         >
         {groupConfigs.map(c => {
             const index = configs?.findIndex(item => item === c) ?? -1;
@@ -200,4 +220,13 @@ const GroupHeaderText = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+`;
+
+const ConfigSearch = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 0;
+  background: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;

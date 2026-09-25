@@ -2,6 +2,7 @@ import {
   countConfigLeaves,
   getDefaultExpandedConfigKeys,
   getVisibleConfigItems,
+  matchesConfigQuery,
 } from '../config/configPanelUtils';
 
 describe('config panel utils', () => {
@@ -40,5 +41,20 @@ describe('config panel utils', () => {
 
   it('opens the first two visible groups by default', () => {
     expect(getDefaultExpandedConfigKeys(configs)).toEqual(['basic', 'axis']);
+  });
+
+  it('matches group labels, keys and nested settings', () => {
+    expect(matchesConfigQuery(configs[0], '基础')).toBe(true);
+    expect(matchesConfigQuery(configs[0], 'tooltip')).toBe(true);
+    expect(matchesConfigQuery(configs[1], 'tooltip')).toBe(false);
+  });
+
+  it('supports translated labels when searching', () => {
+    const config = { key: 'legend', label: 'legend.label', comType: 'group', rows: [] } as any;
+    expect(
+      matchesConfigQuery(config, '图例', label =>
+        label === 'legend.label' ? '图例设置' : label || '',
+      ),
+    ).toBe(true);
   });
 });
