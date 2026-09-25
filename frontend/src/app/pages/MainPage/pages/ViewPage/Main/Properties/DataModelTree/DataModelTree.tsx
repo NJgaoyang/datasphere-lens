@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Form, Input, message, Select, Space, Tag, theme } from 'antd';
+import { Form, Input, message, Segmented, Select, Space, Tag, theme } from 'antd';
 import { DataViewFieldType, DateFormat } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useStateModal, { StateModalSize } from 'app/hooks/useStateModal';
@@ -65,7 +65,11 @@ import {
 import DataModelBranch from './DataModelBranch';
 import DataModelComputerFieldNode from './DataModelComputerFieldNode';
 import DataModelNode from './DataModelNode';
-import { getFieldSemanticRole } from './fieldSemantics';
+import {
+  FieldSemanticFilter,
+  filterColumnsBySemanticRole,
+  getFieldSemanticRole,
+} from './fieldSemantics';
 import { toModel } from './utils';
 
 const DataModelTree: FC = memo(() => {
@@ -97,6 +101,7 @@ const DataModelTree: FC = memo(() => {
   const [fields, setFields] = useState<ChartDataViewMeta[]>();
   const [viewType, setViewType] = useState<ViewType>('SQL');
   const [fieldKeyword, setFieldKeyword] = useState('');
+  const [semanticFilter, setSemanticFilter] = useState<FieldSemanticFilter>('all');
 
   useEffect(() => {
     setViewType(type);
@@ -892,10 +897,14 @@ const DataModelTree: FC = memo(() => {
     }),
     [leafColumns],
   );
+  const semanticFilteredModelColumns = useMemo(
+    () => filterColumnsBySemanticRole(modelColumns, semanticFilter),
+    [modelColumns, semanticFilter],
+  );
   const visibleModelColumns = useMemo(() => {
     const keyword = fieldKeyword.trim().toLowerCase();
-    if (!keyword) return modelColumns;
-    return modelColumns.reduce((result: Column[], column) => {
+    if (!keyword) return semanticFilteredModelColumns;
+    return semanticFilteredModelColumns.reduce((result: Column[], column) => {
       const columnName = getFieldDisplayName(column).toLowerCase();
       const children = column.children?.filter(child =>
         `${getFieldDisplayName(child)} ${child.name}`.toLowerCase().includes(keyword),
@@ -907,7 +916,7 @@ const DataModelTree: FC = memo(() => {
       }
       return result;
     }, []);
-  }, [fieldKeyword, modelColumns]);
+  }, [fieldKeyword, semanticFilteredModelColumns]);
 
   return (
     <Container
@@ -923,13 +932,20 @@ const DataModelTree: FC = memo(() => {
           placeholder="搜索字段名称"
           onChange={event => setFieldKeyword(event.target.value)}
         />
-        <Space size={4} wrap>
-          <Tag bordered={false}>{`维度 ${semanticStats.dimensions}`}</Tag>
-          <Tag bordered={false} color="blue">{`度量 ${semanticStats.measures}`}</Tag>
-          {semanticStats.unknown > 0 && (
-            <Tag bordered={false} color="warning">{`待确认 ${semanticStats.unknown}`}</Tag>
-          )}
-        </Space>
+        <Segmented
+          block
+          size="small"
+          value={semanticFilter}
+          onChange={value => setSemanticFilter(value as FieldSemanticFilter)}
+          options={[
+            { label: `全部 ${leafColumns.length}`, value: 'all' },
+            { label: `维度 ${semanticStats.dimensions}`, value: 'dimension' },
+            { label: `度量 ${semanticStats.measures}`, value: 'measure' },
+            ...(semanticStats.unknown > 0
+              ? [{ label: `待确认 ${semanticStats.unknown}`, value: 'unknown' }]
+              : []),
+          ]}
+        />
       </FieldModelToolbar>
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable
@@ -974,7 +990,10 @@ const DataModelTree: FC = memo(() => {
           )}
         </Droppable>
       </DragDropContext>
-      {computedFields?.filter(v => !fieldKeyword || `${v.displayName || ''} ${v.name}`.toLowerCase().includes(fieldKeyword.toLowerCase())).map((v, i) => {
+      {computedFields?.filter(v =>
+        (semanticFilter === 'all' || getFieldSemanticRole(v as any) === semanticFilter) &&
+        (!fieldKeyword || `${v.displayName || ''} ${v.name}`.toLowerCase().includes(fieldKeyword.toLowerCase())),
+      ).map((v, i) => {
         return (
           <DataModelComputerFieldNode
             key={i}

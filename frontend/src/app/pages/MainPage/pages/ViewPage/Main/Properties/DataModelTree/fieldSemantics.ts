@@ -34,3 +34,21 @@ export const getFieldTypeLabel = (field: Pick<Column, 'type'>) => {
       return '未知';
   }
 };
+
+export type FieldSemanticFilter = 'all' | FieldSemanticRole;
+
+export const filterColumnsBySemanticRole = (
+  columns: Column[],
+  filter: FieldSemanticFilter,
+): Column[] => {
+  if (filter === 'all') return columns;
+  return columns.reduce<Column[]>((result, column) => {
+    if (column.children?.length) {
+      const children = filterColumnsBySemanticRole(column.children, filter);
+      if (children.length) result.push({ ...column, children });
+      return result;
+    }
+    if (getFieldSemanticRole(column) === filter) result.push(column);
+    return result;
+  }, []);
+};
