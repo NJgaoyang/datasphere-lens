@@ -1,29 +1,27 @@
 import {
-  AppstoreOutlined,
   BarChartOutlined,
   DashboardOutlined,
   FolderAddOutlined,
-  FolderOpenOutlined,
   FolderOutlined,
   PlusOutlined,
   SearchOutlined,
+  DeleteOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import {
   Button,
   Card,
-  Col,
   Dropdown,
   Empty,
   Input,
-  Row,
+  message,
+  Popconfirm,
   Segmented,
-  Skeleton,
   Space,
-  Statistic,
+  Table,
   Tag,
   Typography,
-  theme,
 } from 'antd';
 import { useAccess } from 'app/pages/MainPage/Access';
 import { selectOrgId } from 'app/pages/MainPage/slice/selectors';
@@ -42,10 +40,10 @@ import { PermissionLevels, ResourceTypes } from '../PermissionPage/constants';
 import { useAddViz } from './hooks/useAddViz';
 import { SaveFormContext } from './SaveFormContext';
 import { selectVizListLoading, selectVizs } from './slice/selectors';
-import { getFolders } from './slice/thunks';
+import { deleteViz, getFolders } from './slice/thunks';
 import { FolderViewModel, VizType } from './slice/types';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 type AssetFilter = 'ALL' | 'DATACHART' | 'DASHBOARD' | 'FOLDER';
 
@@ -63,7 +61,6 @@ export function LensVizHub() {
   const orgId = useSelector(selectOrgId);
   const vizs = useSelector(selectVizs);
   const loading = useSelector(selectVizListLoading);
-  const { token } = theme.useToken();
   const { showSaveForm } = useContext(SaveFormContext);
   const addViz = useAddViz({ showSaveForm });
   const routeFilter: AssetFilter | null = location.pathname.endsWith('/charts')
@@ -91,18 +88,6 @@ export function LensVizHub() {
         : vizs.filter(item => item.parentId === folderId),
     [folderId, routeFilter, vizs],
   );
-  const chartCount = useMemo(
-    () => vizs.filter(item => item.relType === 'DATACHART').length,
-    [vizs],
-  );
-  const dashboardCount = useMemo(
-    () => vizs.filter(item => item.relType === 'DASHBOARD').length,
-    [vizs],
-  );
-  const folderCount = useMemo(
-    () => vizs.filter(item => item.relType === 'FOLDER').length,
-    [vizs],
-  );
   const currentFolder = useMemo(
     () => vizs.find(item => item.id === folderId),
     [folderId, vizs],
@@ -124,7 +109,8 @@ export function LensVizHub() {
         setFolderId(item.id);
         return;
       }
-      navigate(`/organizations/${orgId}/vizs/${item.relId}`);
+      const prefix = item.relType === 'DATACHART' ? 'charts' : 'dashboards';
+      navigate(`/organizations/${orgId}/${prefix}/${item.relId}`);
     },
     [navigate, orgId],
   );
@@ -144,12 +130,45 @@ export function LensVizHub() {
         initialValues: { parentId: folderId },
         callback: resource => {
           if (type === 'DASHBOARD' && resource?.relId) {
-            navigate(`/organizations/${orgId}/vizs/${resource.relId}/boardEditor`);
+            navigate(`/organizations/${orgId}/dashboards/${resource.relId}/boardEditor`);
           }
         },
       });
     },
     [addViz, folderId, navigate, orgId],
+  );
+
+  const editAsset = useCallback(
+    (item: FolderViewModel) => {
+      if (item.relType === 'DATACHART') {
+        navigate(
+          `/organizations/${orgId}/charts/new?dataChartId=${item.relId}&chartType=dataChart&container=dataChart`,
+        );
+        return;
+      }
+      if (item.relType === 'DASHBOARD') {
+        navigate(`/organizations/${orgId}/dashboards/${item.relId}/boardEditor`);
+        return;
+      }
+      setFolderId(item.id);
+    },
+    [navigate, orgId],
+  );
+
+  const archiveAsset = useCallback(
+    (item: FolderViewModel) => {
+      const archive = ['DATACHART', 'DASHBOARD'].includes(item.relType);
+      const id = archive ? item.relId : item.id;
+      dispatch(
+        deleteViz({
+          params: { id, archive },
+          type: item.relType,
+          resolve: () =>
+            message.success(archive ? '已移入回收站' : '文件夹已删除'),
+        }),
+      );
+    },
+    [dispatch],
   );
 
   useEffect(() => {
@@ -192,11 +211,7 @@ export function LensVizHub() {
     },
   };
 
-  const statisticCards = [
-    { title: '图表', value: chartCount, icon: <BarChartOutlined />, color: token.colorPrimary },
-    { title: '仪表板', value: dashboardCount, icon: <DashboardOutlined />, color: token.colorInfo },
-    { title: '文件夹', value: folderCount, icon: <FolderOutlined />, color: token.colorWarning },
-  ];
+
 
   return (
     <PageContainer
@@ -205,11 +220,23 @@ export function LensVizHub() {
       style={{ flex: 1, overflow: 'auto' }}
       extra={[
         routeFilter === 'DATACHART' ? (
-          <Button key="create-chart" type="primary" icon={<PlusOutlined />} disabled={!canCreate({})} onClick={createChart}>
+          <Button
+            key="create-chart"
+            type="primary"
+            icon={<PlusOutlined />}
+            disabled={!canCreate({})}
+            onClick={createChart}
+          >
             新建图表
           </Button>
         ) : routeFilter === 'DASHBOARD' ? (
-          <Button key="create-dashboard" type="primary" icon={<PlusOutlined />} disabled={!canCreate({})} onClick={() => createResource('DASHBOARD')}>
+          <Button
+            key="create-dashboard"
+            type="primary"
+            icon={<PlusOutlined />}
+            disabled={!canCreate({})}
+            onClick={() => createResource('DASHBOARD')}
+          >
             新建仪表板
           </Button>
         ) : (
@@ -221,54 +248,17 @@ export function LensVizHub() {
         ),
       ]}
     >
-      {!routeFilter && (
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          {statisticCards.map(item => (
-          <Col xs={24} md={8} key={item.title}>
-            <Card>
-              <Space size={14} align="center">
-                <div
-                  style={{
-                    display: 'grid',
-                    width: 42,
-                    height: 42,
-                    placeItems: 'center',
-                    fontSize: 18,
-                    color: item.color,
-                    background: token.colorFillAlter,
-                    borderRadius: token.borderRadiusLG,
-                  }}
-                >
-                  {item.icon}
-                </div>
-                <Statistic title={item.title} value={item.value} />
-              </Space>
-            </Card>
-          </Col>
-          ))}
-        </Row>
-      )}
-
-      <Card
-        title={
-          <Space size={4}>
-            <Button type="link" style={{ paddingInline: 0 }} onClick={() => setFolderId(null)}>
-              {routeFilter === 'DATACHART'
-                ? '全部图表'
-                : routeFilter === 'DASHBOARD'
-                  ? '全部仪表板'
-                  : '全部资产'}
-            </Button>
-            {currentFolder && (
-              <>
-                <Text type="secondary">/</Text>
-                <Text strong>{currentFolder.name}</Text>
-              </>
-            )}
-          </Space>
-        }
-        extra={
-          <Space wrap>
+      <Card size="small">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            marginBottom: 12,
+          }}
+        >
+          <Space size={8}>
             {!routeFilter && (
               <Segmented
                 value={filter}
@@ -281,86 +271,161 @@ export function LensVizHub() {
                 ]}
               />
             )}
-            <Input
-              allowClear
-              value={keyword}
-              onChange={event => setKeyword(event.target.value)}
-              prefix={<SearchOutlined />}
-              placeholder={routeFilter === 'DATACHART' ? '搜索图表' : routeFilter === 'DASHBOARD' ? '搜索仪表板' : '搜索分析资产'}
-              style={{ width: 240 }}
-            />
+            {currentFolder && (
+              <Button type="link" size="small" onClick={() => setFolderId(null)}>
+                返回全部资产
+              </Button>
+            )}
           </Space>
-        }
-      >
-        {loading ? (
-          <Skeleton active paragraph={{ rows: 6 }} />
-        ) : filtered.length ? (
-          <Row gutter={[16, 16]}>
-            {filtered.map(item => {
-              const meta = typeMeta[item.relType] || {
-                label: item.relType,
-                icon: <AppstoreOutlined />,
-              };
-              return (
-                <Col xs={24} sm={12} xl={8} xxl={6} key={item.id}>
-                  <Card
-                    hoverable
-                    onClick={() => openAsset(item)}
-                    styles={{ body: { padding: 16 } }}
+          <Input
+            allowClear
+            value={keyword}
+            onChange={event => setKeyword(event.target.value)}
+            prefix={<SearchOutlined />}
+            placeholder={
+              routeFilter === 'DATACHART'
+                ? '搜索图表'
+                : routeFilter === 'DASHBOARD'
+                  ? '搜索仪表板'
+                  : '搜索分析资产'
+            }
+            style={{ width: 300 }}
+          />
+        </div>
+
+        <Table<FolderViewModel>
+          rowKey="id"
+          size="middle"
+          loading={loading}
+          dataSource={filtered}
+          pagination={{ pageSize: 12, showSizeChanger: false }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  keyword
+                    ? `没有匹配的${pageTitle}`
+                    : routeFilter
+                      ? `还没有${pageTitle}`
+                      : '当前目录还没有分析资产'
+                }
+              >
+                {canCreate({}) &&
+                  (routeFilter === 'DASHBOARD' ? (
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => createResource('DASHBOARD')}
+                    >
+                      创建第一个仪表板
+                    </Button>
+                  ) : (
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={createChart}
+                    >
+                      创建第一个图表
+                    </Button>
+                  ))}
+              </Empty>
+            ),
+          }}
+          onRow={item => ({ onDoubleClick: () => openAsset(item) })}
+          columns={[
+            {
+              title: '名称',
+              dataIndex: 'name',
+              key: 'name',
+              width: '34%',
+              render: (_, item) => {
+                const meta = typeMeta[item.relType] || {
+                  label: item.relType,
+                  icon: <BarChartOutlined />,
+                };
+                return (
+                  <Space size={10}>
+                    <span style={{ color: '#1677ff' }}>{meta.icon}</span>
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ height: 'auto', padding: 0, fontWeight: 600 }}
+                      onClick={() => openAsset(item)}
+                    >
+                      {item.name}
+                    </Button>
+                  </Space>
+                );
+              },
+            },
+            {
+              title: '类型',
+              key: 'type',
+              width: 120,
+              render: (_, item) => (
+                <Tag bordered={false}>
+                  {typeMeta[item.relType]?.label || item.relType}
+                </Tag>
+              ),
+            },
+            {
+              title: '状态',
+              key: 'status',
+              width: 120,
+              render: (_, item) =>
+                item.relType === 'FOLDER' ? (
+                  <Text type="secondary">—</Text>
+                ) : item.status === 2 ? (
+                  <Tag color="success" bordered={false}>
+                    已发布
+                  </Tag>
+                ) : (
+                  <Tag bordered={false}>草稿</Tag>
+                ),
+            },
+            {
+              title: '更新时间',
+              key: 'updateTime',
+              render: (_, item) => (
+                <Text type="secondary">{item.updateTime || item.createTime || '—'}</Text>
+              ),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 220,
+              align: 'right',
+              render: (_, item) => (
+                <Space size={2}>
+                  <Button type="link" size="small" onClick={() => editAsset(item)}>
+                    {item.relType === 'FOLDER' ? '打开' : '编辑'}
+                  </Button>
+                  <Popconfirm
+                    title={
+                      item.relType === 'FOLDER'
+                        ? '确认删除该文件夹？'
+                        : `确认将该${typeMeta[item.relType]?.label || '资源'}移入回收站？`
+                    }
+                    onConfirm={() => archiveAsset(item)}
                   >
-                    <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                      <div
-                        style={{
-                          display: 'grid',
-                          height: 116,
-                          placeItems: 'center',
-                          fontSize: 32,
-                          color: token.colorPrimary,
-                          background: token.colorFillAlter,
-                          borderRadius: token.borderRadiusLG,
-                        }}
-                      >
-                        {meta.icon}
-                      </div>
-                      <Space size={8}>
-                        <Tag bordered={false}>{meta.label}</Tag>
-                        {item.relType === 'FOLDER' && <FolderOpenOutlined />}
-                      </Space>
-                      <div>
-                        <Title level={5} ellipsis style={{ margin: 0 }}>
-                          {item.name}
-                        </Title>
-                        <Text type="secondary">
-                          {item.relType === 'FOLDER'
-                            ? '打开文件夹查看分析资产'
-                            : item.relType === 'DATACHART'
-                              ? '数据集驱动的可视化分析'
-                              : '多图表组合分析看板'}
-                        </Text>
-                      </div>
-                    </Space>
-                  </Card>
-                </Col>
-              );
-            })}
-          </Row>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={keyword ? `没有匹配的${pageTitle}` : routeFilter ? `还没有${pageTitle}` : '当前目录还没有分析资产'}
-          >
-            {canCreate({}) && (routeFilter === 'DASHBOARD' ? (
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => createResource('DASHBOARD')}>
-                创建第一个仪表板
-              </Button>
-            ) : (
-              <Button type="primary" icon={<PlusOutlined />} onClick={createChart}>
-                创建第一个图表
-              </Button>
-            ))}
-          </Empty>
-        )}
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      loading={item.deleteLoading}
+                      icon={<DeleteOutlined />}
+                    >
+                      {item.relType === 'FOLDER' ? '删除' : '归档'}
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+        />
       </Card>
     </PageContainer>
   );
+
 }

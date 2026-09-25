@@ -28,12 +28,21 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const vizMatch = useMatch('/organizations/:orgId/vizs/:vizId');
+  const chartMatch = useMatch('/organizations/:orgId/charts/:vizId');
+  const dashboardMatch = useMatch('/organizations/:orgId/dashboards/:vizId');
   const boardEditorMatch = useMatch(
     '/organizations/:orgId/vizs/:vizId/boardEditor',
   );
-  const vizId = (boardEditorMatch?.params.vizId || vizMatch?.params.vizId) as
-    | string
-    | undefined;
+  const dashboardEditorMatch = useMatch(
+    '/organizations/:orgId/dashboards/:vizId/boardEditor',
+  );
+  const vizId = (
+    boardEditorMatch?.params.vizId ||
+    dashboardEditorMatch?.params.vizId ||
+    chartMatch?.params.vizId ||
+    dashboardMatch?.params.vizId ||
+    vizMatch?.params.vizId
+  ) as string | undefined;
   const location = useLocation();
   const vizs = useSelector(selectVizs);
   const storyboards = useSelector(selectStoryboards);
@@ -45,6 +54,19 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
   const orgId = useSelector(selectOrgId);
 
   const t = useI18NPrefix('viz.main');
+
+  const routeForTab = useCallback(
+    (tab: { id: string; type: string; search?: string }) => {
+      const prefix =
+        tab.type === 'DATACHART'
+          ? 'charts'
+          : tab.type === 'DASHBOARD'
+            ? 'dashboards'
+            : 'vizs';
+      return `/organizations/${orgId}/${prefix}/${tab.id}${tab.search || ''}`;
+    },
+    [orgId],
+  );
 
   useEffect(() => {
     if (vizId) {
@@ -107,20 +129,18 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
 
   useEffect(() => {
     if (selectedTab && !vizId) {
-      navigate(`/organizations/${orgId}/vizs/${selectedTab.id}`);
+      navigate(routeForTab(selectedTab));
     }
-  }, [navigate, selectedTab, orgId, vizId]);
+  }, [navigate, selectedTab, vizId, routeForTab]);
 
   const tabChange = useCallback(
     activeKey => {
       const activeTab = tabs.find(v => v.id === activeKey);
       if (activeTab) {
-        navigate(
-          `/organizations/${orgId}/vizs/${activeKey}${activeTab.search || ''}`,
-        );
+        navigate(routeForTab(activeTab));
       }
     },
-    [navigate, orgId, tabs],
+    [navigate, routeForTab, tabs],
   );
 
   const tabEdit = useCallback(
@@ -133,11 +153,7 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
               resolve: activeKey => {
                 const activeTab = tabs.find(v => v.id === activeKey);
                 if (activeTab) {
-                  navigate(
-                    `/organizations/${orgId}/vizs/${activeKey}${
-                      activeTab.search || ''
-                    }`,
-                  );
+                  navigate(routeForTab(activeTab));
                 } else {
                   navigate(`/organizations/${orgId}/vizs`);
                 }
@@ -149,7 +165,7 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
           break;
       }
     },
-    [dispatch, navigate, orgId, tabs],
+    [dispatch, navigate, orgId, routeForTab, tabs],
   );
 
   const handleClickMenu = (e: any, id: string) => {
@@ -170,11 +186,7 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
         resolve: activeKey => {
           const activeTab = tabs.find(v => v.id === activeKey);
           if (activeTab) {
-            navigate(
-              `/organizations/${orgId}/vizs/${activeKey}${
-                activeTab.search || ''
-              }`,
-            );
+            navigate(routeForTab(activeTab));
           } else {
             navigate(`/organizations/${orgId}/vizs`);
           }
@@ -237,7 +249,9 @@ export function Main({ sliderVisible }: { sliderVisible: boolean }) {
       )}
       {!tabs.length && <EmptyFiller title={t('empty')} />}
 
-      {boardEditorMatch && vizId && <BoardEditor boardId={vizId} />}
+      {(boardEditorMatch || dashboardEditorMatch) && vizId && (
+        <BoardEditor boardId={vizId} />
+      )}
     </Wrapper>
   );
 }

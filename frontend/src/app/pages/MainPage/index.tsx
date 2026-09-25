@@ -153,7 +153,7 @@ export function MainPage() {
           orgId,
         }),
       );
-      navigate(`/organizations/${orgId}/vizs/${backendChartId}`);
+      navigate(`/organizations/${orgId}/charts/${backendChartId}`);
     },
     [dispatch, navigate],
   );

@@ -15,7 +15,6 @@ import {
   Breadcrumb,
   Button,
   Card,
-  Col,
   Drawer,
   Dropdown,
   Empty,
@@ -23,9 +22,9 @@ import {
   List,
   message,
   Popconfirm,
-  Row,
   Segmented,
   Space,
+  Table,
   Tag,
   Typography,
 } from 'antd';
@@ -98,13 +97,6 @@ export function LensViewListPage() {
     dispatch(getViews(orgId));
     dispatch(getSources(orgId));
   }, [dispatch, orgId]);
-
-  const datasets = useMemo(() => views.filter(v => !v.isFolder), [views]);
-  const folders = useMemo(() => views.filter(v => v.isFolder), [views]);
-  const usedSourceCount = useMemo(
-    () => new Set(datasets.map(v => v.sourceId).filter(Boolean)).size,
-    [datasets],
-  );
 
   const sourceName = useCallback(
     (sourceId: string) =>
@@ -313,7 +305,7 @@ export function LensViewListPage() {
   return (
     <PageContainer
       title="数据集"
-      subTitle="统一管理表模型、SQL 数据集与关联模型"
+      subTitle="统一管理表模型、SQL 数据集与关联模型，作为图表的唯一数据入口"
       style={{ flex: 1, overflow: 'auto' }}
       extra={[
         <Button key="recycle" onClick={openRecycle}>
@@ -340,34 +332,7 @@ export function LensViewListPage() {
         </Dropdown.Button>,
       ]}
     >
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={8}>
-          <Card bordered={false}>
-            <Text type="secondary">数据集</Text>
-            <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>
-              {datasets.length}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false}>
-            <Text type="secondary">已使用数据源</Text>
-            <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>
-              {usedSourceCount}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false}>
-            <Text type="secondary">文件夹</Text>
-            <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>
-              {folders.length}
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card bordered={false}>
+      <Card size="small">
         <div
           style={{
             display: 'flex',
@@ -402,14 +367,14 @@ export function LensViewListPage() {
           <Input
             allowClear
             value={keyword}
-            onChange={e => setKeyword(e.target.value)}
+            onChange={event => setKeyword(event.target.value)}
             prefix={<SearchOutlined />}
             placeholder="搜索当前目录的数据集"
-            style={{ width: 340 }}
+            style={{ width: 320 }}
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 12 }}>
           <Segmented
             value={filter}
             onChange={value => setFilter(value as FilterType)}
@@ -421,115 +386,113 @@ export function LensViewListPage() {
           />
         </div>
 
-        <List
+        <Table<ViewSimpleViewModel>
+          rowKey="id"
+          size="middle"
           loading={loading}
-          grid={{ gutter: 16, xs: 1, sm: 2, lg: 3, xl: 4 }}
           dataSource={filtered}
+          pagination={{ pageSize: 12, showSizeChanger: false }}
           locale={{ emptyText: <Empty description="当前目录暂无数据集" /> }}
-          renderItem={view => {
-            const managePath = pathOf(view);
-            const source = view.isFolder ? '' : sourceName(view.sourceId);
-            return (
-              <List.Item>
-                <Card
-                  hoverable
-                  styles={{ body: { padding: 16 } }}
-                  onClick={() =>
-                    view.isFolder
-                      ? setFolderId(view.id)
-                      : navigate(`/organizations/${orgId}/views/${view.id}`)
-                  }
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 12,
-                    }}
+          onRow={view => ({
+            onDoubleClick: () => {
+              if (view.isFolder) {
+                setFolderId(view.id);
+              } else {
+                navigate(`/organizations/${orgId}/views/${view.id}`);
+              }
+            },
+          })}
+          columns={[
+            {
+              title: '名称',
+              dataIndex: 'name',
+              key: 'name',
+              width: '28%',
+              render: (_, view) => (
+                <Space size={10}>
+                  {view.isFolder ? (
+                    <FolderOutlined style={{ color: '#d48806' }} />
+                  ) : (
+                    <TableOutlined style={{ color: '#1677ff' }} />
+                  )}
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ height: 'auto', padding: 0, fontWeight: 600 }}
+                    onClick={() =>
+                      view.isFolder
+                        ? setFolderId(view.id)
+                        : navigate(`/organizations/${orgId}/views/${view.id}`)
+                    }
                   >
-                    <div
-                      style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 10,
-                        display: 'grid',
-                        placeItems: 'center',
-                        background: view.isFolder ? '#fff7e6' : '#eaf3ff',
-                        color: view.isFolder ? '#d48806' : '#1677ff',
-                        fontSize: 20,
-                        flex: 'none',
-                      }}
-                    >
-                      {view.isFolder ? <FolderOutlined /> : <TableOutlined />}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {view.name}
-                      </div>
-                      <Space size={6} style={{ marginTop: 6 }} wrap>
-                        <Tag bordered={false}>{view.isFolder ? '文件夹' : '数据集'}</Tag>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {folderName(view.parentId)}
-                        </Text>
-                      </Space>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 14,
-                      minHeight: 34,
-                      color: '#86909c',
-                      fontSize: 12,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {view.isFolder
-                      ? '数据集文件夹'
-                      : view.description || `数据源：${source}`}
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: 4,
-                      borderTop: '1px solid #f2f3f5',
-                      marginTop: 12,
-                      paddingTop: 10,
-                    }}
-                    onClick={e => e.stopPropagation()}
-                  >
+                    {view.name}
+                  </Button>
+                </Space>
+              ),
+            },
+            {
+              title: '类型',
+              key: 'type',
+              width: 120,
+              render: (_, view) => (
+                <Tag bordered={false}>{view.isFolder ? '文件夹' : '数据集'}</Tag>
+              ),
+            },
+            {
+              title: '数据源',
+              key: 'source',
+              width: '22%',
+              ellipsis: true,
+              render: (_, view) =>
+                view.isFolder ? (
+                  <Text type="secondary">—</Text>
+                ) : (
+                  <Text type="secondary" ellipsis>
+                    {sourceName(view.sourceId)}
+                  </Text>
+                ),
+            },
+            {
+              title: '说明',
+              key: 'description',
+              ellipsis: true,
+              render: (_, view) => (
+                <Text type="secondary" ellipsis>
+                  {view.isFolder ? '数据集文件夹' : view.description || '—'}
+                </Text>
+              ),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 260,
+              align: 'right',
+              render: (_, view) => {
+                const managePath = pathOf(view);
+                return (
+                  <Space size={2}>
                     {!view.isFolder && (
-                      <>
-                        <Button
-                          type="link"
-                          size="small"
-                          onClick={() =>
-                            navigate(
-                              `/organizations/${orgId}/charts/new?dataChartId=&chartType=dataChart&container=dataChart&defaultViewId=${view.id}`,
-                            )
-                          }
-                        >
-                          创建图表
-                        </Button>
-                        <Button
-                          type="link"
-                          size="small"
-                          onClick={() => navigate(`/organizations/${orgId}/views/${view.id}`)}
-                        >
-                          编辑
-                        </Button>
-                      </>
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() =>
+                          navigate(
+                            `/organizations/${orgId}/charts/new?dataChartId=&chartType=dataChart&container=dataChart&defaultViewId=${view.id}`,
+                          )
+                        }
+                      >
+                        创建图表
+                      </Button>
+                    )}
+                    {view.isFolder && (
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<FolderOpenOutlined />}
+                        onClick={() => setFolderId(view.id)}
+                      >
+                        打开
+                      </Button>
                     )}
                     <CascadeAccess
                       module={ResourceTypes.View}
@@ -540,7 +503,7 @@ export function LensViewListPage() {
                         <Button
                           type="link"
                           size="small"
-                          icon={view.isFolder ? <FolderOpenOutlined /> : <EditOutlined />}
+                          icon={<EditOutlined />}
                           onClick={() =>
                             view.isFolder
                               ? editFolder(view)
@@ -569,11 +532,11 @@ export function LensViewListPage() {
                         </Popconfirm>
                       </>
                     </CascadeAccess>
-                  </div>
-                </Card>
-              </List.Item>
-            );
-          }}
+                  </Space>
+                );
+              },
+            },
+          ]}
         />
       </Card>
 
@@ -614,9 +577,13 @@ export function LensViewListPage() {
               }
             >
               <List.Item.Meta
-                avatar={<DatabaseOutlined style={{ fontSize: 20, color: '#1677ff' }} />}
+                avatar={
+                  <DatabaseOutlined style={{ fontSize: 20, color: '#1677ff' }} />
+                }
                 title={item.name}
-                description={item.description || `数据源：${sourceName(item.sourceId)}`}
+                description={
+                  item.description || `数据源：${sourceName(item.sourceId)}`
+                }
               />
             </List.Item>
           )}
@@ -624,4 +591,5 @@ export function LensViewListPage() {
       </Drawer>
     </PageContainer>
   );
+
 }

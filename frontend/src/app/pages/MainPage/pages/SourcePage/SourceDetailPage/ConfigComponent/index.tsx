@@ -110,11 +110,18 @@ export function ConfigComponent({
           showSearch
           allowClear
         >
-          {options?.map(({ dbType }) => (
-            <Select.Option key={dbType} value={dbType}>
-              {dbType}
-            </Select.Option>
-          ))}
+          {options
+            ?.filter(({ dbType }) =>
+              ['MYSQL', 'STARROCKS'].includes(String(dbType).toUpperCase()),
+            )
+            .map(({ dbType }) => {
+              const type = String(dbType).toUpperCase();
+              return (
+                <Select.Option key={dbType} value={dbType}>
+                  {type === 'MYSQL' ? 'MySQL' : 'StarRocks'}
+                </Select.Option>
+              );
+            })}
         </Select>
       );
       break;

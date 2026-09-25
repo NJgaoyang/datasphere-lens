@@ -12,7 +12,6 @@ import { PageContainer } from '@ant-design/pro-components';
 import {
   Button,
   Card,
-  Col,
   Drawer,
   Dropdown,
   Empty,
@@ -20,9 +19,9 @@ import {
   List,
   message,
   Popconfirm,
-  Row,
   Segmented,
   Space,
+  Table,
   Tag,
   Typography,
 } from 'antd';
@@ -58,7 +57,7 @@ import { SourceSimpleViewModel } from './slice/types';
 
 const { Text } = Typography;
 
-type FilterType = 'ALL' | 'JDBC' | 'HTTP' | 'FILE';
+type FilterType = 'ALL' | 'JDBC';
 
 function parseConfig(source: SourceSimpleViewModel) {
   try {
@@ -105,7 +104,6 @@ export function LensSourceListPage() {
     if (orgId) dispatch(getSources(orgId));
   }, [dispatch, orgId]);
 
-  const dataSources = useMemo(() => sources.filter(s => !s.isFolder), [sources]);
   const filtered = useMemo(() => {
     const q = keyword.trim().toLowerCase();
     return sources.filter(source => {
@@ -246,115 +244,243 @@ export function LensSourceListPage() {
   return (
     <PageContainer
       title="数据源"
-      subTitle="统一管理 BI 查询使用的数据连接"
+      subTitle="连接 MySQL 与 StarRocks，为数据集提供统一的数据访问入口"
       style={{ flex: 1, overflow: 'auto' }}
       extra={[
-        <Button key="recycle" onClick={openRecycle}>回收站</Button>,
+        <Button key="recycle" onClick={openRecycle}>
+          回收站
+        </Button>,
         <Dropdown.Button
           key="create"
           type="primary"
           icon={<FolderAddOutlined />}
           disabled={!canCreate({})}
           onClick={openCreate}
-          menu={{ items: [{ key: 'folder', label: '新建文件夹', icon: <FolderAddOutlined /> }], onClick: createFolder }}
+          menu={{
+            items: [
+              {
+                key: 'folder',
+                label: '新建文件夹',
+                icon: <FolderAddOutlined />,
+              },
+            ],
+            onClick: createFolder,
+          }}
         >
           <PlusOutlined /> 新建数据源
         </Dropdown.Button>,
       ]}
     >
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={8}><Card bordered={false}><Text type="secondary">数据源</Text><div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{dataSources.length}</div></Card></Col>
-        <Col xs={24} sm={8}><Card bordered={false}><Text type="secondary">JDBC 数据源</Text><div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{dataSources.filter(s => s.type === 'JDBC').length}</div></Card></Col>
-        <Col xs={24} sm={8}><Card bordered={false}><Text type="secondary">文件夹</Text><div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{sources.filter(s => s.isFolder).length}</div></Card></Col>
-      </Row>
-
-      <Card bordered={false}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+      <Card size="small">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            marginBottom: 12,
+          }}
+        >
           <Segmented
             value={filter}
             onChange={value => setFilter(value as FilterType)}
             options={[
               { label: '全部', value: 'ALL' },
               { label: '数据库', value: 'JDBC' },
-              { label: 'HTTP', value: 'HTTP' },
-              { label: '文件', value: 'FILE' },
             ]}
           />
           <Input
             allowClear
             value={keyword}
-            onChange={e => setKeyword(e.target.value)}
+            onChange={event => setKeyword(event.target.value)}
             prefix={<SearchOutlined />}
-            placeholder="搜索数据源名称、类型或连接地址"
-            style={{ width: 340 }}
+            placeholder="搜索数据源名称或连接地址"
+            style={{ width: 320 }}
           />
         </div>
 
-        <List
+        <Table<SourceSimpleViewModel>
+          rowKey="id"
+          size="middle"
           loading={loading}
-          grid={{ gutter: 16, xs: 1, sm: 2, lg: 3, xl: 4 }}
           dataSource={filtered}
+          pagination={{ pageSize: 12, showSizeChanger: false }}
           locale={{ emptyText: <Empty description="暂无数据源" /> }}
-          renderItem={source => {
-            const kind = sourceKind(source);
-            const managePath = pathOf(source);
-            return (
-              <List.Item>
-                <Card
-                  hoverable
-                  styles={{ body: { padding: 16 } }}
-                  onClick={() => source.isFolder ? undefined : navigate(`/organizations/${orgId}/sources/${source.id}`)}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <div style={{ width: 42, height: 42, borderRadius: 10, display: 'grid', placeItems: 'center', background: source.isFolder ? '#fff7e6' : '#eaf3ff', color: source.isFolder ? '#d48806' : '#1677ff', fontSize: 20, flex: 'none' }}>
-                      {source.isFolder ? <FolderOutlined /> : <DatabaseOutlined />}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{source.name}</div>
-                      <Space size={6} style={{ marginTop: 6 }} wrap>
-                        <Tag bordered={false}>{kind}</Tag>
-                        <Text type="secondary" style={{ fontSize: 12 }}>{parentName(source.parentId)}</Text>
-                      </Space>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 14, minHeight: 34, color: '#86909c', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {sourceAddress(source)}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4, borderTop: '1px solid #f2f3f5', marginTop: 12, paddingTop: 10 }} onClick={e => e.stopPropagation()}>
-                    {!source.isFolder && <Button type="link" size="small" onClick={() => createDataset(source)}>创建数据集</Button>}
-                    <CascadeAccess module={ResourceTypes.Source} path={managePath} level={PermissionLevels.Manage}>
+          onRow={source => ({
+            onDoubleClick: () => {
+              if (!source.isFolder) {
+                navigate(`/organizations/${orgId}/sources/${source.id}`);
+              }
+            },
+          })}
+          columns={[
+            {
+              title: '名称',
+              dataIndex: 'name',
+              key: 'name',
+              width: '28%',
+              render: (_, source) => (
+                <Space size={10}>
+                  {source.isFolder ? (
+                    <FolderOutlined style={{ color: '#d48806' }} />
+                  ) : (
+                    <DatabaseOutlined style={{ color: '#1677ff' }} />
+                  )}
+                  <Text strong>{source.name}</Text>
+                </Space>
+              ),
+            },
+            {
+              title: '类型',
+              key: 'type',
+              width: 130,
+              render: (_, source) => {
+                const kind = sourceKind(source);
+                return (
+                  <Tag bordered={false} color={kind === 'STARROCKS' ? 'geekblue' : undefined}>
+                    {kind === 'MYSQL'
+                      ? 'MySQL'
+                      : kind === 'STARROCKS'
+                        ? 'StarRocks'
+                        : source.isFolder
+                          ? '文件夹'
+                          : '数据库'}
+                  </Tag>
+                );
+              },
+            },
+            {
+              title: '连接地址',
+              key: 'address',
+              ellipsis: true,
+              render: (_, source) => (
+                <Text type="secondary" ellipsis>
+                  {sourceAddress(source)}
+                </Text>
+              ),
+            },
+            {
+              title: '位置',
+              key: 'folder',
+              width: 150,
+              render: (_, source) => (
+                <Text type="secondary">{parentName(source.parentId)}</Text>
+              ),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 250,
+              align: 'right',
+              render: (_, source) => {
+                const managePath = pathOf(source);
+                return (
+                  <Space size={2}>
+                    {!source.isFolder && (
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => createDataset(source)}
+                      >
+                        创建数据集
+                      </Button>
+                    )}
+                    <CascadeAccess
+                      module={ResourceTypes.Source}
+                      path={managePath}
+                      level={PermissionLevels.Manage}
+                    >
                       <>
-                        <Button type="link" size="small" icon={<EditOutlined />} onClick={() => source.isFolder ? editFolder(source) : navigate(`/organizations/${orgId}/sources/${source.id}`)}>编辑</Button>
-                        <Popconfirm title={source.isFolder ? '确认删除该文件夹？' : '确认将该数据源移入回收站？'} onConfirm={() => remove(source)}>
-                          <Button type="link" size="small" danger loading={deleteLoading} icon={<DeleteOutlined />}>{source.isFolder ? '删除' : '归档'}</Button>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() =>
+                            source.isFolder
+                              ? editFolder(source)
+                              : navigate(
+                                  `/organizations/${orgId}/sources/${source.id}`,
+                                )
+                          }
+                        >
+                          编辑
+                        </Button>
+                        <Popconfirm
+                          title={
+                            source.isFolder
+                              ? '确认删除该文件夹？'
+                              : '确认将该数据源移入回收站？'
+                          }
+                          onConfirm={() => remove(source)}
+                        >
+                          <Button
+                            type="link"
+                            size="small"
+                            danger
+                            loading={deleteLoading}
+                            icon={<DeleteOutlined />}
+                          >
+                            {source.isFolder ? '删除' : '归档'}
+                          </Button>
                         </Popconfirm>
                       </>
                     </CascadeAccess>
-                  </div>
-                </Card>
-              </List.Item>
-            );
-          }}
+                  </Space>
+                );
+              },
+            },
+          ]}
         />
       </Card>
 
-      <Drawer title="数据源回收站" width={620} open={recycleVisible} onClose={() => setRecycleVisible(false)}>
+      <Drawer
+        title="数据源回收站"
+        width={620}
+        open={recycleVisible}
+        onClose={() => setRecycleVisible(false)}
+      >
         <List
           loading={archivedLoading}
           dataSource={archived}
           locale={{ emptyText: <Empty description="回收站为空" /> }}
           renderItem={item => (
             <List.Item
-              actions={isOwner ? [
-                <Button key="restore" type="link" icon={<ReloadOutlined />} onClick={() => restore(item)}>恢复</Button>,
-                <Popconfirm key="delete" title="永久删除后无法恢复，确认删除？" onConfirm={() => permanentlyDelete(item)}><Button type="link" danger icon={<DeleteOutlined />}>永久删除</Button></Popconfirm>,
-              ] : undefined}
+              actions={
+                isOwner
+                  ? [
+                      <Button
+                        key="restore"
+                        type="link"
+                        icon={<ReloadOutlined />}
+                        onClick={() => restore(item)}
+                      >
+                        恢复
+                      </Button>,
+                      <Popconfirm
+                        key="delete"
+                        title="永久删除后无法恢复，确认删除？"
+                        onConfirm={() => permanentlyDelete(item)}
+                      >
+                        <Button type="link" danger icon={<DeleteOutlined />}>
+                          永久删除
+                        </Button>
+                      </Popconfirm>,
+                    ]
+                  : undefined
+              }
             >
-              <List.Item.Meta avatar={<DatabaseOutlined style={{ fontSize: 20, color: '#1677ff' }} />} title={item.name} description={`${sourceKind(item)} · ${sourceAddress(item)}`} />
+              <List.Item.Meta
+                avatar={
+                  <DatabaseOutlined style={{ fontSize: 20, color: '#1677ff' }} />
+                }
+                title={item.name}
+                description={`${sourceKind(item)} · ${sourceAddress(item)}`}
+              />
             </List.Item>
           )}
         />
       </Drawer>
     </PageContainer>
   );
+
 }

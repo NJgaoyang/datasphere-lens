@@ -18,6 +18,7 @@
 
 import { LoadingOutlined } from '@ant-design/icons';
 import {
+  Alert,
   Button,
   Card,
   Descriptions,
@@ -25,7 +26,6 @@ import {
   Input,
   message,
   Popconfirm,
-  Select,
   Table,
 } from 'antd';
 import { Authorized, EmptyFiller } from 'app/components';
@@ -70,7 +70,6 @@ import {
 } from 'utils/utils';
 import {
   selectDataProviderConfigTemplateLoading,
-  selectDataProviderListLoading,
   selectDataProviders,
   selectIsOrgOwner,
   selectOrgId,
@@ -117,7 +116,6 @@ export function SourceDetailPage() {
   const isOwner = useSelector(selectIsOrgOwner);
   const editingSource = useSelector(selectEditingSource);
   const dataProviders = useSelector(selectDataProviders);
-  const dataProviderListLoading = useSelector(selectDataProviderListLoading);
   const dataProviderConfigTemplateLoading = useSelector(
     selectDataProviderConfigTemplateLoading,
   );
@@ -174,6 +172,16 @@ export function SourceDetailPage() {
       dispatch(getSource(sourceId));
     }
   }, [dispatch, resetForm, sourceId]);
+
+  useEffect(() => {
+    if (sourceId === 'add' && dataProviders.JDBC && !providerType) {
+      setProviderType('JDBC');
+      form.setFieldValue('type', 'JDBC');
+      if (dataProviders.JDBC.config === null) {
+        dispatch(getDataProviderConfigTemplate('JDBC'));
+      }
+    }
+  }, [dataProviders, dispatch, form, providerType, sourceId]);
 
   useEffect(() => {
     if (editingSource) {
@@ -573,27 +581,22 @@ export function SourceDetailPage() {
               >
                 <Input disabled={isArchived} />
               </Form.Item>
+              {formType === CommonFormTypes.Add && (
+                <Alert
+                  showIcon
+                  type="info"
+                  message="当前支持 MySQL 与 StarRocks"
+                  description="请选择数据库类型并填写连接信息。保存前建议先执行连接测试。"
+                  style={{ marginBottom: 20 }}
+                />
+              )}
               <Form.Item
                 name="type"
-                label={t('form.type')}
-                rules={[
-                  {
-                    required: true,
-                    message: `${t('form.type')}${tg('validation.required')}`,
-                  },
-                ]}
+                hidden
+                initialValue="JDBC"
+                rules={[{ required: true }]}
               >
-                <Select
-                  loading={dataProviderListLoading}
-                  disabled={isArchived}
-                  onChange={dataProviderChange}
-                >
-                  {Object.keys(dataProviders).map(key => (
-                    <Select.Option key={key} value={key}>
-                      {key}
-                    </Select.Option>
-                  ))}
-                </Select>
+                <Input />
               </Form.Item>
               {dataProviderConfigTemplateLoading && <LoadingOutlined />}
 
