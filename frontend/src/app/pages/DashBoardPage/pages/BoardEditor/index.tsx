@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Button, Result } from 'antd';
 import ChartEditor from 'app/components/ChartEditor';
 import { BOARD_SELF_CHART_PREFIX } from 'globalConstants';
-import React, { memo, useCallback, useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -64,6 +65,7 @@ export const BoardEditor: React.FC<{
   const navigate = useNavigate();
   const location = useLocation();
   const board = useSelector(selectEditBoard);
+  const [loadError, setLoadError] = useState(false);
   const deviceType = useSelector(selectDeviceType);
   const boardLoading = useSelector(selectEditBoardLoading);
   const boardChartEditorProps = useSelector(selectBoardChartEditorProps);
@@ -83,9 +85,25 @@ export const BoardEditor: React.FC<{
   );
 
   const boardEditor = useMemo(() => {
-    if (!board.id) return null;
-    if (board?.id !== boardId) {
-      return null;
+    if (boardLoading || loadError) return null;
+    if (!board.id || board.id !== boardId) {
+      return (
+        <EditorState>
+          <Result
+            status="warning"
+            title="仪表板加载失败"
+            subTitle="没有找到当前仪表板，或资源尚未正确加载。"
+            extra={
+              <Button
+                type="primary"
+                onClick={() => navigate(`/organizations/${board.orgId || ''}/dashboards`)}
+              >
+                返回仪表板
+              </Button>
+            }
+          />
+        </EditorState>
+      );
     }
     const boardType = board.config?.type;
 
@@ -118,6 +136,9 @@ export const BoardEditor: React.FC<{
   }, [
     board,
     boardId,
+    boardLoading,
+    loadError,
+    navigate,
     widgetControllerPanelParams,
     boardChartEditorProps,
     deviceType,
@@ -125,10 +146,12 @@ export const BoardEditor: React.FC<{
     onSaveToWidget,
   ]);
   const initialization = useCallback(async () => {
+    setLoadError(false);
     try {
-      await dispatch(fetchEditBoardDetail(boardId));
+      await (dispatch(fetchEditBoardDetail(boardId)) as any).unwrap();
     } catch (error) {
       console.error('Failed to load board detail:', error);
+      setLoadError(true);
       return;
     }
     const histState = location.state as any;
@@ -179,7 +202,25 @@ export const BoardEditor: React.FC<{
   return (
     <StyledBoardEditor>
       <DndProvider backend={HTML5Backend}>
-        {boardEditor}
+        {loadError ? (
+          <EditorState>
+            <Result
+              status="error"
+              title="仪表板加载失败"
+              subTitle="请返回仪表板列表后重试。"
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => navigate(`/organizations/${board.orgId || ''}/dashboards`)}
+                >
+                  返回仪表板
+                </Button>
+              }
+            />
+          </EditorState>
+        ) : (
+          boardEditor
+        )}
         {boardLoading && <BoardLoading />}
       </DndProvider>
     </StyledBoardEditor>
@@ -198,4 +239,13 @@ const StyledBoardEditor = styled.div`
   flex-direction: column;
   padding-bottom: 0;
   background-color: ${p => p.theme.bodyBackground};
+`;
+
+const EditorState = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
 `;

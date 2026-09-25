@@ -16,14 +16,27 @@
  * limitations under the License.
  */
 
+import { Flex, Spin } from 'antd';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { Access, AccessProps } from './Access';
 import { PermissionLevels } from './pages/PermissionPage/constants';
+import { selectPermissionMap } from './slice/selectors';
 
 export function AccessRoute(
   props: Omit<AccessProps, 'type' | 'level' | 'denied'>,
 ) {
+  const permissionMap = useSelector(selectPermissionMap);
+
+  if (!permissionMap[props.module]) {
+    return (
+      <Flex flex={1} align="center" justify="center">
+        <Spin tip="正在加载权限..." />
+      </Flex>
+    );
+  }
+
   return (
     <Access
       {...props}
