@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Tabs } from 'antd';
+import { Space, Tabs, Tag } from 'antd';
 import useChartInteractions from 'app/hooks/useChartInteractions';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { WidgetChartContext } from 'app/pages/DashBoardPage/components/WidgetProvider/WidgetChartProvider';
@@ -24,7 +24,7 @@ import { WidgetContext } from 'app/pages/DashBoardPage/components/WidgetProvider
 import { selectVizs } from 'app/pages/MainPage/pages/VizPage/slice/selectors';
 import { ChartStyleConfig } from 'app/types/ChartConfig';
 import { updateBy } from 'app/utils/mutation';
-import { FC, memo, useContext, useState } from 'react';
+import { FC, memo, useContext, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { editBoardStackActions } from '../../slice';
@@ -37,6 +37,18 @@ import { SettingPanel } from './SettingPanel';
 import { WidgetConfigPanel } from './WidgetConfigPanel';
 
 const { TabPane } = Tabs;
+
+const countVisibleConfigItems = (configs: ChartStyleConfig[] = []): number =>
+  configs
+    .filter(config => !config.hidden)
+    .reduce(
+      (count, config) =>
+        count +
+        (config.comType === 'group'
+          ? countVisibleConfigItems((config as any).rows || [])
+          : 1),
+      0,
+    );
 
 export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
   const t = useI18NPrefix(`viz.board.setting`);
@@ -52,6 +64,17 @@ export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
   const allWidgets = useSelector(selectSortAllWidgets);
   const { getDrillThroughSetting, getViewDetailSetting } = useChartInteractions(
     {},
+  );
+  const activeRect = widget.config.boardType === 'free'
+    ? widget.config.rect
+    : widget.config.pRect || widget.config.rect;
+  const styleCount = useMemo(
+    () => countVisibleConfigItems(widget.config.customConfig.props || []),
+    [widget.config.customConfig.props],
+  );
+  const interactionCount = useMemo(
+    () => countVisibleConfigItems(widget.config.customConfig.interactions || []),
+    [widget.config.customConfig.interactions],
   );
 
   const handleStyleConfigChange = (
@@ -128,12 +151,24 @@ export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
             {widget.config.name || t('widget')}
           </WidgetName>
         </WidgetMeta>
+        <WidgetSummary>
+          {dataChart?.name && <Tag bordered={false}>{`图表 · ${dataChart.name}`}</Tag>}
+          {chartDataView?.name && (
+            <Tag bordered={false}>{`数据集 · ${chartDataView.name}`}</Tag>
+          )}
+          {activeRect && (
+            <Tag bordered={false}>{`尺寸 · ${activeRect.width} × ${activeRect.height}`}</Tag>
+          )}
+        </WidgetSummary>
       </InspectorHeader>
       <StyledWidgetSetting
         activeKey={currentTab}
         onChange={key => setCurrentTab(key)}
       >
-        <TabPane tab="外观" key="style">
+        <TabPane
+          tab={<Space size={4}><span>外观</span><TabCount>{styleCount}</TabCount></Space>}
+          key="style"
+        >
           <SettingPanel
             title="组件外观"
             description="配置组件名称、位置尺寸和视觉样式"
@@ -163,7 +198,10 @@ export const WidgetSetting: FC<{ boardId?: string }> = memo(({ boardId }) => {
             </>
           </SettingPanel>
         </TabPane>
-        <TabPane tab="交互" key="interaction">
+        <TabPane
+          tab={<Space size={4}><span>交互</span><TabCount>{interactionCount}</TabCount></Space>}
+          key="interaction"
+        >
           <SettingPanel
             title="交互行为"
             description="设置组件与其他图表之间的钻取、联动和查看明细行为"
@@ -281,4 +319,34 @@ const SubSectionTitle = styled.div`
   font-size: 11px;
   font-weight: 600;
   color: ${p => p.theme.textColorSnd};
+`;
+
+const WidgetSummary = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+
+  .ant-tag {
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-size: 10px;
+    color: ${p => p.theme.textColorSnd};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const TabCount = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10px;
+  color: ${p => p.theme.textColorDisabled};
+  background: ${p => p.theme.bodyBackground};
+  border-radius: 9px;
 `;
