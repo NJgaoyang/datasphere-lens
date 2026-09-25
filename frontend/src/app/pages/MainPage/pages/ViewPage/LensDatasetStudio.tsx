@@ -52,7 +52,7 @@ export function LensDatasetStudio() {
 
   return (
     <Flex vertical style={{ width: '100%', height: '100%', minHeight: 0, background: token.colorBgLayout }}>
-      <Flex align="center" justify="space-between" style={{ height: 64, flexShrink: 0, padding: '0 20px', background: token.colorBgContainer, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+      <Flex align="center" justify="space-between" style={{ height: 52, flexShrink: 0, padding: '0 12px', background: token.colorBgContainer, borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
         <Space size={12}>
           <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(`/organizations/${orgId}/views`)} />
           <Divider type="vertical" style={{ height: 28, margin: 0 }} />
@@ -72,9 +72,9 @@ export function LensDatasetStudio() {
             </Space>
           </div>
         </Space>
-        <Button onClick={() => navigate(`/organizations/${orgId}/views`)}>返回数据集</Button>
+        <Text type="secondary">数据准备</Text>
       </Flex>
-      <Card styles={{ body: { display: 'flex', flex: 1, minHeight: 0, padding: 0 } }} style={{ display: 'flex', flex: 1, minHeight: 0, margin: 12, overflow: 'hidden', borderColor: token.colorBorderSecondary, boxShadow: token.boxShadowTertiary }}>
+      <Card styles={{ body: { display: 'flex', flex: 1, minHeight: 0, padding: 0 } }} style={{ display: 'flex', flex: 1, minHeight: 0, margin: 8, overflow: 'hidden', borderColor: token.colorBorderSecondary, boxShadow: 'none' }}>
         <Workbench />
       </Card>
       <SaveForm formProps={{ labelAlign: 'left', labelCol: { offset: 1, span: 8 }, wrapperCol: { span: 13 } }} okText="保存" />

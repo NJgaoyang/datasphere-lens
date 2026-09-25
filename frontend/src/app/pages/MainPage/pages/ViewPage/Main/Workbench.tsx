@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Flex, Spin, theme } from 'antd';
+import { Flex, Spin, Tag, Typography, theme } from 'antd';
 import { Split } from 'app/components';
 import { useAccess, useCascadeAccess } from 'app/pages/MainPage/Access';
 import debounce from 'lodash/debounce';
@@ -28,6 +28,7 @@ import React, {
   useMemo,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
 import { getPath } from 'utils/utils';
 import {
   PermissionLevels,
@@ -142,10 +143,28 @@ export const Workbench = memo(() => {
     }
   }, [dispatch, sourceId]);
 
+  const workspaceMeta =
+    viewType === 'STRUCT'
+      ? { title: '模型设计', description: '选择主表、配置关联关系并定义数据集字段', tag: '表模型' }
+      : viewType === 'SQL'
+      ? { title: 'SQL 编辑', description: '编写查询 SQL，并在下方预览数据结果', tag: 'SQL' }
+      : viewType === 'VIEW_JOIN'
+      ? { title: '关联建模', description: '组合已有数据集，生成新的分析数据集', tag: '关联' }
+      : undefined;
+
   return (
     <Flex style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
       <Split direction="vertical" gutterSize={0} className="datart-split" onDrag={editorResize}>
         <Flex vertical style={{ flex: 1, minHeight: 0 }}>
+          {workspaceMeta && (
+            <WorkspaceHeader>
+              <div>
+                <Typography.Text strong>{workspaceMeta.title}</Typography.Text>
+                <Typography.Text type="secondary">{workspaceMeta.description}</Typography.Text>
+              </div>
+              <Tag bordered={false}>{workspaceMeta.tag}</Tag>
+            </WorkspaceHeader>
+          )}
           {!viewType ? (
             unpersistedNewView ? (
               <SelectView selectViewType={handleSelectViewType} />
@@ -172,3 +191,26 @@ export const Workbench = memo(() => {
     </Flex>
   );
 });
+
+const WorkspaceHeader = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  > div {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .ant-typography {
+    margin: 0;
+    font-size: 12px;
+  }
+`;

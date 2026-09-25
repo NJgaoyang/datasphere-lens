@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { GithubOutlined } from '@ant-design/icons';
-import { Alert, Button, Flex, Popover, Space, Spin, theme } from 'antd';
+import { CheckCircleOutlined, GithubOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Alert, Button, Flex, Popover, Space, Spin, Typography, theme } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useResizeObserver from 'app/hooks/useResizeObserver';
 import { selectSystemInfo } from 'app/slice/selectors';
 import React, { memo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
 import { SPACE_TIMES } from 'styles/StyleConstants';
 import { newIssueUrl } from 'utils/utils';
 import { ViewViewModelStages } from '../../constants';
@@ -81,6 +82,16 @@ export const Outputs = memo(({ hidden = false }: { hidden?: boolean }) => {
 
   return (
     <div ref={ref} hidden={hidden} style={{ position: 'relative', display: 'flex', flexDirection: 'column', borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgContainer }}>
+      <PreviewHeader>
+        <div>
+          <Typography.Text strong>数据预览</Typography.Text>
+          <Typography.Text type="secondary">运行数据集后在这里查看字段与结果</Typography.Text>
+        </div>
+        <PreviewStatus $running={stage === ViewViewModelStages.Running}>
+          {stage === ViewViewModelStages.Running ? <LoadingOutlined spin /> : <CheckCircleOutlined />}
+          <span>{stage === ViewViewModelStages.Running ? '正在执行' : stage > ViewViewModelStages.Fresh ? '结果已更新' : '等待运行'}</span>
+        </PreviewStatus>
+      </PreviewHeader>
       {warnings && (
         <Alert
           message={t('sqlRunWraning')}
@@ -100,7 +111,7 @@ export const Outputs = memo(({ hidden = false }: { hidden?: boolean }) => {
           }
         />
       )}
-      <Results width={width} height={height} />
+      <Results width={width} height={Math.max((height || 0) - 40, 0)} />
       {error && <Error />}
       {stage === ViewViewModelStages.Running && (
         <Flex align="center" justify="center" style={{ position: 'absolute', inset: 0, background: token.colorBgMask }}>
@@ -110,3 +121,32 @@ export const Outputs = memo(({ hidden = false }: { hidden?: boolean }) => {
     </div>
   );
 });
+
+const PreviewHeader = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  > div {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .ant-typography {
+    margin: 0;
+    font-size: 12px;
+  }
+`;
+
+const PreviewStatus = styled.div<{ $running: boolean }>`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 11px;
+  color: ${p => (p.$running ? p.theme.warning : p.theme.textColorSnd)};
+`;
