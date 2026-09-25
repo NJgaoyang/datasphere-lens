@@ -288,14 +288,25 @@ export const ChartDraggableTargetContainer: FC<ChartDataConfigSectionProps> =
         !currentConfig?.rows?.filter(Boolean)?.length
       ) {
         const fieldCount = reachLowerBoundCount(currentConfig?.limit, 0);
-        if (fieldCount > 0) {
-          return (
-            <DropPlaceholder>
-              {t('dropCount', undefined, { count: fieldCount })}
-            </DropPlaceholder>
-          );
-        }
-        return <DropPlaceholder>{t('drop')}</DropPlaceholder>;
+        const semanticLabel =
+          currentConfig.type === ChartDataSectionType.Aggregate
+            ? '度量'
+            : currentConfig.type === ChartDataSectionType.Group
+            ? '维度'
+            : currentConfig.type === ChartDataSectionType.Filter
+            ? '筛选字段'
+            : currentConfig.type === ChartDataSectionType.Color
+            ? '颜色字段'
+            : currentConfig.type === ChartDataSectionType.Size
+            ? '大小字段'
+            : '字段';
+        return (
+          <DropPlaceholder>
+            <strong>{`添加${semanticLabel}`}</strong>
+            <span>拖入这里，或双击左侧字段</span>
+            {fieldCount > 0 ? <em>{`至少还需要 ${fieldCount} 个`}</em> : null}
+          </DropPlaceholder>
+        );
       }
 
       return currentConfig.rows?.map((columnConfig, index) => {
@@ -431,6 +442,25 @@ const StyledDillFilter = styled.div<{
   border-radius: ${BORDER_RADIUS};
 `;
 
-const DropPlaceholder = styled.p`
+const DropPlaceholder = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
   line-height: ${LINE_HEIGHT_HEADING};
+
+  strong {
+    font-size: 12px;
+    font-weight: 500;
+    color: ${p => p.theme.textColorSnd};
+  }
+
+  span,
+  em {
+    font-size: 11px;
+    font-style: normal;
+    color: ${p => p.theme.textColorDisabled};
+  }
 `;
