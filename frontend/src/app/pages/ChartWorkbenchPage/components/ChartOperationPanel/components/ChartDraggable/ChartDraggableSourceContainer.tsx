@@ -25,9 +25,10 @@ import {
   FolderOpenOutlined,
   MoreOutlined,
   NumberOutlined,
+  PlusOutlined,
   TableOutlined,
 } from '@ant-design/icons';
-import { Collapse, Dropdown, Menu, Row } from 'antd';
+import { Collapse, Dropdown, Menu, Row, Tooltip } from 'antd';
 import { IW, ToolbarButton } from 'app/components';
 import { ChartDataViewFieldCategory, DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -35,7 +36,7 @@ import useToggle from 'app/hooks/useToggle';
 import { ColumnRole } from 'app/pages/MainPage/pages/ViewPage/slice/types';
 import { buildDragItem } from 'app/utils/internalChartHelper';
 import { CHART_DRAG_ELEMENT_TYPE } from 'globalConstants';
-import { FC, memo, useEffect, useMemo } from 'react';
+import { FC, memo, useCallback, useEffect, useMemo } from 'react';
 import { useDrag } from 'react-dnd';
 import styled from 'styled-components';
 import {
@@ -188,6 +189,47 @@ export const ChartDraggableSourceContainer: FC<
     return styleArr;
   }, [isActive]);
 
+  const handleQuickAdd = useCallback(() => {
+    if (isHierarchyFieldOrTable) {
+      return;
+    }
+    onFieldDoubleClick?.({
+      fieldId,
+      originName,
+      sourceComment,
+      customName,
+      name: colName,
+      type,
+      subType,
+      category,
+      path,
+      dateFormat,
+      displayName,
+      comment,
+      isDisplayNameCustom,
+      children,
+      role,
+    });
+  }, [
+    category,
+    children,
+    colName,
+    comment,
+    customName,
+    dateFormat,
+    displayName,
+    fieldId,
+    isDisplayNameCustom,
+    isHierarchyFieldOrTable,
+    onFieldDoubleClick,
+    originName,
+    path,
+    role,
+    sourceComment,
+    subType,
+    type,
+  ]);
+
   const renderContent = useMemo(() => {
     const _handleMenuClick = (e, fieldName) => {
       if (e.key === 'delete') {
@@ -335,6 +377,19 @@ export const ChartDraggableSourceContainer: FC<
         >
           <IW fontSize={FONT_SIZE_TITLE}>{icon}</IW>
           <StyledFieldContent>{fieldDisplayName}</StyledFieldContent>
+          {!isHierarchyFieldOrTable && (
+            <Tooltip title="添加到图表">
+              <ToolbarButton
+                className="quick-add"
+                icon={<PlusOutlined />}
+                iconSize={FONT_SIZE_BASE}
+                onClick={e => {
+                  e.stopPropagation();
+                  handleQuickAdd();
+                }}
+              />
+            </Tooltip>
+          )}
           <div onClick={stopPPG}>
             <Dropdown
               disabled={_isAllowMoreAction()}
@@ -374,6 +429,7 @@ export const ChartDraggableSourceContainer: FC<
     setShowChild,
     isHierarchy,
     styleClasses,
+    handleQuickAdd,
     onDeleteComputedField,
     onEditComputedField,
     onClearCheckedList,
@@ -444,26 +500,7 @@ export const ChartDraggableSourceContainer: FC<
       }}
       onDoubleClick={e => {
         e.stopPropagation();
-        if (isHierarchyFieldOrTable) {
-          return;
-        }
-        onFieldDoubleClick?.({
-          fieldId,
-          originName,
-          sourceComment,
-          customName,
-          name: colName,
-          type,
-          subType,
-          category,
-          path,
-          dateFormat,
-          displayName,
-          comment,
-          isDisplayNameCustom,
-          children,
-          role,
-        });
+        handleQuickAdd();
       }}
       ref={type === 'DATE' && category === 'field' ? null : drag}
       className={

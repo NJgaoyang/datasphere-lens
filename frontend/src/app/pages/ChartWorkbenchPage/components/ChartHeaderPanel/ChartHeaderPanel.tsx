@@ -15,8 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DownloadOutlined } from '@ant-design/icons';
-import { Button, Space } from 'antd';
+import {
+  ArrowLeftOutlined,
+  CheckCircleOutlined,
+  CloudSyncOutlined,
+  DownloadOutlined,
+} from '@ant-design/icons';
+import { Button, Space, Tooltip } from 'antd';
 import SaveToDashboard from 'app/components/SaveToDashboard';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useMount from 'app/hooks/useMount';
@@ -39,6 +44,8 @@ import {
 } from 'styles/StyleConstants';
 import {
   backendChartSelector,
+  currentDataViewSelector,
+  datasetLoadingSelector,
   selectChartEditorDownloadPolling,
 } from '../../slice/selectors';
 
@@ -62,6 +69,8 @@ const ChartHeaderPanel: FC<{
     const hasVizFetched = useSelector(selectHasVizFetched);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const backendChart = useSelector(backendChartSelector);
+    const currentDataView = useSelector(currentDataViewSelector);
+    const datasetLoading = useSelector(datasetLoadingSelector);
     const downloadPolling = useSelector(selectChartEditorDownloadPolling);
     const dispatch = useDispatch();
     const { actions } = useWorkbenchSlice();
@@ -98,8 +107,29 @@ const ChartHeaderPanel: FC<{
 
     return (
       <Wrapper>
-        <h1>{chartName}</h1>
-        <Space>
+        <HeaderContext>
+          <Tooltip title="返回图表列表">
+            <Button
+              aria-label="返回图表列表"
+              size="small"
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={onGoBack}
+            />
+          </Tooltip>
+          <HeaderTitle>
+            <h1>{chartName || '新建图表'}</h1>
+            <HeaderMeta>
+              <span>数据集</span>
+              <strong>{currentDataView?.name || '未选择'}</strong>
+            </HeaderMeta>
+          </HeaderTitle>
+        </HeaderContext>
+        <QueryState $loading={datasetLoading}>
+          {datasetLoading ? <CloudSyncOutlined spin /> : <CheckCircleOutlined />}
+          <span>{datasetLoading ? '正在查询数据' : '数据已同步'}</span>
+        </QueryState>
+        <Space size={6}>
           <DownloadListPopup
             polling={downloadPolling}
             setPolling={onSetPolling}
@@ -115,10 +145,6 @@ const ChartHeaderPanel: FC<{
               <Button size="small" type="text" icon={<DownloadOutlined />}>{t('downloadList')}</Button>
             }
           />
-          <Button size="small" onClick={onGoBack}>{t('cancel')}</Button>
-          <Button size="small" type="primary" onClick={onSaveChart}>
-            {t('save')}
-          </Button>
           {!(container === 'widget') && (
             <Button
               size="small"
@@ -130,6 +156,9 @@ const ChartHeaderPanel: FC<{
               {t('saveToDashboard')}
             </Button>
           )}
+          <Button size="small" type="primary" onClick={onSaveChart}>
+            {t('save')}
+          </Button>
           <SaveToDashboard
             orgId={orgId as string}
             title={t('saveToDashboard')}
@@ -157,14 +186,59 @@ const Wrapper = styled.div`
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 
+`;
+
+const HeaderContext = styled.div`
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+`;
+
+const HeaderTitle = styled.div`
+  min-width: 0;
+
   h1 {
-    flex: 1;
-    padding: 0 4px;
+    max-width: 420px;
+    margin: 0;
     overflow: hidden;
     font-size: 14px;
     font-weight: ${FONT_WEIGHT_MEDIUM};
-    line-height: 32px;
+    line-height: 18px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+`;
+
+const HeaderMeta = styled.div`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 14px;
+  color: ${p => p.theme.textColorDisabled};
+
+  strong {
+    max-width: 260px;
+    overflow: hidden;
+    font-weight: 400;
+    color: ${p => p.theme.textColorSnd};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const QueryState = styled.div<{ $loading: boolean }>`
+  display: flex;
+  flex-shrink: 0;
+  gap: 5px;
+  align-items: center;
+  padding: 3px 8px;
+  margin-right: 8px;
+  font-size: 11px;
+  color: ${p => (p.$loading ? p.theme.warning : p.theme.textColorSnd)};
+  background: ${p => p.theme.bodyBackground};
+  border-radius: 4px;
 `;
