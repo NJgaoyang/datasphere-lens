@@ -22,6 +22,7 @@ import { useIsMobile } from 'app/hooks/useIsMobile';
 import { useIsWeappEmbed } from 'app/hooks/useEmbedMode';
 import ChartManager from 'app/models/ChartManager';
 import { useAppSlice } from 'app/slice';
+import { selectLoggedInUser } from 'app/slice/selectors';
 import React, { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -129,13 +130,15 @@ export function MainPage() {
     },
   );
 
+  const loggedInUser = useSelector(selectLoggedInUser);
+
   useEffect(() => {
-    if (orgId) {
+    if (orgId && loggedInUser?.id) {
       dispatch(vizActions.clear());
       dispatch(viewActions.clear());
       dispatch(getLoggedInUserPermissions(orgId));
     }
-  }, [dispatch, vizActions, viewActions, orgId]);
+  }, [dispatch, vizActions, viewActions, orgId, loggedInUser?.id]);
 
   const onSaveInDataChart = useCallback(
     (orgId: string, backendChartId: string) => {
