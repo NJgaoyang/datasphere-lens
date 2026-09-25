@@ -21,7 +21,8 @@ import { LEVEL_10, SPACE_TIMES } from 'styles/StyleConstants';
 
 export const ReactSplit = createGlobalStyle`
   /* react-split */
-  .datart-split {
+  .datart-split,
+  .lens-split {
     min-width: 0;
     min-height: 0;
 

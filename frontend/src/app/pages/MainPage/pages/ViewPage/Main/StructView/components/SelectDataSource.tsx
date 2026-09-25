@@ -276,7 +276,7 @@ const SelectDataSource = memo(
         <Popover
           trigger={['click']}
           placement="bottomLeft"
-          overlayClassName="datart-popup"
+          overlayClassName="lens-popup"
           open={allowManage && visible}
           onOpenChange={
             renderType === 'MANAGE' ? handleVisibleChange : undefined

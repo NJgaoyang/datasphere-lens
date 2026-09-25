@@ -321,7 +321,7 @@ const ControllerWidgetPanel: React.FC<WidgetControllerPanelParams> = memo(
           onFinish={onFinish}
           preserve
         >
-          <Container className="datart-split">
+          <Container className="lens-split">
             <div>
               {visible && (
                 <WidgetControlForm

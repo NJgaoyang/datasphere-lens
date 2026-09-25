@@ -26,7 +26,8 @@ import {
 
 export const GlobalOverlays = createGlobalStyle`
   /* app/components/Popup */
-  .datart-popup {
+  .datart-popup,
+  .lens-popup {
     z-index: ${LEVEL_1000 - 1};
 
     &.on-modal {
@@ -62,7 +63,8 @@ export const GlobalOverlays = createGlobalStyle`
   }
 
   /* config panel */
-  .datart-config-panel {
+  .datart-config-panel,
+  .lens-config-panel {
     &.ant-collapse >
     .ant-collapse-item >
     .ant-collapse-header {
@@ -81,12 +83,14 @@ export const GlobalOverlays = createGlobalStyle`
   }
 
   /* data config section dropdown */
-  .datart-data-section-dropdown {
+  .datart-data-section-dropdown,
+  .lens-data-section-dropdown {
     z-index: ${LEVEL_1000 - 1};
   }
 
   /* color popover */
-  .datart-aggregation-colorpopover{
+  .datart-aggregation-colorpopover,
+  .lens-aggregation-color-popover {
     .ant-popover-arrow{
       display:none;
     }

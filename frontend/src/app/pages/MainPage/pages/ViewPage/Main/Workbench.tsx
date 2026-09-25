@@ -154,7 +154,7 @@ export const Workbench = memo(() => {
 
   return (
     <Flex style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-      <Split direction="vertical" gutterSize={0} className="datart-split" onDrag={editorResize}>
+      <Split direction="vertical" gutterSize={0} className="lens-split" onDrag={editorResize}>
         <Flex vertical style={{ flex: 1, minHeight: 0 }}>
           {workspaceMeta && (
             <WorkspaceHeader>

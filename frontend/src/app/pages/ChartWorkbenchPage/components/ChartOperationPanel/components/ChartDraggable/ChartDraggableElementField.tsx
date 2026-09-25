@@ -162,7 +162,7 @@ const ChartDraggableElementField: FC<{
         disabled={!config?.actions}
         destroyPopupOnHide={true}
         overlay={renderActionExtensionMenu()}
-        overlayClassName="datart-data-section-dropdown"
+        overlayClassName="lens-data-section-dropdown"
         trigger={['click']}
       >
         <StyledWrapper className={classnames({ replace: showReplaceMenu })}>

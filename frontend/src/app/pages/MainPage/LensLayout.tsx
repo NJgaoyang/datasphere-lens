@@ -22,8 +22,8 @@ import {
   Button,
   Dropdown,
   Layout,
-  Menu,
   MenuProps,
+  Tooltip,
   Space,
   Typography,
   theme,
@@ -34,6 +34,7 @@ import { BASE_RESOURCE_URL } from 'globalConstants';
 import React, { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { ModifyPassword } from './Navbar/ModifyPassword';
 import { Profile } from './Navbar/Profile';
 import { ResourceTypes } from './pages/PermissionPage/constants';
@@ -200,24 +201,6 @@ export function LensLayout({
     .filter(item => location.pathname.startsWith(item.path))
     .sort((a, b) => b.path.length - a.path.length)[0];
 
-  const menuItems: MenuProps['items'] = navGroups.flatMap((group, groupIndex) => {
-    const items: MenuProps['items'] = group.items.map(item => ({
-      key: item.path,
-      icon: item.icon,
-      label: item.name,
-      onClick: () => navigate(item.path),
-    }));
-    if (!items.length) return [];
-    return [
-      {
-        type: 'group' as const,
-        key: `group-${groupIndex}`,
-        label: collapsed ? undefined : group.title,
-        children: items,
-      },
-    ];
-  });
-
   const quickCreate: MenuProps = {
     items: [
       { key: 'source', label: '新建数据源', icon: <DatabaseOutlined /> },
@@ -263,106 +246,78 @@ export function LensLayout({
   };
 
   return (
-    <Layout style={{ width: '100%', height: '100vh', overflow: 'hidden', background: token.colorBgLayout }}>
-      <Sider
-        width={208}
-        collapsedWidth={60}
+    <LensRoot>
+      <LensSider
+        width={216}
+        collapsedWidth={64}
         collapsed={collapsed}
         theme="light"
-        style={{
-          position: 'relative',
-          zIndex: 20,
-          height: '100vh',
-          overflow: 'hidden',
-          background: token.colorBgContainer,
-          borderRight: `1px solid ${token.colorBorderSecondary}`,
-        }}
       >
-        <Space
-          size={9}
-          align="center"
-          style={{ height: 56, padding: collapsed ? '0 16px' : '0 16px' }}
-        >
-          <Avatar
-            shape="square"
-            size={28}
-            style={{ background: token.colorPrimary, fontWeight: 700, fontSize: 11 }}
-          >
-            DS
-          </Avatar>
+        <BrandBlock $collapsed={collapsed}>
+          <BrandMark>DS</BrandMark>
           {!collapsed && (
-            <div style={{ lineHeight: 1.2 }}>
-              <Text strong style={{ display: 'block', color: token.colorText }}>
-                DataSphere Lens
-              </Text>
-              <Text type="secondary" style={{ fontSize: 10 }}>
-                Business Intelligence
-              </Text>
-            </div>
+            <BrandCopy>
+              <strong>DataSphere Lens</strong>
+              <span>Business Intelligence</span>
+            </BrandCopy>
           )}
-        </Space>
+        </BrandBlock>
 
         {!collapsed && (
-          <div
-            style={{
-              margin: '0 10px 8px',
-              padding: '8px 10px',
-              border: `1px solid ${token.colorBorderSecondary}`,
-              borderRadius: token.borderRadiusSM,
-              background: token.colorFillAlter,
-            }}
-          >
-            <Text type="secondary" style={{ display: 'block', fontSize: 10 }}>
-              当前空间
-            </Text>
-            <Text strong ellipsis style={{ display: 'block', marginTop: 2 }}>
+          <WorkspaceCard>
+            <span>当前空间</span>
+            <strong title={organization?.name || '默认组织'}>
               {organization?.name || '默认组织'}
-            </Text>
-          </div>
+            </strong>
+          </WorkspaceCard>
         )}
 
-        <Menu
-          mode="inline"
-          theme="light"
-          selectedKeys={activeItem ? [activeItem.path] : []}
-          items={menuItems}
-          inlineCollapsed={collapsed}
-          style={{
-            height: 'calc(100vh - 120px)',
-            overflowY: 'auto',
-            borderInlineEnd: 0,
-            background: 'transparent',
-          }}
-        />
+        <Navigation aria-label="DataSphere Lens navigation">
+          {navGroups.map(group =>
+            group.items.length ? (
+              <NavGroup key={group.title}>
+                {!collapsed && <NavGroupLabel>{group.title}</NavGroupLabel>}
+                <NavItems>
+                  {group.items.map(item => {
+                    const selected = activeItem?.path === item.path;
+                    const content = (
+                      <NavButton
+                        key={item.path}
+                        type="button"
+                        $selected={selected}
+                        $collapsed={collapsed}
+                        onClick={() => navigate(item.path)}
+                      >
+                        <NavIcon $selected={selected}>{item.icon}</NavIcon>
+                        {!collapsed && <span>{item.name}</span>}
+                      </NavButton>
+                    );
+                    return collapsed ? (
+                      <Tooltip key={item.path} title={item.name} placement="right">
+                        {content}
+                      </Tooltip>
+                    ) : (
+                      content
+                    );
+                  })}
+                </NavItems>
+              </NavGroup>
+            ) : null,
+          )}
+        </Navigation>
 
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        <CollapseButton
+          type="button"
+          $collapsed={collapsed}
           onClick={() => setCollapsed(value => !value)}
-          style={{
-            position: 'absolute',
-            right: collapsed ? 10 : 8,
-            bottom: 8,
-            left: collapsed ? 10 : 8,
-            color: token.colorTextSecondary,
-          }}
         >
-          {!collapsed && '收起导航'}
-        </Button>
-      </Sider>
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          {!collapsed && <span>收起导航</span>}
+        </CollapseButton>
+      </LensSider>
 
-      <Layout style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden' }}>
-        <Header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 52,
-            padding: '0 16px',
-            background: token.colorBgContainer,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
+      <LensMain>
+        <LensHeader>
           <Space size={10} align="center">
             <Title level={5} style={{ margin: 0 }}>
               {activeItem?.name || 'DataSphere Lens'}
@@ -394,9 +349,9 @@ export function LensLayout({
               </Button>
             </Dropdown>
           </Space>
-        </Header>
-        <Content style={{ minWidth: 0, minHeight: 0, overflow: 'auto', background: token.colorBgLayout }}>{children}</Content>
-      </Layout>
+        </LensHeader>
+        <LensContent>{children}</LensContent>
+      </LensMain>
 
       <Profile
         visible={profileVisible}
@@ -406,6 +361,213 @@ export function LensLayout({
         visible={passwordVisible}
         onCancel={() => setPasswordVisible(false)}
       />
-    </Layout>
+    </LensRoot>
   );
 }
+
+
+const LensRoot = styled(Layout)`
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: ${p => p.theme.bodyBackground};
+`;
+
+const LensSider = styled(Sider)`
+  position: relative !important;
+  z-index: 20;
+  height: 100vh;
+  overflow: hidden;
+  background: ${p => p.theme.componentBackground} !important;
+  border-right: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const BrandBlock = styled.div<{ $collapsed: boolean }>`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 58px;
+  padding: 0 ${p => (p.$collapsed ? '16px' : '14px')};
+`;
+
+const BrandMark = styled.div`
+  display: grid;
+  flex: 0 0 32px;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  background: linear-gradient(145deg, #265d97, #3b78b7);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(38 93 151 / 20%);
+`;
+
+const BrandCopy = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 650;
+    color: ${p => p.theme.textColor};
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  span {
+    margin-top: 1px;
+    font-size: 10px;
+    color: ${p => p.theme.textColorDisabled};
+  }
+`;
+
+const WorkspaceCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 10px;
+  margin: 0 10px 10px;
+  background: ${p => p.theme.bodyBackground};
+  border: 1px solid ${p => p.theme.borderColorSplit};
+  border-radius: 8px;
+
+  span {
+    font-size: 10px;
+    color: ${p => p.theme.textColorDisabled};
+  }
+
+  strong {
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 550;
+    color: ${p => p.theme.textColorSnd};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const Navigation = styled.nav`
+  height: calc(100vh - 126px);
+  padding: 0 8px 52px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+`;
+
+const NavGroup = styled.section`
+  margin-bottom: 7px;
+`;
+
+const NavGroupLabel = styled.div`
+  padding: 7px 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: ${p => p.theme.textColorDisabled};
+  letter-spacing: 0.08em;
+`;
+
+const NavItems = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const NavButton = styled.button<{ $selected: boolean; $collapsed: boolean }>`
+  position: relative;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  justify-content: ${p => (p.$collapsed ? 'center' : 'flex-start')};
+  width: 100%;
+  height: 36px;
+  padding: ${p => (p.$collapsed ? '0' : '0 10px')};
+  font: inherit;
+  font-size: 12px;
+  font-weight: ${p => (p.$selected ? 600 : 450)};
+  color: ${p => (p.$selected ? p.theme.primary : p.theme.textColorSnd)};
+  cursor: pointer;
+  background: ${p => (p.$selected ? p.theme.emphasisBackground : 'transparent')};
+  border: 0;
+  border-radius: 7px;
+  transition: background 120ms ease, color 120ms ease;
+
+  &::before {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 2px;
+    height: 20px;
+    content: '';
+    background: ${p => (p.$selected ? p.theme.primary : 'transparent')};
+    border-radius: 0 2px 2px 0;
+  }
+
+  &:hover {
+    color: ${p => p.theme.primary};
+    background: ${p => p.theme.bodyBackground};
+  }
+`;
+
+const NavIcon = styled.span<{ $selected: boolean }>`
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  color: ${p => (p.$selected ? p.theme.primary : p.theme.textColorDisabled)};
+`;
+
+const CollapseButton = styled.button<{ $collapsed: boolean }>`
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: ${p => (p.$collapsed ? 'center' : 'flex-start')};
+  height: 34px;
+  padding: ${p => (p.$collapsed ? '0' : '0 10px')};
+  font: inherit;
+  font-size: 11px;
+  color: ${p => p.theme.textColorDisabled};
+  cursor: pointer;
+  background: ${p => p.theme.componentBackground};
+  border: 0;
+  border-radius: 7px;
+
+  &:hover {
+    color: ${p => p.theme.textColorSnd};
+    background: ${p => p.theme.bodyBackground};
+  }
+`;
+
+const LensMain = styled(Layout)`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+`;
+
+const LensHeader = styled(Header)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 16px;
+  line-height: normal;
+  background: ${p => p.theme.componentBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const LensContent = styled(Content)`
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: ${p => p.theme.bodyBackground};
+`;

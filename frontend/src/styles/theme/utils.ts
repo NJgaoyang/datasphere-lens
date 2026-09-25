@@ -1,5 +1,6 @@
 import { theme as antdTheme, ThemeConfig } from 'antd';
 import { StorageKeys } from 'globalConstants';
+import { lensDark, lensLight, lensMetrics } from '../lensTokens';
 import { ThemeKeyType } from './slice/types';
 import { themes } from './themes';
 
@@ -30,27 +31,32 @@ export function getThemeFromStorage(): ThemeKeyType {
 export function getAntdThemeConfig(themeKey: string): ThemeConfig {
   const currentTheme = themes[themeKey] || themes.light;
   const isDark = themeKey === 'dark';
+  const lens = isDark ? lensDark : lensLight;
 
   return {
     algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     token: {
-      colorPrimary: currentTheme.primary,
-      colorInfo: currentTheme.processing,
+      colorPrimary: lens.brand,
+      colorInfo: lens.brand,
       colorSuccess: currentTheme.success,
       colorError: currentTheme.error,
       colorWarning: currentTheme.warning,
-      colorLink: currentTheme.primary,
-      colorBgLayout: isDark ? '#0f1115' : '#f5f7fa',
-      colorBgContainer: isDark ? '#17191f' : '#ffffff',
-      colorBorderSecondary: isDark ? '#2a2d35' : '#edf0f5',
-      colorText: isDark ? '#f5f5f5' : '#1f2329',
-      colorTextSecondary: isDark ? '#a6a8ad' : '#646a73',
-      colorTextTertiary: isDark ? '#777b84' : '#8f959e',
-      borderRadius: 6,
-      borderRadiusLG: 8,
-      borderRadiusSM: 4,
-      controlHeight: 32,
-      controlHeightLG: 40,
+      colorLink: lens.brand,
+      colorBgLayout: lens.canvas,
+      colorBgContainer: lens.surface,
+      colorBgElevated: lens.surface,
+      colorFillAlter: lens.surfaceMuted,
+      colorFillSecondary: lens.surfaceHover,
+      colorBorder: lens.borderStrong,
+      colorBorderSecondary: lens.border,
+      colorText: lens.text,
+      colorTextSecondary: lens.textSecondary,
+      colorTextTertiary: lens.textTertiary,
+      borderRadius: lensMetrics.radius,
+      borderRadiusLG: lensMetrics.radiusLarge,
+      borderRadiusSM: lensMetrics.radiusSmall,
+      controlHeight: lensMetrics.controlHeight,
+      controlHeightLG: lensMetrics.controlHeightLarge,
       fontSize: 14,
       fontSizeSM: 12,
       lineHeight: 1.5715,
@@ -60,52 +66,72 @@ export function getAntdThemeConfig(themeKey: string): ThemeConfig {
     },
     components: {
       Layout: {
-        headerBg: isDark ? '#17191f' : '#ffffff',
-        siderBg: '#001529',
-        bodyBg: isDark ? '#0f1115' : '#f5f7fa',
+        headerBg: lens.surface,
+        siderBg: lens.surface,
+        bodyBg: lens.canvas,
       },
       Menu: {
-        darkItemBg: '#001529',
-        darkSubMenuItemBg: '#001529',
-        darkItemSelectedBg: '#1677ff',
-        itemBorderRadius: 6,
-        itemHeight: 40,
+        darkItemBg: lens.surface,
+        darkSubMenuItemBg: lens.surface,
+        darkItemSelectedBg: lens.brandSoft,
+        itemBorderRadius: lensMetrics.radius,
+        itemHeight: 36,
         itemMarginInline: 8,
       },
       Button: {
-        borderRadius: 6,
-        controlHeight: 32,
+        borderRadius: lensMetrics.radius,
+        controlHeight: lensMetrics.controlHeight,
         primaryShadow: 'none',
       },
       Card: {
-        borderRadiusLG: 8,
+        borderRadiusLG: lensMetrics.radiusLarge,
         headerHeight: 48,
       },
       Table: {
-        headerBg: isDark ? '#20232a' : '#f7f8fa',
+        headerBg: lens.surfaceMuted,
         headerColor: currentTheme.textColor,
         headerBorderRadius: 6,
-        rowHoverBg: isDark ? '#22252c' : '#f5f9ff',
+        rowHoverBg: lens.surfaceHover,
       },
       Input: {
         activeShadow: '0 0 0 2px rgba(22,119,255,.10)',
       },
       Select: {
-        optionSelectedBg: isDark ? '#1d3555' : '#e6f4ff',
+        optionSelectedBg: lens.brandSoft,
       },
       Modal: {
-        borderRadiusLG: 10,
+        borderRadiusLG: lensMetrics.radiusLarge,
         titleFontSize: 16,
       },
       Drawer: {
-        colorBgElevated: isDark ? '#17191f' : '#ffffff',
+        colorBgElevated: lens.surface,
       },
       Tabs: {
-        itemSelectedColor: currentTheme.primary,
-        inkBarColor: currentTheme.primary,
+        itemSelectedColor: lens.brand,
+        inkBarColor: lens.brand,
+        itemHoverColor: lens.brandHover,
+      },
+      Tree: {
+        nodeHoverBg: lens.surfaceHover,
+        nodeSelectedBg: lens.brandSoft,
+        directoryNodeSelectedBg: lens.brandSoft,
+        directoryNodeSelectedColor: lens.brand,
+      },
+      Segmented: {
+        itemSelectedBg: lens.surface,
+        itemHoverBg: lens.surfaceHover,
+        trackBg: lens.surfaceMuted,
+      },
+      Dropdown: {
+        colorBgElevated: lens.surface,
+        controlItemBgHover: lens.surfaceHover,
+        controlItemBgActive: lens.brandSoft,
+      },
+      Popover: {
+        colorBgElevated: lens.surface,
       },
       Form: {
-        labelColor: isDark ? '#d7d8db' : '#1f2329',
+        labelColor: lens.textSecondary,
       },
     },
   };

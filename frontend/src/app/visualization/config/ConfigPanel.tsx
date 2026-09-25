@@ -68,7 +68,7 @@ const ConfigPanel: FC<ConfigPanelProps> = ({
         </QuickSettings>
       )}
       <StyledCollapse
-        className="datart-config-panel"
+        className="lens-config-panel"
         ghost
         expandIconPosition="end"
         defaultActiveKey={defaultActiveKeys}

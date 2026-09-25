@@ -109,7 +109,7 @@ const ChartStyleConfigPanel: FC<{
         )}
         <StyledCollapse
           key={searchValue || 'default'}
-          className="datart-config-panel"
+          className="lens-config-panel"
           ghost
           expandIconPosition="end"
           defaultActiveKey={

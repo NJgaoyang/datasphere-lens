@@ -63,7 +63,7 @@ export const RectSet: FC<{ wid: string; rect: RectConfig }> = memo(
     const changeW = useCallback(val => changeRect('width', val), [changeRect]);
     const changeH = useCallback(val => changeRect('height', val), [changeRect]);
     return (
-      <Collapse className="datart-config-panel" ghost>
+      <Collapse className="lens-config-panel" ghost>
         <Panel
           header={t('position') + '&' + t('size')}
           key="position"
