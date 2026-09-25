@@ -395,16 +395,23 @@ const StyledContainer = styled.div<{
   isOver: boolean;
   canDrop: boolean;
 }>`
-  padding: ${SPACE_SM};
-  color: ${p => p.theme.textColorLight};
+  min-height: 44px;
+  padding: 7px 8px;
+  color: ${p => p.theme.textColorSnd};
   text-align: center;
   background-color: ${props =>
     props.canDrop
-      ? rgba(props.theme.success, 0.25)
+      ? rgba(props.theme.success, 0.08)
       : props.isOver
-      ? rgba(props.theme.error, 0.25)
-      : props.theme.emphasisBackground};
+      ? rgba(props.theme.error, 0.08)
+      : props.theme.bodyBackground};
+  border: 1px dashed
+    ${props =>
+      props.canDrop
+        ? rgba(props.theme.success, 0.55)
+        : props.theme.borderColorSplit};
   border-radius: ${BORDER_RADIUS};
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 
   .draggable-element:last-child {
     margin-bottom: 0;

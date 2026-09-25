@@ -456,11 +456,15 @@ const Container = styled.div<{ flexDirection?: string }>`
   flex: 1;
   flex-direction: ${p => p.flexDirection || 'row'};
   min-width: max-content;
-  padding: ${SPACE_TIMES(0.5)} ${SPACE} ${SPACE_TIMES(0.5)} ${SPACE_TIMES(2)};
+  min-height: 30px;
+  padding: ${SPACE_TIMES(0.5)} ${SPACE_TIMES(1.5)};
+  margin: 1px 6px;
   font-size: ${FONT_SIZE_BODY};
   font-weight: ${FONT_WEIGHT_MEDIUM};
   color: ${p => p.theme.textColorSnd};
   cursor: pointer;
+  border-radius: 4px;
+  &.container-active,
   .container-active {
     background-color: ${p => p.theme.bodyBackground};
   }
@@ -482,6 +486,7 @@ const Container = styled.div<{ flexDirection?: string }>`
 
   &:hover {
     color: ${p => p.theme.textColor};
+    background-color: ${p => p.theme.bodyBackground};
 
     .setting {
       visibility: visible;

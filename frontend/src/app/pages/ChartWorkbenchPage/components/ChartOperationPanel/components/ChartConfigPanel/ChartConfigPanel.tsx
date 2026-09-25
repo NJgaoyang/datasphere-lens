@@ -18,10 +18,9 @@
 
 import {
   AppstoreOutlined,
-  BlockOutlined,
   DashboardOutlined,
   DatabaseOutlined,
-  SettingOutlined,
+  LineChartOutlined,
 } from '@ant-design/icons';
 import { Button, Popover, Space, Tabs } from 'antd';
 import { PaneWrapper } from 'app/components';
@@ -60,8 +59,7 @@ const { TabPane } = Tabs;
 const CONFIG_PANEL_TABS = {
   DATA: 'data',
   STYLE: 'style',
-  SETTING: 'setting',
-  INTERACTION: 'interaction',
+  ANALYSIS: 'analysis',
 };
 
 const ChartConfigPanel: FC<{
@@ -94,12 +92,10 @@ const ChartConfigPanel: FC<{
           [config => !isEmptyArray(config?.datas), CONFIG_PANEL_TABS.DATA],
           [config => !isEmptyArray(config?.styles), CONFIG_PANEL_TABS.STYLE],
           [
-            config => !isEmptyArray(config?.settings),
-            CONFIG_PANEL_TABS.SETTING,
-          ],
-          [
-            config => !isEmptyArray(config?.interactions),
-            CONFIG_PANEL_TABS.INTERACTION,
+            config =>
+              !isEmptyArray(config?.settings) ||
+              !isEmptyArray(config?.interactions),
+            CONFIG_PANEL_TABS.ANALYSIS,
           ],
         )(chartConfig, CONFIG_PANEL_TABS.DATA);
       },
@@ -167,7 +163,6 @@ const ChartConfigPanel: FC<{
               </Space>
               <strong>{chart?.meta?.name ? t(chart.meta.name, true) : '未选择'}</strong>
             </CurrentVisual>
-            <ChartToolbar />
             <ConfigBlock>
               <Tabs
                 activeKey={tabActiveKey}
@@ -196,30 +191,21 @@ const ChartConfigPanel: FC<{
                     key={CONFIG_PANEL_TABS.STYLE}
                   />
                 )}
-                {!isEmptyArray(chartConfig?.settings) && (
+                {(!isEmptyArray(chartConfig?.settings) ||
+                  !isEmptyArray(chartConfig?.interactions)) && (
                   <TabPane
                     tab={
                       <span>
-                        <SettingOutlined />
-                        {t('title.setting')}
+                        <LineChartOutlined />
+                        分析
                       </span>
                     }
-                    key={CONFIG_PANEL_TABS.SETTING}
-                  />
-                )}
-                {!isEmptyArray(chartConfig?.interactions) && (
-                  <TabPane
-                    tab={
-                      <span>
-                        <BlockOutlined />
-                        {t('title.interaction')}
-                      </span>
-                    }
-                    key={CONFIG_PANEL_TABS.INTERACTION}
+                    key={CONFIG_PANEL_TABS.ANALYSIS}
                   />
                 )}
               </Tabs>
               <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.DATA}>
+                <ChartToolbar />
                 <ChartDataConfigPanel
                   dataConfigs={editorDataConfigs}
                   expensiveQuery={expensiveQuery}
@@ -236,26 +222,34 @@ const ChartConfigPanel: FC<{
                   )}
                 />
               </Pane>
-              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.SETTING}>
-                <ChartStyleConfigPanel
-                  i18nPrefix="viz.palette.setting"
-                  configs={chartConfig?.settings}
-                  dataConfigs={editorDataConfigs}
-                  onChange={handleConfigChangeByAction(
-                    ChartConfigReducerActionType.SETTING,
-                  )}
-                />
-              </Pane>
-              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.INTERACTION}>
-                <ChartStyleConfigPanel
-                  i18nPrefix="viz.palette.interaction"
-                  configs={chartConfig?.interactions}
-                  dataConfigs={editorDataConfigs}
-                  context={{ vizs, dataview }}
-                  onChange={handleConfigChangeByAction(
-                    ChartConfigReducerActionType.INTERACTION,
-                  )}
-                />
+              <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.ANALYSIS}>
+                {!isEmptyArray(chartConfig?.settings) && (
+                  <AnalysisSection>
+                    <AnalysisSectionTitle>图表设置</AnalysisSectionTitle>
+                    <ChartStyleConfigPanel
+                      i18nPrefix="viz.palette.setting"
+                      configs={chartConfig?.settings}
+                      dataConfigs={editorDataConfigs}
+                      onChange={handleConfigChangeByAction(
+                        ChartConfigReducerActionType.SETTING,
+                      )}
+                    />
+                  </AnalysisSection>
+                )}
+                {!isEmptyArray(chartConfig?.interactions) && (
+                  <AnalysisSection>
+                    <AnalysisSectionTitle>交互分析</AnalysisSectionTitle>
+                    <ChartStyleConfigPanel
+                      i18nPrefix="viz.palette.interaction"
+                      configs={chartConfig?.interactions}
+                      dataConfigs={editorDataConfigs}
+                      context={{ vizs, dataview }}
+                      onChange={handleConfigChangeByAction(
+                        ChartConfigReducerActionType.INTERACTION,
+                      )}
+                    />
+                  </AnalysisSection>
+                )}
               </Pane>
             </ConfigBlock>
           </StyledChartDataViewPanel>
@@ -339,4 +333,19 @@ const ConfigBlock = styled.div`
 const Pane = styled(PaneWrapper)`
   padding: 0 12px 12px;
   overflow-y: auto;
+`;
+
+const AnalysisSection = styled.section`
+  & + & {
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid ${p => p.theme.borderColorSplit};
+  }
+`;
+
+const AnalysisSectionTitle = styled.div`
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: ${p => p.theme.textColor};
 `;

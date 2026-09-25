@@ -47,10 +47,16 @@ const BaseDataConfigSection: FC<ChartDataConfigSectionProps> = memo(
 export default BaseDataConfigSection;
 
 const StyledBaseDataConfigSection = styled.div`
-  padding: ${SPACE} 0;
+  padding: 8px 0 4px;
 `;
 
 const StyledBaseDataConfigSectionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 2px;
+  font-size: 12px;
+  font-weight: 600;
   color: ${p => p.theme.textColor};
   user-select: none;
 `;

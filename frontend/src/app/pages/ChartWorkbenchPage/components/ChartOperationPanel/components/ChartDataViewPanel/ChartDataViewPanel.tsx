@@ -19,29 +19,30 @@
 import {
   FormOutlined,
   InfoCircleOutlined,
-  MoreOutlined,
+  NumberOutlined,
   SearchOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import {
   Button,
   Empty,
   Input,
-  Menu,
   message,
-  Popover,
   Space,
   Spin,
   Tooltip,
   TreeSelect,
 } from 'antd';
-import { MenuListItem, ToolbarButton } from 'app/components';
+import { ToolbarButton } from 'app/components';
 import { Confirm, ConfirmProps } from 'app/components/Confirm';
-import { ChartDataViewFieldCategory } from 'app/constants';
+import {
+  ChartDataViewFieldCategory,
+  DataViewFieldType,
+} from 'app/constants';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import useMount from 'app/hooks/useMount';
 import useStateModal, { StateModalSize } from 'app/hooks/useStateModal';
-import useToggle from 'app/hooks/useToggle';
 import ChartDataViewContext from 'app/pages/ChartWorkbenchPage/contexts/ChartDataViewContext';
 import workbenchSlice from 'app/pages/ChartWorkbenchPage/slice';
 import {
@@ -81,7 +82,7 @@ import {
   SPACE_TIMES,
   SPACE_XS,
 } from 'styles/StyleConstants';
-import { getPath, modelListFormsTreeByTableName } from 'utils/utils';
+import { getPath } from 'utils/utils';
 import { getAllFieldsOfEachType } from '../../utils';
 import { ChartDraggableSourceGroupContainer } from '../ChartDraggable';
 import ChartComputedFieldSettingPanel from './components/ChartComputedFieldSettingPanel';
@@ -105,13 +106,10 @@ const ChartDataViewPanel: FC<{
   );
   const [confirmProps, setConfirmProps] = useState<ConfirmProps>({});
 
-  const [isDisplayAddNewModal, setIsDisplayAddNewModal] = useToggle();
   const views = useSelector(dataviewsSelector);
   const viewDetailLoading = useSelector(viewDetailLoadingSelector);
   const [allMetaFields, setAllMetaFields] = useState<ChartDataViewMeta[]>([]);
-  const [isGroup, setIsGroup] = useState<boolean>(true);
   const [sortType, setSortType] = useState<string>('byNameSort');
-  const [isShowSearch, setIsShowSearch] = useState<boolean>(false);
 
   const path = useMemo(() => {
     return views?.length && dataView
@@ -369,38 +367,6 @@ const ChartDataViewPanel: FC<{
     ],
   );
 
-  const GroupMetaFields = useCallback(
-    sortType => {
-      const {
-        hierarchyFields,
-        stringFields,
-        numericFields,
-        dateLevelFields,
-        stringComputedFields,
-        numericComputedFields,
-        dateComputedFields,
-      } = getAllFieldsOfEachType({
-        sortType,
-        dataView,
-        availableSourceFunctions,
-      });
-
-      const columnTreeData = modelListFormsTreeByTableName(
-        [...stringFields, ...dateLevelFields, ...numericFields],
-        'analysisPage',
-      );
-
-      return [
-        ...hierarchyFields,
-        ...columnTreeData,
-        ...stringComputedFields,
-        ...numericComputedFields,
-        ...dateComputedFields,
-      ];
-    },
-    [availableSourceFunctions, dataView],
-  );
-
   const noGroupMetaFields = useCallback(
     sortType => {
       const {
@@ -430,14 +396,25 @@ const ChartDataViewPanel: FC<{
   );
 
   const buildAllMetaFields = useCallback(
-    (isGroup: boolean, sortType) => {
-      if (dataView?.type === 'SQL' || !isGroup) {
-        setAllMetaFields(noGroupMetaFields(sortType));
-      } else {
-        setAllMetaFields(GroupMetaFields(sortType));
-      }
+    sortType => {
+      setAllMetaFields(noGroupMetaFields(sortType));
     },
-    [noGroupMetaFields, GroupMetaFields, dataView?.type],
+    [noGroupMetaFields],
+  );
+
+  const dimensionFields = useMemo(
+    () =>
+      (filteredTreeData || []).filter(
+        field => field.type !== DataViewFieldType.NUMERIC,
+      ) as ChartDataViewMeta[],
+    [filteredTreeData],
+  );
+  const measureFields = useMemo(
+    () =>
+      (filteredTreeData || []).filter(
+        field => field.type === DataViewFieldType.NUMERIC,
+      ) as ChartDataViewMeta[],
+    [filteredTreeData],
   );
 
   const editView = useCallback(() => {
@@ -455,47 +432,6 @@ const ChartDataViewPanel: FC<{
     });
   }, [editView, showModal, t]);
 
-  const handleClickMenu = useCallback(
-    ({ key }) => {
-      switch (key) {
-        case 'createComputedFields':
-          setIsDisplayAddNewModal();
-          handleAddOrEditComputedField();
-          break;
-        case 'byGroup':
-          setIsGroup(true);
-          buildAllMetaFields(true, sortType);
-          break;
-        case 'byNoGroup':
-          setIsGroup(false);
-          buildAllMetaFields(false, sortType);
-          break;
-        case 'byNameSort':
-          setSortType(key);
-          buildAllMetaFields(isGroup, key);
-          break;
-        case 'byOriginalFieldSort':
-          setSortType(key);
-          buildAllMetaFields(isGroup, key);
-          break;
-        case 'searchField':
-          setIsDisplayAddNewModal();
-          setIsShowSearch(!isShowSearch);
-          break;
-        default:
-          break;
-      }
-    },
-    [
-      handleAddOrEditComputedField,
-      setIsDisplayAddNewModal,
-      buildAllMetaFields,
-      isGroup,
-      sortType,
-      isShowSearch,
-    ],
-  );
-
   useMount(() => {
     if (defaultViewId) {
       handleDataViewChange(defaultViewId);
@@ -503,21 +439,13 @@ const ChartDataViewPanel: FC<{
   });
 
   useEffect(() => {
-    buildAllMetaFields(dataView?.type === 'STRUCT', 'byNameSort');
-  }, [dataView?.type, buildAllMetaFields]);
+    buildAllMetaFields(sortType);
+  }, [buildAllMetaFields, sortType]);
 
   return (
     <StyledChartDataViewPanel>
       <Header>
-        <Tooltip placement="topLeft" title={t('editView')}>
-          <ToolbarButton
-            disabled={!(allowEnableView && allowManage && dataView)}
-            iconSize={14}
-            icon={<FormOutlined />}
-            size="small"
-            onClick={handleConfirmVisible}
-          />
-        </Tooltip>
+        <DatasetLabel>数据集</DatasetLabel>
         <TreeSelect
           showSearch
           placeholder={t('plsSelectDataView')}
@@ -528,58 +456,33 @@ const ChartDataViewPanel: FC<{
           filterTreeNode={filterDateViewTreeNode}
           bordered={false}
         />
-        <Popover
-          placement="bottomRight"
-          visible={isDisplayAddNewModal}
-          onVisibleChange={() => setIsDisplayAddNewModal()}
-          trigger="click"
-          overlayClassName="datart-popup"
-          content={
-            <Menu
-              onClick={handleClickMenu}
-              defaultSelectedKeys={[
-                'byNameSort',
-                isGroup ? 'byGroup' : 'byNoGroup',
-              ]}
-            >
-              <MenuListItem key="searchField">{t('searchField')}</MenuListItem>
-              <MenuListItem key="createComputedFields">
-                {t('createComputedFields')}
-              </MenuListItem>
-              <MenuListItem
-                disabled={dataView?.type !== 'STRUCT'}
-                title={t('Group')}
-                key="group"
-                sub
-              >
-                <MenuListItem key="byGroup">
-                  {t('byDataBaseGroup')}
-                </MenuListItem>
-                <MenuListItem key="byNoGroup">{t('noGroup')}</MenuListItem>
-              </MenuListItem>
-              <MenuListItem title={t('Sort')} key="sort" sub>
-                <MenuListItem key="byNameSort">{t('byNameSort')}</MenuListItem>
-                <MenuListItem key="byOriginalFieldSort">
-                  {t('noSort')}
-                </MenuListItem>
-              </MenuListItem>
-            </Menu>
-          }
-        >
-          <ToolbarButton icon={<MoreOutlined />} size="small" />
-        </Popover>
+        <Tooltip placement="topLeft" title={t('editView')}>
+          <ToolbarButton
+            disabled={!(allowEnableView && allowManage && dataView)}
+            iconSize={14}
+            icon={<FormOutlined />}
+            size="small"
+            onClick={handleConfirmVisible}
+          />
+        </Tooltip>
         {modalContextHolder}
       </Header>
-      <StyleSearchbar visible={isShowSearch}>
+      <FieldToolbar>
         <Input
-          autoFocus
+          allowClear
           className="search-input"
           prefix={<SearchOutlined className="icon" />}
-          placeholder={t('searchField')}
-          bordered={false}
+          placeholder="搜索字段"
           onChange={treeSearch}
         />
-      </StyleSearchbar>
+        <Button
+          type="link"
+          size="small"
+          onClick={() => handleAddOrEditComputedField()}
+        >
+          + 计算字段
+        </Button>
+      </FieldToolbar>
       <Confirm {...confirmProps} />
 
       {viewDetailLoading ? (
@@ -588,11 +491,44 @@ const ChartDataViewPanel: FC<{
           <span>正在加载字段...</span>
         </FieldState>
       ) : filteredTreeData?.length ? (
-        <ChartDraggableSourceGroupContainer
-          meta={filteredTreeData as ChartDataViewMeta[]}
-          onDeleteComputedField={handleDeleteComputedField}
-          onEditComputedField={handleEditComputedField}
-        />
+        <FieldLibrary>
+          <FieldSection>
+            <FieldSectionHeader>
+              <Space size={6}>
+                <TagsOutlined />
+                <strong>维度</strong>
+              </Space>
+              <span>{dimensionFields.length}</span>
+            </FieldSectionHeader>
+            {dimensionFields.length ? (
+              <ChartDraggableSourceGroupContainer
+                meta={dimensionFields}
+                onDeleteComputedField={handleDeleteComputedField}
+                onEditComputedField={handleEditComputedField}
+              />
+            ) : (
+              <FieldSectionEmpty>暂无维度字段</FieldSectionEmpty>
+            )}
+          </FieldSection>
+          <FieldSection>
+            <FieldSectionHeader>
+              <Space size={6}>
+                <NumberOutlined />
+                <strong>度量</strong>
+              </Space>
+              <span>{measureFields.length}</span>
+            </FieldSectionHeader>
+            {measureFields.length ? (
+              <ChartDraggableSourceGroupContainer
+                meta={measureFields}
+                onDeleteComputedField={handleDeleteComputedField}
+                onEditComputedField={handleEditComputedField}
+              />
+            ) : (
+              <FieldSectionEmpty>暂无度量字段</FieldSectionEmpty>
+            )}
+          </FieldSection>
+        </FieldLibrary>
       ) : (
         <FieldState>
           <Empty
@@ -629,19 +565,64 @@ const Header = styled.div`
   }
 `;
 
-const StyleSearchbar = styled.div<{ visible: boolean }>`
-  display: ${p => (p.visible ? 'block' : 'none')};
-  padding: 4px 0;
+const DatasetLabel = styled.span`
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: ${p => p.theme.textColorSnd};
+`;
+
+const FieldToolbar = styled.div`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px;
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 
   .search-input {
-    padding: ${SPACE} ${SPACE_MD};
-
-    .icon {
-      margin-right: ${SPACE_TIMES(1.5)};
-      color: ${p => p.theme.textColorDisabled};
-    }
+    min-width: 0;
   }
+`;
+
+const FieldLibrary = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+`;
+
+const FieldSection = styled.section`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+
+  & + & {
+    border-top: 1px solid ${p => p.theme.borderColorSplit};
+  }
+`;
+
+const FieldSectionHeader = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: ${p => p.theme.textColorSnd};
+  background: ${p => p.theme.bodyBackground};
+
+  strong {
+    color: ${p => p.theme.textColor};
+  }
+`;
+
+const FieldSectionEmpty = styled.div`
+  padding: 18px 12px;
+  font-size: 12px;
+  color: ${p => p.theme.textColorDisabled};
+  text-align: center;
 `;
 
 const FieldState = styled.div`

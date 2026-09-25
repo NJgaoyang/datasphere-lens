@@ -39,7 +39,7 @@ const layoutConfig: IJsonModel = {
       {
         type: 'tabset',
         id: 'model-dragbar',
-        width: 240,
+        width: 260,
         children: [
           {
             type: 'tab',
@@ -62,7 +62,7 @@ const layoutConfig: IJsonModel = {
       {
         type: 'tabset',
         id: 'config',
-        width: 340,
+        width: 360,
         children: [
           {
             type: 'tab',
