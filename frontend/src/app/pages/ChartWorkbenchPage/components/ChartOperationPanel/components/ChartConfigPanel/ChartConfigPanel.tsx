@@ -22,7 +22,7 @@ import {
   DatabaseOutlined,
   LineChartOutlined,
 } from '@ant-design/icons';
-import { Button, Popover, Space, Tabs } from 'antd';
+import { Button, Popover, Segmented, Space, Tabs } from 'antd';
 import { PaneWrapper } from 'app/components';
 import useComputedState from 'app/hooks/useComputedState';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -53,6 +53,7 @@ import {
   SPACE_MD,
 } from 'styles/StyleConstants';
 import { CloneValueDeep, cond, isEmptyArray } from 'utils/object';
+import { getVisualStylePresetPatches, VisualStylePreset } from 'app/visualization/config/stylePresets';
 import { recommendVisualTypes } from '../../visualRecommendation';
 import ChartGraphPanel from '../ChartGraphPanel';
 import ChartToolbar from '../ChartToolbar';
@@ -147,6 +148,18 @@ const ChartConfigPanel: FC<{
           needRefresh,
         });
       };
+
+    const applyStylePreset = (preset: VisualStylePreset) => {
+      getVisualStylePresetPatches(chartConfig?.styles || [], preset).forEach(
+        ({ ancestors, config }) => {
+          onChange?.(ChartConfigReducerActionType.STYLE, {
+            ancestors,
+            value: config,
+            needRefresh: false,
+          });
+        },
+      );
+    };
 
     return (
       <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
@@ -251,6 +264,21 @@ const ChartConfigPanel: FC<{
                 />
               </Pane>
               <Pane selected={tabActiveKey === CONFIG_PANEL_TABS.STYLE}>
+                <StylePresetBar>
+                  <div>
+                    <strong>样式预设</strong>
+                    <span>快速统一常用展示项，仍可继续逐项调整</span>
+                  </div>
+                  <Segmented
+                    size="small"
+                    options={[
+                      { label: '简洁', value: 'minimal' },
+                      { label: '商务', value: 'business' },
+                      { label: '强调', value: 'emphasis' },
+                    ]}
+                    onChange={value => applyStylePreset(value as VisualStylePreset)}
+                  />
+                </StylePresetBar>
                 <ChartStyleConfigPanel
                   i18nPrefix="viz.palette.style"
                   configs={chartConfig?.styles}
@@ -423,4 +451,29 @@ const RecommendationHint = styled.div`
   color: ${p => p.theme.textColorDisabled};
   background: ${p => p.theme.bodyBackground};
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const StylePresetBar = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  strong {
+    font-size: 12px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 10px;
+    color: ${p => p.theme.textColorDisabled};
+  }
 `;
