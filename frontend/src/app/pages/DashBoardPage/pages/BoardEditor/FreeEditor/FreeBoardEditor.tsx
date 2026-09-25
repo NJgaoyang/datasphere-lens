@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { Empty } from 'antd';
 import { BoardConfigValContext } from 'app/pages/DashBoardPage/components/BoardProvider/BoardConfigProvider';
 import { BoardContext } from 'app/pages/DashBoardPage/components/BoardProvider/BoardProvider';
 import { WidgetWrapProvider } from 'app/pages/DashBoardPage/components/WidgetProvider/WidgetWrapProvider';
@@ -65,6 +66,18 @@ export const FreeBoardEditor: React.FC<{}> = memo(() => {
         ref={refGridBackground}
       >
         <SlideBackground scale={scale} slideTranslate={slideTranslate}>
+          {!sortedLayoutWidgets.length && (
+            <FreeEmpty>
+              <Empty
+                description={
+                  <EmptyGuide>
+                    <strong>开始设计自由仪表板</strong>
+                    <span>从上方“添加”区域加入图表、筛选器、媒体或容器</span>
+                  </EmptyGuide>
+                }
+              />
+            </FreeEmpty>
+          )}
           {sortedLayoutWidgets.map(widgetConfig => (
             <WidgetWrapProvider
               key={widgetConfig.id}
@@ -103,5 +116,28 @@ const Container = styled.div`
 
   .grid-background::-webkit-scrollbar {
     width: 0 !important;
+  }
+`;
+
+const FreeEmpty = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const EmptyGuide = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-size: 14px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 12px;
+    color: ${p => p.theme.textColorSnd};
   }
 `;

@@ -241,7 +241,14 @@ export const AutoBoardEditor: React.FC<{}> = memo(() => {
           </>
         ) : (
           <div className="empty">
-            <Empty description="" />
+            <Empty
+              description={
+                <EmptyGuide>
+                  <strong>开始搭建仪表板</strong>
+                  <span>从上方“添加”区域加入图表、筛选器、媒体或容器</span>
+                </EmptyGuide>
+              }
+            />
           </div>
         )}
       </StyledContainer>
@@ -356,5 +363,21 @@ const MobilePreviewHeader = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+`;
+
+const EmptyGuide = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-size: 14px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 12px;
+    color: ${p => p.theme.textColorSnd};
   }
 `;

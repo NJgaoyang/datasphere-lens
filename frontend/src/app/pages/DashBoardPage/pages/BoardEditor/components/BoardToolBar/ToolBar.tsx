@@ -53,40 +53,39 @@ export const ToolBar = () => {
   const t = useI18NPrefix(`viz.board.action`);
   return (
     <Wrapper onClick={ssp}>
-      <Space>
-        <AddChart />
-
-        <AddController />
-
-        <AddMedia />
-
-        <AddContainer />
-
+      <ToolbarGroups>
+        <ToolGroup>
+          <GroupLabel>添加</GroupLabel>
+          <Space size={2}>
+            <AddChart />
+            <AddController />
+            <AddMedia />
+            <AddContainer />
+          </Space>
+        </ToolGroup>
         <Divider type="vertical" />
-
-        <UndoBtn fn={undo} title={t('undo')} />
-        <RedoBtn fn={redo} title={t('redo')} />
-
-        <Divider type="vertical" />
-
-        <DelWidgetsBtn fn={onEditDeleteActiveWidgets} title={t('delete')} />
-        <Divider type="vertical" />
-
-        <ToTopBtn fn={onEditLayerToTop} title={t('toTop')} />
-        <ToBottomBtn fn={onEditLayerToBottom} title={t('toBottom')} />
-
-        <CopyBtn fn={onEditCopyWidgets} title={t('copy')} />
-        <PasteBtn fn={onEditPasteWidgets} title={t('paste')} />
-
+        <ToolGroup>
+          <GroupLabel>编辑</GroupLabel>
+          <Space size={2}>
+            <UndoBtn fn={undo} title={t('undo')} />
+            <RedoBtn fn={redo} title={t('redo')} />
+            <DelWidgetsBtn fn={onEditDeleteActiveWidgets} title={t('delete')} />
+            <ToTopBtn fn={onEditLayerToTop} title={t('toTop')} />
+            <ToBottomBtn fn={onEditLayerToBottom} title={t('toBottom')} />
+            <CopyBtn fn={onEditCopyWidgets} title={t('copy')} />
+            <PasteBtn fn={onEditPasteWidgets} title={t('paste')} />
+          </Space>
+        </ToolGroup>
         {boardType === 'auto' && (
           <>
             <Divider type="vertical" />
-
-            <DeviceSwitcher />
+            <ToolGroup>
+              <GroupLabel>设备</GroupLabel>
+              <DeviceSwitcher />
+            </ToolGroup>
           </>
         )}
-      </Space>
-
+      </ToolbarGroups>
       <BoardToolRights />
     </Wrapper>
   );
@@ -96,4 +95,23 @@ const Wrapper = styled.div`
   display: flex;
   flex: 1;
   justify-content: space-between;
+`;
+
+const ToolbarGroups = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+`;
+
+const ToolGroup = styled.div`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+const GroupLabel = styled.span`
+  flex-shrink: 0;
+  font-size: 11px;
+  color: ${p => p.theme.textColorDisabled};
 `;

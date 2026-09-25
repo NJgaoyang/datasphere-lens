@@ -30,7 +30,7 @@ export const LayerTreePanel: FC<{}> = memo(() => {
   const t = useI18NPrefix(`viz.board.action`);
   const titleProps = useMemo(
     () => ({
-      title: t('widgetList'),
+      title: '图层',
       // search: true,
       // onSearch: null,
     }),
@@ -60,7 +60,7 @@ const Panel = styled.div`
   border-right: 1px solid ${p => p.theme.borderColorSplit};
 
   .layer-panel-title .title {
-    min-height: 48px;
+    min-height: 40px;
     padding: 0 16px;
     border-bottom: 1px solid ${p => p.theme.borderColorSplit};
   }

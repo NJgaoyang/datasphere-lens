@@ -34,16 +34,22 @@ export const SlideSetting: FC<{}> = memo(() => {
   }, [selectedIds]);
   return (
     <Wrapper>
-      {type === 'board' && <BoardConfigPanel />}
-      {type === 'widget' && (
-        <WidgetWrapProvider
-          id={selectedIdArr[0]}
-          boardEditing={true}
-          boardId={boardId}
-        >
-          <WidgetSetting boardId={boardId} />
-        </WidgetWrapProvider>
-      )}
+      <PanelHeader>
+        <strong>{type === 'board' ? '页面设置' : '组件设置'}</strong>
+        <span>{type === 'board' ? '仪表板' : '已选组件'}</span>
+      </PanelHeader>
+      <PanelBody>
+        {type === 'board' && <BoardConfigPanel />}
+        {type === 'widget' && (
+          <WidgetWrapProvider
+            id={selectedIdArr[0]}
+            boardEditing={true}
+            boardId={boardId}
+          >
+            <WidgetSetting boardId={boardId} />
+          </WidgetWrapProvider>
+        )}
+      </PanelBody>
     </Wrapper>
   );
 });
@@ -56,5 +62,33 @@ const Wrapper = styled.div<{}>`
   height: 100%;
   min-height: 0;
   background-color: ${p => p.theme.componentBackground};
-  box-shadow: ${p => p.theme.shadowSider};
+  border-left: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const PanelHeader = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  strong {
+    font-size: 13px;
+    color: ${p => p.theme.textColor};
+  }
+
+  span {
+    font-size: 11px;
+    color: ${p => p.theme.textColorDisabled};
+  }
+`;
+
+const PanelBody = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
 `;

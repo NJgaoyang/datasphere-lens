@@ -42,8 +42,8 @@ const Wrapper = styled.div`
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  min-height: 52px;
-  padding: 0 ${SPACE_XL};
+  min-height: 46px;
+  padding: 0 12px;
   background-color: ${p => p.theme.componentBackground};
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;
