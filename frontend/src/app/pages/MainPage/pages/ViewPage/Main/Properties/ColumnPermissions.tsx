@@ -17,9 +17,8 @@
  */
 
 import { LoadingOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Input, List, theme } from 'antd';
-import { ListItem, Popup } from 'app/components';
-import { LensTree } from 'app/components/LensWorkspace';
+import { Button, Input, List, Popover, theme } from 'antd';
+import { LensListItem, LensTree } from 'app/components/LensWorkspace';
 import { ViewFieldMeta } from 'app/types/View';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -147,9 +146,9 @@ export const ColumnPermissions = memo(() => {
         : columnDropdownData.map(({ key }) => key);
 
       return (
-        <ListItem
+        <LensListItem
           actions={[
-            <Popup
+            <Popover
               trigger={['click']}
               placement="bottomRight"
               content={
@@ -178,11 +177,11 @@ export const ColumnPermissions = memo(() => {
                     : t('none')
                   : t('all')}
               </Button>
-            </Popup>,
+            </Popover>,
           ]}
         >
           <List.Item.Meta title={name} />
-        </ListItem>
+        </LensListItem>
       );
     },
     [columnDropdownData, columnPermissions, checkColumnPermission, status, t],

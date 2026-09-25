@@ -28,7 +28,10 @@ import {
   Switch,
   TreeSelect,
 } from 'antd';
-import { ModalForm, ModalFormProps } from 'app/components';
+import {
+  LensModalForm,
+  LensModalFormProps,
+} from 'app/components/LensModalForm';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { APP_CURRENT_VERSION } from 'app/migration/constants';
 import { fetchCheckName } from 'app/utils/fetch';
@@ -60,7 +63,10 @@ import {
   selectCurrentEditingView,
 } from './slice/selectors';
 
-type SaveFormProps = Omit<ModalFormProps, 'type' | 'visible' | 'onSave'>;
+type SaveFormProps = Omit<
+  LensModalFormProps,
+  'type' | 'visible' | 'onSave'
+>;
 
 export function SaveForm({ formProps, ...modalProps }: SaveFormProps) {
   const [advancedVisible, setAdvancedVisible] = useState(false);
@@ -100,7 +106,7 @@ export function SaveForm({ formProps, ...modalProps }: SaveFormProps) {
   );
   const currentEditingView = useSelector(selectCurrentEditingView);
   const orgId = useSelector(selectOrgId);
-  const formRef = useRef<FormInstance>();
+  const formRef = useRef<FormInstance>(null);
   const t = useI18NPrefix('view.saveForm');
   const tg = useI18NPrefix('global');
 
@@ -140,7 +146,7 @@ export function SaveForm({ formProps, ...modalProps }: SaveFormProps) {
   }, [onAfterClose]);
 
   return (
-    <ModalForm
+    <LensModalForm
       formProps={formProps}
       {...modalProps}
       title={t(simple ? 'folder' : 'title')}
@@ -251,7 +257,7 @@ export function SaveForm({ formProps, ...modalProps }: SaveFormProps) {
           </AdvancedWrapper>
         </>
       )}
-    </ModalForm>
+    </LensModalForm>
   );
 }
 

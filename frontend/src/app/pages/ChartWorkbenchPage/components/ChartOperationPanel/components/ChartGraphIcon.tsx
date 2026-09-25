@@ -17,7 +17,7 @@
  */
 
 import { Tooltip } from 'antd';
-import { IW } from 'app/components';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import { ChartDataSectionType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { IChart } from 'app/types/Chart';
@@ -156,7 +156,7 @@ const Base64ImageRender = ({ iconStr, isMatchRequirement, isActive }) => {
   );
 };
 
-const StyledChartIconWrapper = styled(IW)`
+const StyledChartIconWrapper = styled(LensIconBox)`
   margin: 0;
   color: ${p => p.theme.textColorLight};
   cursor: pointer;

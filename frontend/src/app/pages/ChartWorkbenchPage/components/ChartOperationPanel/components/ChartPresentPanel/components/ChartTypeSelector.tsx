@@ -23,7 +23,7 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { Popconfirm } from 'antd';
-import { IW } from 'app/components';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import classnames from 'classnames';
 import { FC, memo, useCallback } from 'react';
@@ -98,7 +98,7 @@ const StyledChartTypeSelector = styled.div`
   color: ${p => p.theme.textColorLight};
 `;
 
-const TypeSelector = styled(IW)`
+const TypeSelector = styled(LensIconBox)`
   cursor: pointer;
 
   &.active {

@@ -23,7 +23,7 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { Button, Tooltip } from 'antd';
-import { IW } from 'app/components';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { FC, memo, useState } from 'react';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
@@ -86,7 +86,7 @@ const DataModelBranch: FC<{
               setIsHover(false);
             }}
           >
-            <IW fontSize={FONT_SIZE_HEADING}>{icon}</IW>
+            <LensIconBox fontSize={FONT_SIZE_HEADING}>{icon}</LensIconBox>
             <span>{getFieldDisplayName(node)}</span>
             {node.role === ColumnRole.Hierarchy && (
               <div className="action">

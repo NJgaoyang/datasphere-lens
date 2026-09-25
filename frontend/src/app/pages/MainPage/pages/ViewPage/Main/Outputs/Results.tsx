@@ -21,8 +21,7 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { Empty, Flex, Tooltip, Typography, theme } from 'antd';
-import { Popup } from 'app/components';
+import { Empty, Flex, Popover, Tooltip, Typography, theme } from 'antd';
 import { LensTree } from 'app/components/LensWorkspace';
 import { LensToolButton } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -218,7 +217,7 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
             }, [])
           : roleDropdownData.map(({ key }) => key);
       return [
-        <Popup
+        <Popover
           key={`${name}_columnpermission`}
           trigger={['click']}
           placement="bottomRight"
@@ -253,7 +252,7 @@ export const Results = memo(({ height = 0, width = 0 }: ResultsProps) => {
               }
             />
           </Tooltip>
-        </Popup>,
+        </Popover>,
       ];
     },
     [columnPermissions, roleDropdownData, checkRoleColumnPermission, t],

@@ -25,8 +25,8 @@ import {
   MoreOutlined,
   NumberOutlined,
 } from '@ant-design/icons';
-import { Menu, Popconfirm, Tooltip } from 'antd';
-import { IW, MenuListItem, Popup } from 'app/components';
+import { Menu, Popconfirm, Popover, Tooltip } from 'antd';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import { DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { ChartDataViewMeta } from 'app/types/ChartDataViewMeta';
@@ -88,7 +88,7 @@ const DataModelComputerFieldNode: FC<{
           <span>{getFieldDisplayName(node)}</span>
         </div>
         <div className="action">
-          <Popup
+          <Popover
             trigger={['click']}
             placement="bottom"
             content={
@@ -97,15 +97,15 @@ const DataModelComputerFieldNode: FC<{
                 selectable={false}
                 onClick={({ key }) => menuClick(node, key)}
               >
-                <MenuListItem
+                <Menu.Item
                   key="exit"
-                  prefix={<EditOutlined className="icon" />}
+                  icon={<EditOutlined className="icon" />}
                 >
                   {t('edit')}
-                </MenuListItem>
-                <MenuListItem
+                </Menu.Item>
+                <Menu.Item
                   key="del"
-                  prefix={<DeleteOutlined className="icon" />}
+                  icon={<DeleteOutlined className="icon" />}
                 >
                   <Popconfirm
                     title={t('deleteSure')}
@@ -113,12 +113,12 @@ const DataModelComputerFieldNode: FC<{
                   >
                     {t('delete')}
                   </Popconfirm>
-                </MenuListItem>
+                </Menu.Item>
               </Menu>
             }
           >
             <MoreOutlined />
-          </Popup>
+          </Popover>
         </div>
       </>
     );
@@ -175,7 +175,7 @@ const StyledDataModelComputerFieldNode = styled.div`
   }
 `;
 
-const StyledIW = styled(IW)`
+const StyledIW = styled(LensIconBox)`
   width: ${SPACE_TIMES(7)};
   height: ${SPACE_TIMES(7)};
   margin-right: ${SPACE_XS};

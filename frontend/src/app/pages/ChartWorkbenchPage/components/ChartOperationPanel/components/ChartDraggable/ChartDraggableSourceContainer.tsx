@@ -29,7 +29,7 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { Collapse, Dropdown, Menu, Row, Tooltip } from 'antd';
-import { IW } from 'app/components';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import { LensToolButton } from 'app/components/LensWorkspace';
 import { ChartDataViewFieldCategory, DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -345,7 +345,7 @@ export const ChartDraggableSourceContainer: FC<
               key={colName}
               header={
                 <DateFieldHeader ref={drag}>
-                  <IW fontSize={FONT_SIZE_TITLE}>{icon}</IW>
+                  <LensIconBox fontSize={FONT_SIZE_TITLE}>{icon}</LensIconBox>
                   <StyledDateFieldContent>
                     {fieldDisplayName}
                   </StyledDateFieldContent>
@@ -376,7 +376,7 @@ export const ChartDraggableSourceContainer: FC<
           }}
           className={styleClasses.join(' ')}
         >
-          <IW fontSize={FONT_SIZE_TITLE}>{icon}</IW>
+          <LensIconBox fontSize={FONT_SIZE_TITLE}>{icon}</LensIconBox>
           <StyledFieldContent>{fieldDisplayName}</StyledFieldContent>
           {!isHierarchyFieldOrTable && (
             <Tooltip title="添加到图表">

@@ -27,7 +27,7 @@ import {
   SisternodeOutlined,
 } from '@ant-design/icons';
 import { Button, Tag, Tooltip } from 'antd';
-import { IW } from 'app/components';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import { DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { FC, memo, useState } from 'react';
@@ -231,7 +231,7 @@ const StyledDataModelNode = styled.div<{
   }
 `;
 
-const StyledIW = styled(IW)`
+const StyledIW = styled(LensIconBox)`
   width: ${SPACE_TIMES(7)};
   height: ${SPACE_TIMES(7)};
   margin-right: ${SPACE_XS};

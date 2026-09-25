@@ -17,7 +17,7 @@
  */
 
 import { Input, Select } from 'antd';
-import { FormItemEx } from 'app/components';
+import { LensFormItem } from 'app/components/LensWorkspace';
 import {
   AggregateFieldActionType,
   ChartDataViewFieldCategory,
@@ -239,7 +239,7 @@ const FilterControlPanel: FC<
 
     return (
       <StyledFilterController>
-        <FormItemEx
+        <LensFormItem
           {...formItemStyles}
           label={t('filterName')}
           name="filterName"
@@ -247,9 +247,9 @@ const FilterControlPanel: FC<
           initialValue={getColumnRenderName(config)}
         >
           <Input onChange={e => handleNameChange(e.target?.value)} />
-        </FormItemEx>
+        </LensFormItem>
         {config.category === ChartDataViewFieldCategory.Field && aggregation && (
-          <FormItemEx
+          <LensFormItem
             {...formItemStyles}
             label={t('filterAggregate')}
             name="filterAggregate"
@@ -261,9 +261,9 @@ const FilterControlPanel: FC<
               aggregate={aggregate}
               onChange={handleAggregateTypeChange}
             />
-          </FormItemEx>
+          </LensFormItem>
         )}
-        <FormItemEx
+        <LensFormItem
           {...formItemStyles}
           label={t('filterOption')}
           name="filterOption"
@@ -272,8 +272,8 @@ const FilterControlPanel: FC<
           rules={[{ required: true }]}
         >
           {renderConditionConfigurationByModel()}
-        </FormItemEx>
-        <FormItemEx
+        </LensFormItem>
+        <LensFormItem
           {...formItemStyles}
           label={t('filterVisibility')}
           name="filterVisibility"
@@ -288,10 +288,10 @@ const FilterControlPanel: FC<
             otherFilters={getVisibilityOtherFilters()}
             onChange={handleVisibilityChange}
           />
-        </FormItemEx>
+        </LensFormItem>
         {filter?.visibility !== ControllerVisibilityTypes.Hide && (
           <>
-            <FormItemEx
+            <LensFormItem
               {...formItemStyles}
               label={t('facade')}
               name="filterFacade"
@@ -305,8 +305,8 @@ const FilterControlPanel: FC<
                 facade={filter?.facade}
                 onChange={handleFacadeChange}
               />
-            </FormItemEx>
-            <FormItemEx
+            </LensFormItem>
+            <LensFormItem
               {...formItemStyles}
               label={t('widthOption')}
               name="filterWidth"
@@ -320,7 +320,7 @@ const FilterControlPanel: FC<
                   </Select.Option>
                 ))}
               </Select>
-            </FormItemEx>
+            </LensFormItem>
           </>
         )}
       </StyledFilterController>

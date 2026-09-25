@@ -26,7 +26,7 @@ import {
   Select,
   Space,
 } from 'antd';
-import { FormItemEx } from 'app/components';
+import { LensFormItem } from 'app/components/LensWorkspace';
 import { FieldFormatType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import {
@@ -124,7 +124,7 @@ const NumberFormatAction: FC<{
     } else {
       return (
         <Space direction="vertical">
-          <FormItemEx {...formItemLayout} label={t('format.decimalPlace')}>
+          <LensFormItem {...formItemLayout} label={t('format.decimalPlace')}>
             <InputNumber
               min={0}
               max={99}
@@ -136,11 +136,11 @@ const NumberFormatAction: FC<{
                 );
               }}
             />
-          </FormItemEx>
+          </LensFormItem>
 
           {FieldFormatType.Currency === type && (
             <>
-              <FormItemEx {...formItemLayout} label={t('format.unit')}>
+              <LensFormItem {...formItemLayout} label={t('format.unit')}>
                 <Select
                   value={formatDetail?.unitKey}
                   onChange={unitKey => {
@@ -158,8 +158,8 @@ const NumberFormatAction: FC<{
                     );
                   })}
                 </Select>
-              </FormItemEx>
-              <FormItemEx {...formItemLayout} label={t('format.currency')}>
+              </LensFormItem>
+              <LensFormItem {...formItemLayout} label={t('format.currency')}>
                 <Select
                   value={formatDetail?.currency}
                   onChange={currency => {
@@ -176,12 +176,12 @@ const NumberFormatAction: FC<{
                     );
                   })}
                 </Select>
-              </FormItemEx>
+              </LensFormItem>
             </>
           )}
           {FieldFormatType.Numeric === type && (
             <>
-              <FormItemEx {...formItemLayout} label={t('format.unit')}>
+              <LensFormItem {...formItemLayout} label={t('format.unit')}>
                 <Select
                   value={formatDetail?.unitKey}
                   onChange={unitKey => {
@@ -199,8 +199,8 @@ const NumberFormatAction: FC<{
                     );
                   })}
                 </Select>
-              </FormItemEx>
-              <FormItemEx {...formItemLayout} label={t('format.useSeparator')}>
+              </LensFormItem>
+              <LensFormItem {...formItemLayout} label={t('format.useSeparator')}>
                 <Checkbox
                   checked={formatDetail?.useThousandSeparator}
                   onChange={e =>
@@ -211,8 +211,8 @@ const NumberFormatAction: FC<{
                     )
                   }
                 />
-              </FormItemEx>
-              <FormItemEx {...formItemLayout} label={t('format.prefix')}>
+              </LensFormItem>
+              <LensFormItem {...formItemLayout} label={t('format.prefix')}>
                 <Input
                   value={formatDetail?.prefix}
                   onChange={e =>
@@ -223,8 +223,8 @@ const NumberFormatAction: FC<{
                     )
                   }
                 />
-              </FormItemEx>
-              <FormItemEx {...formItemLayout} label={t('format.suffix')}>
+              </LensFormItem>
+              <LensFormItem {...formItemLayout} label={t('format.suffix')}>
                 <Input
                   value={formatDetail?.suffix}
                   onChange={e =>
@@ -235,7 +235,7 @@ const NumberFormatAction: FC<{
                     )
                   }
                 />
-              </FormItemEx>
+              </LensFormItem>
             </>
           )}
         </Space>

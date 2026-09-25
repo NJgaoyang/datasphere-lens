@@ -25,7 +25,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { Button, Flex, List, Popconfirm, theme, Typography } from 'antd';
-import { ListItem } from 'app/components';
+import { LensListItem } from 'app/components/LensWorkspace';
 import { useDebouncedSearch } from 'app/hooks/useDebouncedSearch';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { getRoles } from 'app/pages/MainPage/pages/MemberPage/slice/thunks';
@@ -364,7 +364,7 @@ export const Variables = memo(() => {
               }
             }
             return (
-              <ListItem actions={actions}>
+              <LensListItem actions={actions}>
                 <List.Item.Meta
                   avatar={
                     item.type === VariableTypes.Query ? (
@@ -375,7 +375,7 @@ export const Variables = memo(() => {
                   }
                   title={renderTitleText(item)}
                 />
-              </ListItem>
+              </LensListItem>
             );
           }}
         />

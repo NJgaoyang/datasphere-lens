@@ -17,7 +17,7 @@
  */
 
 import { Col, Input, Row, Select, Space, Tabs, TreeDataNode } from 'antd';
-import { FormItemEx } from 'app/components';
+import { LensFormItem } from 'app/components/LensWorkspace';
 import { LensTree } from 'app/components/LensWorkspace';
 import { ChartDataViewFieldCategory, DataViewFieldType } from 'app/constants';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -316,19 +316,19 @@ const ChartComputedFieldSettingPanel: FC<{
       <Row gutter={24}>
         <Col span={12}>
           <Space>
-            <FormItemEx
+            <LensFormItem
               label={`${t('fieldName')}`}
               name="fieldName"
               rules={[{ required: true }]}
               initialValue={myComputedFieldRef.current?.name}
             >
               <Input onChange={e => handleFieldNameChange(e.target.value)} />
-            </FormItemEx>
+            </LensFormItem>
           </Space>
         </Col>
         <Col span={12}>
           <Space>
-            <FormItemEx
+            <LensFormItem
               label={`${t('type')}`}
               name="type"
               rules={[{ required: true }]}
@@ -344,7 +344,7 @@ const ChartComputedFieldSettingPanel: FC<{
                 })}
                 onChange={handleFieldTypeChange}
               ></Select>
-            </FormItemEx>
+            </LensFormItem>
           </Space>
         </Col>
       </Row>

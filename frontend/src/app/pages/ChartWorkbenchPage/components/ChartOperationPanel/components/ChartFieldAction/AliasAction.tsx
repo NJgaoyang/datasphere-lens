@@ -17,7 +17,7 @@
  */
 
 import { Input, Space } from 'antd';
-import { FormItemEx } from 'app/components';
+import { LensFormItem } from 'app/components/LensWorkspace';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { ChartDataSectionField } from 'app/types/ChartConfig';
 import { getColumnRenderOriginName } from 'app/utils/internalChartHelper';
@@ -49,25 +49,25 @@ const AliasAction: FC<{
 
   return (
     <StyledAliasAction direction="vertical">
-      <FormItemEx {...formItemLayout} label={t('alias.fieldName')}>
+      <LensFormItem {...formItemLayout} label={t('alias.fieldName')}>
         {getColumnRenderOriginName(config)}
-      </FormItemEx>
-      <FormItemEx {...formItemLayout} label={t('alias.name')}>
+      </LensFormItem>
+      <LensFormItem {...formItemLayout} label={t('alias.name')}>
         <Input
           value={aliasName}
           onChange={({ target: { value } }) => {
             onChange(value, nameDesc);
           }}
         />
-      </FormItemEx>
-      <FormItemEx {...formItemLayout} label={t('alias.description')}>
+      </LensFormItem>
+      <LensFormItem {...formItemLayout} label={t('alias.description')}>
         <Input
           value={nameDesc}
           onChange={({ target: { value } }) => {
             onChange(aliasName, value);
           }}
         />
-      </FormItemEx>
+      </LensFormItem>
     </StyledAliasAction>
   );
 };

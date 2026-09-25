@@ -2,12 +2,20 @@ import {
   Button,
   ButtonProps,
   Empty,
+  Form,
+  FormItemProps,
   Input,
+  List,
   Spin,
   Tree as AntTree,
   TreeProps,
 } from 'antd';
-import { MutableRefObject, ReactNode } from 'react';
+import {
+  ComponentProps,
+  HTMLAttributes,
+  MutableRefObject,
+  ReactNode,
+} from 'react';
 import styled from 'styled-components';
 
 export const LensPanel = styled.aside<{
@@ -80,6 +88,119 @@ export const LensToolbar = styled.div`
   padding: 6px 10px;
   background: ${p => p.theme.componentBackground};
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+export function LensFormItem({ children, ...props }: FormItemProps) {
+  return (
+    <LensFormItemShell>
+      <Form.Item {...props}>{children}</Form.Item>
+    </LensFormItemShell>
+  );
+}
+
+const LensFormItemShell = styled.div`
+  .ant-form-item {
+    margin-bottom: 10px;
+  }
+
+  .ant-form-item-label > label {
+    height: auto;
+    font-size: 12px;
+    color: ${p => p.theme.textColorSnd};
+  }
+
+  .ant-form-item-control {
+    min-width: 0;
+  }
+
+  .ant-form-item-control-input {
+    width: 100%;
+    min-height: 28px;
+  }
+
+  .ant-form-item-explain {
+    padding-top: 3px;
+    font-size: 11px;
+  }
+`;
+
+type LensListItemBaseProps = ComponentProps<typeof List.Item>;
+export type LensListItemProps = LensListItemBaseProps & { selected?: boolean };
+
+export function LensListItem({ selected, ...props }: LensListItemProps) {
+  return (
+    <LensListItemShell $selected={selected}>
+      <List.Item {...props} />
+    </LensListItemShell>
+  );
+}
+
+const LensListItemShell = styled.div<{ $selected?: boolean }>`
+  margin: 0 6px;
+  background: ${p => (p.$selected ? p.theme.emphasisBackground : 'transparent')};
+  border-radius: 6px;
+
+  &:hover {
+    background: ${p => p.theme.bodyBackground};
+  }
+
+  .ant-list-item {
+    min-height: 38px;
+    padding: 7px 10px !important;
+    cursor: pointer;
+    border-bottom: 1px solid ${p => p.theme.borderColorSplit} !important;
+  }
+
+  .ant-list-item-meta-title {
+    margin: 0;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 500;
+    color: ${p => p.theme.textColorSnd};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn-hover {
+    opacity: 0;
+  }
+
+  &:hover .btn-hover {
+    opacity: 1;
+  }
+`;
+
+export interface LensIconBoxProps extends HTMLAttributes<HTMLDivElement> {
+  size?: string;
+  fontSize: string;
+}
+
+export function LensIconBox({
+  size,
+  fontSize,
+  children,
+  ...props
+}: LensIconBoxProps) {
+  return (
+    <StyledIconBox $size={size} $fontSize={fontSize} {...props}>
+      {children}
+    </StyledIconBox>
+  );
+}
+
+const StyledIconBox = styled.div<{ $size?: string; $fontSize: string }>`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: ${p => p.$size || '32px'};
+  height: ${p => p.$size || '32px'};
+  font-size: ${p => p.$fontSize};
+
+  > i,
+  > .anticon {
+    font-size: ${p => p.$fontSize};
+  }
 `;
 
 export interface LensTreeProps extends TreeProps {

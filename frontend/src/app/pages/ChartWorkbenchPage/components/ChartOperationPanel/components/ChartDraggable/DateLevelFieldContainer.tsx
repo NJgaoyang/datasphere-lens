@@ -1,6 +1,6 @@
 import { CalendarOutlined } from '@ant-design/icons';
 import { Row } from 'antd';
-import { IW } from 'app/components/IconWrapper';
+import { LensIconBox } from 'app/components/LensWorkspace';
 import { CHART_DRAG_ELEMENT_TYPE } from 'globalConstants';
 import { useDrag } from 'react-dnd';
 import styled from 'styled-components';
@@ -48,9 +48,9 @@ function DateLevelFieldContainer({
   return (
     <ItemWrapper ref={drag}>
       <Row>
-        <IW fontSize={FONT_SIZE_TITLE}>
+        <LensIconBox fontSize={FONT_SIZE_TITLE}>
           {<CalendarOutlined style={{ color: INFO }} />}
-        </IW>
+        </LensIconBox>
         <p>{displayName}</p>
       </Row>
     </ItemWrapper>
