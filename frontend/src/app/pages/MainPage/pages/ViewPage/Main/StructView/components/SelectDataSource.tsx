@@ -21,7 +21,7 @@ import {
   DatabaseOutlined,
   TableOutlined,
 } from '@ant-design/icons';
-import { Button, Checkbox, Divider, Empty, Flex, Input, List, Popover, Typography, theme } from 'antd';
+import { Button, Checkbox, Divider, Empty, Flex, Input, List, Menu, Popover, Typography, theme } from 'antd';
 import { Tree } from 'app/components';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { useSearchAndExpand } from 'app/hooks/useSearchAndExpand';
@@ -319,25 +319,19 @@ const SelectDataSource = memo(
                   />
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto' }}>
-                  <Menu
-                    prefixCls="ant-dropdown-menu"
-                    onClick={handleCurrentSources}
-                  >
-                    {sources && sources.length > 0 ? (
-                      sources.map((v, i) => {
-                        return (
-                          <MenuListItem
-                            key={i}
-                            prefix={<DatabaseOutlined className="list-icon" />}
-                          >
-                            {v.name}
-                          </MenuListItem>
-                        );
-                      })
-                    ) : (
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                    )}
-                  </Menu>
+                  {sources && sources.length > 0 ? (
+                    <Menu
+                      selectable={false}
+                      onClick={handleCurrentSources}
+                      items={sources.map((source, index) => ({
+                        key: index,
+                        icon: <DatabaseOutlined className="list-icon" />,
+                        label: source.name,
+                      }))}
+                    />
+                  ) : (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                  )}
                 </div>
               </Flex>
             )

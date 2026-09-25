@@ -144,7 +144,7 @@ export const Workbench = memo(() => {
 
   return (
     <Flex style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-      <Split direction="vertical" gutterSize={0} className="datart-split" onDrag={editorResize} style={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+      <Split direction="vertical" gutterSize={0} className="datart-split" onDrag={editorResize}>
         <Flex vertical style={{ flex: 1, minHeight: 0 }}>
           {!viewType ? (
             unpersistedNewView ? (
