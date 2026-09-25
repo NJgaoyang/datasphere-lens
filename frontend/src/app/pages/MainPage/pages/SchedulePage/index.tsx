@@ -1,10 +1,14 @@
 import { Split } from 'app/components';
+import { CalendarOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Empty } from 'antd';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
 import { useSplitSizes } from 'app/hooks/useSplitSizes';
 import { dispatchResize } from 'app/utils/dispatchResize';
 import { useCallback, useState } from 'react';
-import { useMatch } from 'react-router-dom';
+import { useMatch, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useSelector } from 'react-redux';
+import { selectOrgId } from '../../slice/selectors';
 import { useVizSlice } from '../VizPage/slice';
 import { EditorPage } from './EditorPage';
 import { SaveForm } from './SaveForm';
@@ -15,6 +19,8 @@ import { useScheduleSlice } from './slice';
 export function SchedulePage() {
   const tg = useI18NPrefix('global');
   const saveFormContextValue = useSaveFormContext();
+  const navigate = useNavigate();
+  const orgId = useSelector(selectOrgId);
   useScheduleSlice();
   useVizSlice();
   const editorMatch = useMatch(
@@ -72,7 +78,26 @@ export function SchedulePage() {
           handleSliderVisible={handleSliderVisible}
         />
         <EditorPageWrapper className={sliderVisible ? 'close' : ''}>
-          {editorMatch && <EditorPage />}
+          {editorMatch ? (
+            <EditorPage />
+          ) : (
+            <EmptyState>
+              <Empty
+                image={<CalendarOutlined style={{ fontSize: 48, color: '#bfbfbf' }} />}
+                description="选择左侧定时任务查看详情，或创建一个新的任务"
+              >
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() =>
+                    navigate(`/organizations/${orgId}/schedules/add`)
+                  }
+                >
+                  新建定时任务
+                </Button>
+              </Empty>
+            </EmptyState>
+          )}
         </EditorPageWrapper>
         <SaveForm
           formProps={{
@@ -107,4 +132,14 @@ const EditorPageWrapper = styled.div`
     min-width: calc(100% - 30px) !important;
     padding-left: 30px;
   }
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  background: ${p => p.theme.bodyBackground};
 `;

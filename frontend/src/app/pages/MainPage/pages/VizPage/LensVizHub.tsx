@@ -12,12 +12,14 @@ import { PageContainer } from '@ant-design/pro-components';
 import {
   Button,
   Card,
+  Drawer,
   Dropdown,
   Empty,
   Input,
   message,
   Popconfirm,
   Segmented,
+  List,
   Space,
   Table,
   Tag,
@@ -39,9 +41,23 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PermissionLevels, ResourceTypes } from '../PermissionPage/constants';
 import { useAddViz } from './hooks/useAddViz';
 import { SaveFormContext } from './SaveFormContext';
-import { selectVizListLoading, selectVizs } from './slice/selectors';
-import { deleteViz, getFolders } from './slice/thunks';
-import { FolderViewModel, VizType } from './slice/types';
+import {
+  selectArchivedDatachartLoading,
+  selectArchivedDatacharts,
+  selectArchivedDashboardLoading,
+  selectArchivedDashboards,
+  selectVizListLoading,
+  selectVizs,
+} from './slice/selectors';
+import {
+  deleteViz,
+  getArchivedDatacharts,
+  getArchivedDashboards,
+  getFolders,
+  publishViz,
+  unarchiveViz,
+} from './slice/thunks';
+import { ArchivedViz, FolderViewModel, VizType } from './slice/types';
 
 const { Text } = Typography;
 
@@ -61,6 +77,10 @@ export function LensVizHub() {
   const orgId = useSelector(selectOrgId);
   const vizs = useSelector(selectVizs);
   const loading = useSelector(selectVizListLoading);
+  const archivedCharts = useSelector(selectArchivedDatacharts);
+  const archivedDashboards = useSelector(selectArchivedDashboards);
+  const archivedChartLoading = useSelector(selectArchivedDatachartLoading);
+  const archivedDashboardLoading = useSelector(selectArchivedDashboardLoading);
   const { showSaveForm } = useContext(SaveFormContext);
   const addViz = useAddViz({ showSaveForm });
   const routeFilter: AssetFilter | null = location.pathname.endsWith('/charts')
@@ -72,6 +92,7 @@ export function LensVizHub() {
   const [filter, setFilter] = useState<AssetFilter>(routeFilter || 'ALL');
   const createTriggeredRef = useRef(false);
   const [keyword, setKeyword] = useState('');
+  const [recycleVisible, setRecycleVisible] = useState(false);
   const canCreate = useAccess({
     module: ResourceTypes.Viz,
     level: PermissionLevels.Create,
@@ -138,6 +159,61 @@ export function LensVizHub() {
     [addViz, folderId, navigate, orgId],
   );
 
+  const archivedItems: ArchivedViz[] =
+    routeFilter === 'DATACHART'
+      ? archivedCharts
+      : routeFilter === 'DASHBOARD'
+        ? archivedDashboards
+        : [];
+  const archivedLoading =
+    routeFilter === 'DATACHART'
+      ? archivedChartLoading
+      : archivedDashboardLoading;
+
+  const openRecycle = useCallback(() => {
+    setRecycleVisible(true);
+    if (routeFilter === 'DATACHART') {
+      dispatch(getArchivedDatacharts(orgId));
+    }
+    if (routeFilter === 'DASHBOARD') {
+      dispatch(getArchivedDashboards(orgId));
+    }
+  }, [dispatch, orgId, routeFilter]);
+
+  const restoreArchived = useCallback(
+    (item: ArchivedViz) => {
+      dispatch(
+        unarchiveViz({
+          params: {
+            id: item.id,
+            name: item.name,
+            vizType: item.vizType,
+            parentId: null,
+            index: item.index,
+          },
+          resolve: () => {
+            message.success('已恢复');
+            dispatch(getFolders(orgId));
+          },
+        }),
+      );
+    },
+    [dispatch, orgId],
+  );
+
+  const permanentlyDeleteArchived = useCallback(
+    (item: ArchivedViz) => {
+      dispatch(
+        deleteViz({
+          params: { id: item.id, archive: false },
+          type: item.vizType,
+          resolve: () => message.success('已永久删除'),
+        }),
+      );
+    },
+    [dispatch],
+  );
+
   const editAsset = useCallback(
     (item: FolderViewModel) => {
       if (item.relType === 'DATACHART') {
@@ -153,6 +229,25 @@ export function LensVizHub() {
       setFolderId(item.id);
     },
     [navigate, orgId],
+  );
+
+  const togglePublish = useCallback(
+    (item: FolderViewModel) => {
+      if (!['DATACHART', 'DASHBOARD'].includes(item.relType)) return;
+      const publish = item.status !== 2;
+      dispatch(
+        publishViz({
+          id: item.relId,
+          vizType: item.relType,
+          publish,
+          resolve: () => {
+            message.success(publish ? '发布成功' : '已取消发布');
+            dispatch(getFolders(orgId));
+          },
+        }),
+      );
+    },
+    [dispatch, orgId],
   );
 
   const archiveAsset = useCallback(
@@ -219,6 +314,11 @@ export function LensVizHub() {
       subTitle={pageSubtitle}
       style={{ flex: 1, overflow: 'auto' }}
       extra={[
+        routeFilter && (
+          <Button key="recycle" onClick={openRecycle}>
+            回收站
+          </Button>
+        ),
         routeFilter === 'DATACHART' ? (
           <Button
             key="create-chart"
@@ -394,13 +494,18 @@ export function LensVizHub() {
             {
               title: '操作',
               key: 'actions',
-              width: 220,
+              width: 300,
               align: 'right',
               render: (_, item) => (
                 <Space size={2}>
                   <Button type="link" size="small" onClick={() => editAsset(item)}>
                     {item.relType === 'FOLDER' ? '打开' : '编辑'}
                   </Button>
+                  {item.relType !== 'FOLDER' && (
+                    <Button type="link" size="small" onClick={() => togglePublish(item)}>
+                      {item.status === 2 ? '取消发布' : '发布'}
+                    </Button>
+                  )}
                   <Popconfirm
                     title={
                       item.relType === 'FOLDER'
@@ -425,6 +530,55 @@ export function LensVizHub() {
           ]}
         />
       </Card>
+
+      {routeFilter && (
+        <Drawer
+          title={`${pageTitle}回收站`}
+          width={620}
+          open={recycleVisible}
+          onClose={() => setRecycleVisible(false)}
+        >
+          <List
+            loading={archivedLoading}
+            dataSource={archivedItems}
+            locale={{ emptyText: <Empty description="回收站为空" /> }}
+            renderItem={item => (
+              <List.Item
+                actions={[
+                  <Button
+                    key="restore"
+                    type="link"
+                    onClick={() => restoreArchived(item)}
+                  >
+                    恢复
+                  </Button>,
+                  <Popconfirm
+                    key="delete"
+                    title="永久删除后无法恢复，确认删除？"
+                    onConfirm={() => permanentlyDeleteArchived(item)}
+                  >
+                    <Button type="link" danger loading={item.deleteLoading}>
+                      永久删除
+                    </Button>
+                  </Popconfirm>,
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    item.vizType === 'DATACHART' ? (
+                      <BarChartOutlined style={{ color: '#1677ff' }} />
+                    ) : (
+                      <DashboardOutlined style={{ color: '#1677ff' }} />
+                    )
+                  }
+                  title={item.name}
+                  description={item.vizType === 'DATACHART' ? '图表' : '仪表板'}
+                />
+              </List.Item>
+            )}
+          />
+        </Drawer>
+      )}
     </PageContainer>
   );
 

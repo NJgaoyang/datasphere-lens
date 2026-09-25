@@ -3,7 +3,7 @@ import {
   DashboardOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
-import { Button, Space } from 'antd';
+import { Button, Space, Tag } from 'antd';
 import classnames from 'classnames';
 import { FC, memo, PropsWithChildren, useContext } from 'react';
 import { useDispatch } from 'react-redux';
@@ -49,20 +49,22 @@ const EditorHeader: FC<PropsWithChildren> = memo(({ children }) => {
         <Divider />
         <Mark><DashboardOutlined /></Mark>
         <TitleBlock className={classnames({ disabled: status < 2 })}>
-          <Kicker>DASHBOARD WORKBENCH</Kicker>
           <Title>{title || '未命名仪表板'}</Title>
         </TitleBlock>
+        <Tag bordered={false} color={status >= 2 ? 'success' : undefined}>
+          {status >= 2 ? '已发布' : '草稿'}
+        </Tag>
       </Context>
       <Space>
         {children}
-        <Button onClick={onCloseBoardEditor}>返回</Button>
         <Button
           type="primary"
+          size="small"
           loading={saving}
           icon={<SaveOutlined />}
           onClick={onUpdateBoard}
         >
-          保存仪表板
+          保存
         </Button>
       </Space>
     </Wrapper>
@@ -76,22 +78,22 @@ const Wrapper = styled.div`
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  min-height: 62px;
-  padding: 0 18px;
+  min-height: 48px;
+  padding: 0 12px;
   background: #fff;
   border-bottom: 1px solid #e7eaf0;
 `;
 
 const Context = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   min-width: 0;
 `;
 
 const Divider = styled.div`
   width: 1px;
-  height: 28px;
+  height: 22px;
   background: #eaecf0;
 `;
 
@@ -99,12 +101,12 @@ const Mark = styled.div`
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
   color: #7c3aed;
   background: #f5f3ff;
-  border-radius: 10px;
+  border-radius: 6px;
 `;
 
 const TitleBlock = styled.div`
@@ -115,13 +117,7 @@ const TitleBlock = styled.div`
   }
 `;
 
-const Kicker = styled.div`
-  margin-bottom: 2px;
-  font-size: 9px;
-  font-weight: 700;
-  color: #667085;
-  letter-spacing: 0.12em;
-`;
+
 
 const Title = styled.div`
   max-width: 420px;

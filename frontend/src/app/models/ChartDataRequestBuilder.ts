@@ -204,6 +204,26 @@ export class ChartDataRequestBuilder {
     );
   }
 
+  private buildOutputDisplayAlias(
+    candidate: ChartDataSectionField | undefined,
+    output: { alias: string; sqlOperator?: unknown },
+  ) {
+    const explicitAlias = candidate?.alias?.name?.trim();
+    if (explicitAlias) {
+      return explicitAlias;
+    }
+
+    const isLegacyAggregate =
+      !candidate?.fieldId &&
+      this.dataView.migrationMode !== 'STRICT' &&
+      'sqlOperator' in output;
+    if (isLegacyAggregate) {
+      return output.alias;
+    }
+
+    return this.buildBusinessAlias(candidate) || output.alias;
+  }
+
   private isValidStrictComputedField(candidate?: ChartDataSectionField) {
     const computedCategories = [
       ChartDataViewFieldCategory.ComputedField,
@@ -267,7 +287,7 @@ export class ChartDataRequestBuilder {
       return {
         fieldId: candidate?.fieldId,
         technicalAlias: output.alias,
-        displayAlias: this.buildBusinessAlias(candidate) || output.alias,
+        displayAlias: this.buildOutputDisplayAlias(candidate, output),
         ordinal,
       };
     });

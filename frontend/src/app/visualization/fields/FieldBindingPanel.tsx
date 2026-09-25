@@ -50,9 +50,9 @@ const Panel = styled.div`
 `;
 
 const Slot = styled.section`
+  padding: 10px;
   border: 1px solid ${({ theme }) => theme?.borderColorSplit || '#f0f0f0'};
   border-radius: 6px;
-  padding: 10px;
 `;
 
 const SlotHeader = styled.div`
@@ -69,6 +69,6 @@ const SlotBody = styled.div`
 
 const Binding = styled.div`
   padding: 6px 8px;
-  border-radius: 4px;
   background: ${({ theme }) => theme?.bodyBackground || '#fafafa'};
+  border-radius: 4px;
 `;

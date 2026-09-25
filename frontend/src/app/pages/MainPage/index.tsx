@@ -59,6 +59,7 @@ import { VizPage } from './pages/VizPage';
 import { useVizSlice } from './pages/VizPage/slice';
 import { initChartPreviewData } from './pages/VizPage/slice/thunks';
 import { LensLayout } from './LensLayout';
+import { ProductErrorBoundary } from './ProductErrorBoundary';
 import { useMainSlice } from './slice';
 import { selectOrgId } from './slice/selectors';
 import {
@@ -349,10 +350,19 @@ export function MainPage() {
         </Routes>
   );
 
+  const guardedRouteContent = (
+    <ProductErrorBoundary
+      key={location.pathname}
+      homePath={`/organizations/${orgId}/home`}
+    >
+      {routeContent}
+    </ProductErrorBoundary>
+  );
+
   return useLensShell ? (
-    <LensLayout orgId={orgId}>{routeContent}</LensLayout>
+    <LensLayout orgId={orgId}>{guardedRouteContent}</LensLayout>
   ) : (
-    <AppContainer>{routeContent}</AppContainer>
+    <AppContainer>{guardedRouteContent}</AppContainer>
   );
 }
 

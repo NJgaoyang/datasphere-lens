@@ -202,12 +202,6 @@ const StyledTable = styled(Table)<{ tableStyleConfig?: TableStyleConfigProps }>`
       vertical-align: middle;
     }
 
-    .ant-table-content > table > .ant-table-thead > tr > th {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-    }
-
     .ant-table-column-title {
       overflow: visible;
       text-overflow: clip;
@@ -231,6 +225,12 @@ const StyledTable = styled(Table)<{ tableStyleConfig?: TableStyleConfigProps }>`
 
     .ant-table-tbody > tr > td:first-child {
       z-index: 2;
+    }
+
+    .ant-table-content > table > .ant-table-thead > tr > th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
     }
   }
 

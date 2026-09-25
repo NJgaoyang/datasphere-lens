@@ -267,39 +267,40 @@ export function LensLayout({
   };
 
   return (
-    <Layout style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
+    <Layout style={{ width: '100%', height: '100vh', overflow: 'hidden', background: token.colorBgLayout }}>
       <Sider
-        width={232}
-        collapsedWidth={72}
+        width={208}
+        collapsedWidth={60}
         collapsed={collapsed}
-        theme="dark"
+        theme="light"
         style={{
           position: 'relative',
           zIndex: 20,
           height: '100vh',
           overflow: 'hidden',
-          background: '#001529',
+          background: token.colorBgContainer,
+          borderRight: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
         <Space
-          size={12}
+          size={9}
           align="center"
-          style={{ height: 64, padding: collapsed ? '0 19px' : '0 20px' }}
+          style={{ height: 56, padding: collapsed ? '0 16px' : '0 16px' }}
         >
           <Avatar
             shape="square"
-            size={34}
-            style={{ background: token.colorPrimary, fontWeight: 700 }}
+            size={28}
+            style={{ background: token.colorPrimary, fontWeight: 700, fontSize: 11 }}
           >
             DS
           </Avatar>
           {!collapsed && (
             <div style={{ lineHeight: 1.2 }}>
-              <Text strong style={{ display: 'block', color: '#fff' }}>
-                DataSphere
+              <Text strong style={{ display: 'block', color: token.colorText }}>
+                DataSphere Lens
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>
-                Lens
+              <Text type="secondary" style={{ fontSize: 10 }}>
+                Business Intelligence
               </Text>
             </div>
           )}
@@ -308,16 +309,17 @@ export function LensLayout({
         {!collapsed && (
           <div
             style={{
-              margin: '0 12px 12px',
-              padding: '10px 12px',
-              borderRadius: token.borderRadiusLG,
-              background: 'rgba(255,255,255,.06)',
+              margin: '0 10px 8px',
+              padding: '8px 10px',
+              border: `1px solid ${token.colorBorderSecondary}`,
+              borderRadius: token.borderRadiusSM,
+              background: token.colorFillAlter,
             }}
           >
-            <Text style={{ display: 'block', color: 'rgba(255,255,255,.45)', fontSize: 11 }}>
+            <Text type="secondary" style={{ display: 'block', fontSize: 10 }}>
               当前空间
             </Text>
-            <Text strong ellipsis style={{ display: 'block', marginTop: 2, color: '#fff' }}>
+            <Text strong ellipsis style={{ display: 'block', marginTop: 2 }}>
               {organization?.name || '默认组织'}
             </Text>
           </div>
@@ -325,12 +327,12 @@ export function LensLayout({
 
         <Menu
           mode="inline"
-          theme="dark"
+          theme="light"
           selectedKeys={activeItem ? [activeItem.path] : []}
           items={menuItems}
           inlineCollapsed={collapsed}
           style={{
-            height: 'calc(100vh - 126px)',
+            height: 'calc(100vh - 120px)',
             overflowY: 'auto',
             borderInlineEnd: 0,
             background: 'transparent',
@@ -343,10 +345,10 @@ export function LensLayout({
           onClick={() => setCollapsed(value => !value)}
           style={{
             position: 'absolute',
-            right: collapsed ? 16 : 12,
-            bottom: 12,
-            left: collapsed ? 16 : 12,
-            color: 'rgba(255,255,255,.72)',
+            right: collapsed ? 10 : 8,
+            bottom: 8,
+            left: collapsed ? 10 : 8,
+            color: token.colorTextSecondary,
           }}
         >
           {!collapsed && '收起导航'}
@@ -359,31 +361,31 @@ export function LensLayout({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 64,
-            padding: '0 24px',
+            height: 52,
+            padding: '0 16px',
             background: token.colorBgContainer,
             borderBottom: `1px solid ${token.colorBorderSecondary}`,
           }}
         >
-          <div>
-            <Text type="secondary" style={{ display: 'block', fontSize: 11 }}>
-              {organization?.name || '默认组织'}
-            </Text>
+          <Space size={10} align="center">
             <Title level={5} style={{ margin: 0 }}>
               {activeItem?.name || 'DataSphere Lens'}
             </Title>
-          </div>
-          <Space size={12}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {organization?.name || '默认组织'}
+            </Text>
+          </Space>
+          <Space size={8}>
             <Dropdown menu={quickCreate} trigger={['click']}>
-              <Button type="primary" icon={<PlusOutlined />}>
+              <Button type="primary" size="small" icon={<PlusOutlined />}>
                 新建
               </Button>
             </Dropdown>
             <Dropdown menu={accountMenu} trigger={['click']}>
-              <Button type="text" style={{ height: 40, paddingInline: 8 }}>
-                <Space size={8}>
+              <Button type="text" style={{ height: 36, paddingInline: 6 }}>
+                <Space size={6}>
                   <Avatar
-                    size={30}
+                    size={26}
                     src={
                       user?.avatar
                         ? `${BASE_RESOURCE_URL}${user.avatar}`
@@ -397,7 +399,7 @@ export function LensLayout({
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ minWidth: 0, minHeight: 0, overflow: 'auto' }}>{children}</Content>
+        <Content style={{ minWidth: 0, minHeight: 0, overflow: 'auto', background: token.colorBgLayout }}>{children}</Content>
       </Layout>
 
       <Profile

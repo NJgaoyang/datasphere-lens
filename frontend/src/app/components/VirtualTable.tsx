@@ -173,13 +173,13 @@ export const VirtualTable = memo((props: VirtualTableProps) => {
 });
 
 const TableCell = styled.div`
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  box-sizing: border-box;
   min-width: 0;
   padding: 0 ${SPACE_TIMES(2)};
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
 `;

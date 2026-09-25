@@ -354,8 +354,8 @@ const MetricCard = styled.div`
 `;
 
 const MetricLabel = styled.div`
-  margin-top: 2px;
   min-height: 32px;
+  margin-top: 2px;
   overflow: hidden;
   font-size: 11px;
   line-height: 16px;
@@ -382,9 +382,9 @@ const EntityCard = styled.div`
 const EntityHeader = styled.div`
   display: flex;
   gap: 8px;
-  margin-bottom: 8px;
   align-items: baseline;
   justify-content: space-between;
+  margin-bottom: 8px;
 `;
 
 const EntityTitle = styled.div`

@@ -114,8 +114,8 @@ const DatasetCard = styled(Card)`
 
   .ant-card-body {
     display: flex;
-    min-height: 280px;
     flex-direction: column;
+    min-height: 280px;
     padding: 24px;
   }
 
@@ -133,9 +133,9 @@ const CardHeader = styled.div`
 
 const IconWrap = styled.div`
   display: grid;
+  place-items: center;
   width: 48px;
   height: 48px;
-  place-items: center;
   font-size: 24px;
   color: ${p => p.theme.primary};
   background: #eaf3ff;
