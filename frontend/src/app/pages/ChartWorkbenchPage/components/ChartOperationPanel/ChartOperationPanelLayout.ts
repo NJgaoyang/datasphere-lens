@@ -50,24 +50,24 @@ const layoutConfig: IJsonModel = {
       },
       {
         type: 'tabset',
-        id: 'config',
-        width: 320,
-        children: [
-          {
-            type: 'tab',
-            id: 'config-component',
-            component: LayoutComponentType.CONFIG,
-          },
-        ],
-      },
-      {
-        type: 'tabset',
         id: 'present',
         children: [
           {
             type: 'tab',
             id: 'present-wrapper',
             component: LayoutComponentType.PRESENT,
+          },
+        ],
+      },
+      {
+        type: 'tabset',
+        id: 'config',
+        width: 340,
+        children: [
+          {
+            type: 'tab',
+            id: 'config-component',
+            component: LayoutComponentType.CONFIG,
           },
         ],
       },

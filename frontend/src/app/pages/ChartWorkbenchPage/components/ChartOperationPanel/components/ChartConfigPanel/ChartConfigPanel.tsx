@@ -17,12 +17,13 @@
  */
 
 import {
+  AppstoreOutlined,
   BlockOutlined,
   DashboardOutlined,
   DatabaseOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { Tabs } from 'antd';
+import { Button, Popover, Space, Tabs } from 'antd';
 import { PaneWrapper } from 'app/components';
 import useComputedState from 'app/hooks/useComputedState';
 import useI18NPrefix from 'app/hooks/useI18NPrefix';
@@ -31,6 +32,7 @@ import ChartPaletteContext from 'app/pages/ChartWorkbenchPage/contexts/ChartPale
 import { ChartConfigReducerActionType } from 'app/pages/ChartWorkbenchPage/slice/constant';
 import { currentDataViewSelector } from 'app/pages/ChartWorkbenchPage/slice/selectors';
 import { ChartConfigPayloadType } from 'app/pages/ChartWorkbenchPage/slice/types';
+import { IChart } from 'app/types/Chart';
 import { selectVizs } from 'app/pages/MainPage/pages/VizPage/slice/selectors';
 import {
   ChartConfig,
@@ -39,7 +41,7 @@ import {
 } from 'app/types/ChartConfig';
 import ChartDataView from 'app/types/ChartDataView';
 import { reconcileChartConfigFieldMeta } from 'app/utils/internalChartHelper';
-import { FC, memo, useMemo } from 'react';
+import { FC, memo, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import {
@@ -48,6 +50,7 @@ import {
   SPACE_MD,
 } from 'styles/StyleConstants';
 import { cond, isEmptyArray } from 'utils/object';
+import ChartGraphPanel from '../ChartGraphPanel';
 import ChartToolbar from '../ChartToolbar';
 import ChartDataConfigPanel from './ChartDataConfigPanel';
 import ChartStyleConfigPanel from './ChartStyleConfigPanel';
@@ -63,15 +66,18 @@ const CONFIG_PANEL_TABS = {
 
 const ChartConfigPanel: FC<{
   dataView?: ChartDataView;
+  chart?: IChart;
   chartId?: string;
   chartConfig?: ChartConfig;
   expensiveQuery?: boolean;
+  onChartChange: (chart: IChart) => void;
   onChange: (type: string, payload: ChartConfigPayloadType) => void;
 }> = memo(
-  ({ chartId, chartConfig, expensiveQuery, onChange }) => {
+  ({ chart, chartId, chartConfig, expensiveQuery, onChartChange, onChange }) => {
     const t = useI18NPrefix(`viz.palette`);
     const vizs = useSelector(selectVizs);
     const dataview = useSelector(currentDataViewSelector);
+    const [visualPickerOpen, setVisualPickerOpen] = useState(false);
     const editorChartConfig = useMemo(() => {
       const fields = [
         ...(dataview?.meta || []),
@@ -131,7 +137,36 @@ const ChartConfigPanel: FC<{
       <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
         <ChartPaletteContext.Provider value={{ datas: editorDataConfigs }}>
           <StyledChartDataViewPanel>
-            <PanelHeader>图表配置</PanelHeader>
+            <PanelHeader>
+              <span>可视化配置</span>
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                open={visualPickerOpen}
+                onOpenChange={setVisualPickerOpen}
+                content={
+                  <ChartGraphPanel
+                    chart={chart}
+                    chartConfig={chartConfig}
+                    onChartChange={nextChart => {
+                      onChartChange(nextChart);
+                      setVisualPickerOpen(false);
+                    }}
+                  />
+                }
+              >
+                <Button size="small" icon={<AppstoreOutlined />}>
+                  切换图表
+                </Button>
+              </Popover>
+            </PanelHeader>
+            <CurrentVisual>
+              <Space size={8}>
+                <AppstoreOutlined />
+                <span>当前图表</span>
+              </Space>
+              <strong>{chart?.meta?.name ? t(chart.meta.name, true) : '未选择'}</strong>
+            </CurrentVisual>
             <ChartToolbar />
             <ConfigBlock>
               <Tabs
@@ -231,7 +266,8 @@ const ChartConfigPanel: FC<{
   (prev, next) =>
     prev.chartConfig === next.chartConfig &&
     prev.chartId === next.chartId &&
-    prev.expensiveQuery === next.expensiveQuery,
+    prev.expensiveQuery === next.expensiveQuery &&
+    prev.onChartChange === next.onChartChange,
 );
 
 export default ChartConfigPanel;
@@ -246,15 +282,38 @@ const StyledChartDataViewPanel = styled.div`
 `;
 
 const PanelHeader = styled.div`
+  display: flex;
   flex-shrink: 0;
-  height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
   padding: 0 12px;
   font-size: 13px;
   font-weight: 600;
-  line-height: 38px;
   color: ${p => p.theme.textColor};
   background: ${p => p.theme.componentBackground};
   border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+`;
+
+const CurrentVisual = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: ${p => p.theme.textColorSnd};
+  background: ${p => p.theme.bodyBackground};
+  border-bottom: 1px solid ${p => p.theme.borderColorSplit};
+
+  strong {
+    max-width: 150px;
+    overflow: hidden;
+    color: ${p => p.theme.textColor};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `;
 
 const ConfigBlock = styled.div`

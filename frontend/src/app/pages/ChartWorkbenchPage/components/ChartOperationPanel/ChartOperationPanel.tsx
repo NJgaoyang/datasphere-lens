@@ -76,9 +76,11 @@ const ChartOperationPanel: FC<{
         return (
           <ChartConfigPanel
             dataView={dataView}
+            chart={chart}
             chartId={chart?.meta?.id}
             chartConfig={chartConfig}
             expensiveQuery={expensiveQuery}
+            onChartChange={onChartChange}
             onChange={onChartConfigChange}
           />
         );

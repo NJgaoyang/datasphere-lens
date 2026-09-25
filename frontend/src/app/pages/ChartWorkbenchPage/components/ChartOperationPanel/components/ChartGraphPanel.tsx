@@ -15,7 +15,7 @@ import {
 import { transferChartDataConfig } from 'app/utils/internalChartHelper';
 import { FC, memo, useLayoutEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { BORDER_RADIUS, SPACE_MD, SPACE_XS } from 'styles/StyleConstants';
+import { BORDER_RADIUS, SPACE_XS } from 'styles/StyleConstants';
 import { CloneValueDeep } from 'utils/object';
 import ChartGraphIcon from './ChartGraphIcon';
 
@@ -106,8 +106,11 @@ const ChartGraphPanel: FC<{
 export default ChartGraphPanel;
 
 const StyledChartGraphPanel = styled.div`
+  width: 236px;
+  max-height: 520px;
   padding: 8px 10px 10px;
-  margin-bottom: ${SPACE_MD};
+  margin-bottom: 0;
+  overflow-y: auto;
   color: ${p => p.theme.textColorLight};
   background: ${p => p.theme.componentBackground};
   border: 1px solid ${p => p.theme.borderColorSplit};

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import useResizeObserver from 'app/hooks/useResizeObserver';
 import ChartI18NContext from 'app/pages/ChartWorkbenchPage/contexts/Chart18NContext';
 import { IChart } from 'app/types/Chart';
 import { ChartConfig, SelectedItem } from 'app/types/ChartConfig';
@@ -25,7 +24,6 @@ import ChartDataView from 'app/types/ChartDataView';
 import { FC, memo, useMemo } from 'react';
 import styled from 'styled-components';
 import { SPACE_MD } from 'styles/StyleConstants';
-import ChartGraphPanel from './ChartGraphPanel';
 import ChartPresentPanel from './ChartPresentPanel';
 
 const ChartPresentWrapper: FC<{
@@ -51,16 +49,10 @@ const ChartPresentWrapper: FC<{
     chartConfig,
     allowQuery,
     dataView,
-    onChartChange,
     onRefreshDataset,
     onCreateDownloadDataTask,
     selectedItems,
   }) => {
-    const { ref: ChartGraphPanelRef } = useResizeObserver<any>({
-      refreshMode: 'debounce',
-      refreshRate: 500,
-    });
-
     const borderWidth = useMemo(() => {
       return +SPACE_MD.replace('px', '');
     }, []);
@@ -68,19 +60,8 @@ const ChartPresentWrapper: FC<{
     return (
       <StyledChartPresentWrapper borderWidth={borderWidth}>
         <ChartI18NContext.Provider value={{ i18NConfigs: chartConfig?.i18ns }}>
-          <div ref={ChartGraphPanelRef}>
-            <ChartGraphPanel
-              chart={chart}
-              chartConfig={chartConfig}
-              onChartChange={onChartChange}
-            />
-          </div>
           <ChartPresentPanel
-            containerHeight={
-              (containerHeight || 0) -
-              borderWidth -
-              (ChartGraphPanelRef?.current?.offsetHeight || 0)
-            }
+            containerHeight={(containerHeight || 0) - borderWidth}
             containerWidth={(containerWidth || 0) - borderWidth}
             chart={chart}
             dataset={dataset}
